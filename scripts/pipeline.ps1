@@ -12,129 +12,95 @@ param(
 
     [switch]$SkipDashboardUpdate,
 
-    [string]$WPRProfile = "GeneralProfile",
+    [string]$WPRProfile = 'GeneralProfile',
 
-    [ValidateSet("Verbose","Light")]
-    [string]$WPRDetail = "Verbose"
+    [ValidateSet('Verbose','Light')]
+    [string]$WPRDetail = 'Verbose'
 )
 
-# =============================================================================
-# pipeline.ps1 — End-to-end experiment capture and analysis
-#
-# Orchestrates:
-#   1. Pre-flight checks (admin, idle, previous state)
-#   2. WPR ETL trace (DPC/ISR/interrupt/context switch profiling)
-#   3. Perf counter capture (per-CPU interrupt distribution)
-#   4. Registry state snapshot
-#   5. ETL → CSV extraction (DPC/ISR events via tracerpt)
-#   6. Analysis report generation
-#   7. Dashboard data update
-#
-# Usage:
-#   .\pipeline.ps1 -Label "EXP08_HPET" -Description "Disabled HPET timer"
-#   .\pipeline.ps1 -Label "EXP08_HPET" -Description "..." -DurationSec 60 -SkipWPR
-#   .\pipeline.ps1 -Label "BASELINE_LOAD" -Description "Under Fortnite load" -WPRProfile CPU
-#
-# Output:
-#   captures/experiments/YYYYMMDD_HHMMSS_LABEL/
-#     ├── experiment.json          # Perf counters + registry + per-CPU data
-#     ├── trace.etl                # WPR ETL trace (if captured)
-#     ├── dpc_isr_summary.csv      # DPC/ISR events extracted from ETL
-#     └── analysis.txt             # Human-readable analysis report
-# =============================================================================
+# pipeline.ps1 - End-to-end experiment capture and analysis
+# Orchestrates: WPR trace, perf counters, registry snapshot, xperf DPC/ISR analysis, dashboard update.
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 $scriptRoot = $PSScriptRoot
-$projectRoot = (Resolve-Path "$scriptRoot\..").Path
+$projectRoot = (Resolve-Path (Join-Path $scriptRoot '..')).Path
 
 $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-$outDir = Join-Path $projectRoot "captures\experiments\${timestamp}_${Label}"
+$outDir = Join-Path $projectRoot ('captures\experiments\' + $timestamp + '_' + $Label)
 New-Item -ItemType Directory -Path $outDir -Force | Out-Null
 
-# ─── Logging helper ───
+# Logging helper
 $logLines = @()
-function Log($msg, $level = "INFO") {
+function Log {
+    param([string]$msg, [string]$level = 'INFO')
     $ts = Get-Date -Format 'HH:mm:ss'
-    $line = "[$ts] [$level] $msg"
+    $line = '[' + $ts + '] [' + $level + '] ' + $msg
     $script:logLines += $line
     switch ($level) {
-        "PASS"  { Write-Host $line -ForegroundColor Green }
-        "FAIL"  { Write-Host $line -ForegroundColor Red }
-        "WARN"  { Write-Host $line -ForegroundColor Yellow }
+        'PASS' { Write-Host $line -ForegroundColor Green }
+        'FAIL' { Write-Host $line -ForegroundColor Red }
+        'WARN' { Write-Host $line -ForegroundColor Yellow }
+        'INFO' { Write-Host $line -ForegroundColor Cyan }
         default { Write-Host $line }
     }
 }
 
-# ═══════════════════════════════════════════════════════════════
 # PHASE 1: Pre-flight
-# ═══════════════════════════════════════════════════════════════
-Log "=== Pipeline Start: $Label ==="
-Log "Description: $Description"
-Log "Duration: ${DurationSec}s | WPR: $(-not $SkipWPR) ($WPRProfile.$WPRDetail)"
-Log "Output: $outDir"
-Log ""
+Log ('=== Pipeline Start: ' + $Label + ' ===')
+Log ('Description: ' + $Description)
+Log ('Duration: ' + $DurationSec + 's | WPR: ' + (-not $SkipWPR) + ' | Profile: ' + $WPRProfile + '.' + $WPRDetail)
+Log ('Output: ' + $outDir)
 
-# Check for running WPR session
-$wprStatus = wpr -status 2>&1
-if ($wprStatus -notmatch 'WPR is not recording') {
-    Log "WPR is already recording — cancelling previous session" "WARN"
-    wpr -cancel 2>&1 | Out-Null
-    Start-Sleep 2
-}
+try {
+    $wprStatus = (wpr -status 2>&1) -join ' '
+    if ($wprStatus -notmatch 'not recording') {
+        Log 'WPR is already recording - cancelling previous session' 'WARN'
+        wpr -cancel 2>&1 | Out-Null
+        Start-Sleep 2
+    }
+} catch { }
 
-# CPU idle check
-Log "Checking system idle state..."
+Log 'Checking system idle state...'
 $cpuCheck = (Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 1 -MaxSamples 3).CounterSamples |
     Measure-Object CookedValue -Average
 $cpuAvg = [math]::Round($cpuCheck.Average, 1)
 if ($cpuAvg -gt 15) {
-    Log "CPU at ${cpuAvg}% — system may not be idle enough for clean capture" "WARN"
-    Log "Consider closing background apps. Continuing in 5s..."
+    Log ('CPU at ' + $cpuAvg + '% - system may not be idle enough') 'WARN'
     Start-Sleep 5
 } else {
-    Log "CPU at ${cpuAvg}% — idle check passed" "PASS"
+    Log ('CPU at ' + $cpuAvg + '% - idle check passed') 'PASS'
 }
 
-# ═══════════════════════════════════════════════════════════════
 # PHASE 2: Start WPR trace
-# ═══════════════════════════════════════════════════════════════
-$etlFile = Join-Path $outDir "trace.etl"
+$etlFile = Join-Path $outDir 'trace.etl'
 $wprStarted = $false
 
 if (-not $SkipWPR) {
-    Log ""
-    Log "=== Phase 2: Starting WPR trace ==="
-    Log "Profile: $WPRProfile.$WPRDetail | File mode"
-
+    Log ''
+    Log '=== Phase 2: Starting WPR trace ==='
     try {
-        $wprArgs = @("-start", "$WPRProfile.$WPRDetail", "-filemode")
-
-        # Add CPU profile for detailed scheduling analysis
-        if ($WPRProfile -ne "CPU") {
-            $wprArgs += @("-start", "CPU.$WPRDetail")
+        $wprArgs = @('-start', ($WPRProfile + '.' + $WPRDetail), '-filemode')
+        if ($WPRProfile -ne 'CPU') {
+            $wprArgs += @('-start', ('CPU.' + $WPRDetail))
         }
-
         $wprResult = & wpr @wprArgs 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Log "WPR recording started" "PASS"
+            Log 'WPR recording started' 'PASS'
             $wprStarted = $true
         } else {
-            Log "WPR start failed: $wprResult" "WARN"
-            Log "Continuing without WPR trace"
+            Log ('WPR start failed: ' + $wprResult) 'WARN'
         }
     } catch {
-        Log "WPR exception: $($_.Exception.Message)" "WARN"
+        Log ('WPR exception: ' + $_.Exception.Message) 'WARN'
     }
 } else {
-    Log ""
-    Log "=== Phase 2: WPR skipped (use -SkipWPR:$false to enable) ==="
+    Log ''
+    Log '=== Phase 2: WPR skipped ==='
 }
 
-# ═══════════════════════════════════════════════════════════════
 # PHASE 3: Performance counter capture
-# ═══════════════════════════════════════════════════════════════
-Log ""
-Log "=== Phase 3: Perf counter capture (${DurationSec}s) ==="
+Log ''
+Log ('=== Phase 3: Perf counter capture ' + $DurationSec + 's ===')
 
 $counters = @(
     '\Processor(*)\% Interrupt Time',
@@ -155,118 +121,160 @@ $counters = @(
 
 $samples = Get-Counter -Counter $counters -SampleInterval 1 -MaxSamples $DurationSec
 
-# Aggregate all counter data
 $counterData = @{}
 foreach ($sample in $samples) {
     foreach ($cs in $sample.CounterSamples) {
-        $key = "$($cs.Path)|$($cs.InstanceName)"
+        $key = $cs.Path + '|' + $cs.InstanceName
         if (-not $counterData.ContainsKey($key)) {
-            $counterData[$key] = @{ path=$cs.Path; instance=$cs.InstanceName; values=@() }
+            $counterData[$key] = @{ path = $cs.Path; instance = $cs.InstanceName; values = @() }
         }
         $counterData[$key].values += $cs.CookedValue
     }
 }
 
 function Get-Stats($vals) {
-    $m = $vals | Measure-Object -Average -Minimum -Maximum -StandardDeviation
+    $m = $vals | Measure-Object -Average -Minimum -Maximum
+    # Compute stdev manually (PS 5.1 lacks -StandardDeviation)
+    $avg = $m.Average
+    $sumSq = 0; foreach ($v in $vals) { $sumSq += ($v - $avg) * ($v - $avg) }
+    $sd = [math]::Sqrt($sumSq / [math]::Max(1, $vals.Count - 1))
     return @{
         avg   = [math]::Round($m.Average, 4)
         min   = [math]::Round($m.Minimum, 4)
         max   = [math]::Round($m.Maximum, 4)
-        stdev = [math]::Round($m.StandardDeviation, 4)
+        stdev = [math]::Round($sd, 4)
     }
 }
 
-# Build per-CPU data
 $cpuInterrupt  = @{}
 $cpuDpc        = @{}
 $cpuIntrPerSec = @{}
 foreach ($key in $counterData.Keys) {
     $e = $counterData[$key]
-    if ($e.path -like '*interrupt time*') { $cpuInterrupt[$e.instance]  = Get-Stats $e.values }
-    if ($e.path -like '*dpc time*')       { $cpuDpc[$e.instance]        = Get-Stats $e.values }
+    if ($e.path -like '*interrupt time*') { $cpuInterrupt[$e.instance] = Get-Stats $e.values }
+    if ($e.path -like '*dpc time*') { $cpuDpc[$e.instance] = Get-Stats $e.values }
     if ($e.path -like '*interrupts/sec*') { $cpuIntrPerSec[$e.instance] = Get-Stats $e.values }
 }
 
 $cpuData = @()
 $cpuNums = $cpuInterrupt.Keys | Where-Object { $_ -ne '_total' } | Sort-Object { [int]$_ }
 foreach ($cpu in $cpuNums) {
+    $dpcVal = 0; if ($cpuDpc.ContainsKey($cpu)) { $dpcVal = $cpuDpc[$cpu].avg }
+    $ipsVal = 0; if ($cpuIntrPerSec.ContainsKey($cpu)) { $ipsVal = $cpuIntrPerSec[$cpu].avg }
+    $dpcSd  = 0; if ($cpuDpc.ContainsKey($cpu)) { $dpcSd = $cpuDpc[$cpu].stdev }
     $cpuData += @{
-        cpu          = [int]$cpu
-        interruptPct = $cpuInterrupt[$cpu].avg
-        dpcPct       = if ($cpuDpc.ContainsKey($cpu)) { $cpuDpc[$cpu].avg } else { 0 }
-        intrPerSec   = if ($cpuIntrPerSec.ContainsKey($cpu)) { $cpuIntrPerSec[$cpu].avg } else { 0 }
+        cpu            = [int]$cpu
+        interruptPct   = $cpuInterrupt[$cpu].avg
+        dpcPct         = $dpcVal
+        intrPerSec     = $ipsVal
         interruptStdev = $cpuInterrupt[$cpu].stdev
-        dpcStdev       = if ($cpuDpc.ContainsKey($cpu)) { $cpuDpc[$cpu].stdev } else { 0 }
+        dpcStdev       = $dpcSd
     }
 }
 
-# Build overall perf summary
 $perf = @{}
 foreach ($key in $counterData.Keys) {
-    $e     = $counterData[$key]
-    $name  = ($e.path.TrimStart('\').Split('\') | Select-Object -Last 1)
-    $inst  = $e.instance
+    $e    = $counterData[$key]
+    $name = $e.path.TrimStart('\').Split('\') | Select-Object -Last 1
+    $inst = $e.instance
     $stats = Get-Stats $e.values
-    $mk    = if ($inst) { "${name}[$inst]" } else { $name }
+    $mk = $name
+    if ($inst) { $mk = $name + '[' + $inst + ']' }
     $perf[$mk] = $stats
 }
 
-Log "Perf capture done: $($samples.Count) samples collected" "PASS"
+Log ('Perf capture done: ' + $samples.Count + ' samples') 'PASS'
 
-# ═══════════════════════════════════════════════════════════════
 # PHASE 4: Stop WPR and extract ETL
-# ═══════════════════════════════════════════════════════════════
 $dpcIsrData = $null
 
 if ($wprStarted) {
-    Log ""
-    Log "=== Phase 4: Stopping WPR trace ==="
-
+    Log ''
+    Log '=== Phase 4: Stopping WPR trace ==='
     try {
-        $stopResult = wpr -stop $etlFile "$Description" 2>&1
+        $stopResult = wpr -stop $etlFile $Description 2>&1
         if ($LASTEXITCODE -eq 0) {
             $etlSize = [math]::Round((Get-Item $etlFile).Length / 1MB, 1)
-            Log "WPR trace saved: trace.etl (${etlSize} MB)" "PASS"
+            Log ('WPR trace saved: trace.etl ' + $etlSize + ' MB') 'PASS'
         } else {
-            Log "WPR stop returned: $stopResult" "WARN"
+            Log ('WPR stop returned: ' + $stopResult) 'WARN'
         }
     } catch {
-        Log "WPR stop exception: $($_.Exception.Message)" "WARN"
+        Log ('WPR stop exception: ' + $_.Exception.Message) 'WARN'
     }
 
-    # Try to extract DPC/ISR events via tracerpt
+    # Extract DPC/ISR via xperf
     if (Test-Path $etlFile) {
-        Log "Extracting DPC/ISR events via tracerpt..."
-        $csvOut = Join-Path $outDir "tracerpt_output"
-        try {
-            $trResult = tracerpt $etlFile -o (Join-Path $outDir "events.csv") -of CSV -summary (Join-Path $outDir "summary.txt") -report (Join-Path $outDir "report.xml") -y 2>&1
-            if (Test-Path (Join-Path $outDir "summary.txt")) {
-                Log "tracerpt extraction complete" "PASS"
-                # Parse summary for DPC/ISR counts
-                $summaryContent = Get-Content (Join-Path $outDir "summary.txt") -Raw -ErrorAction SilentlyContinue
-                if ($summaryContent) {
-                    $dpcIsrData = @{ hasSummary = $true; summaryFile = "summary.txt" }
+        $xperfPath = 'C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\xperf.exe'
+
+        if (Test-Path $xperfPath) {
+            Log 'Running xperf DPC/ISR analysis...'
+            $dpcIsrReport = Join-Path $outDir 'dpcisr_report.txt'
+            try {
+                & $xperfPath -i $etlFile -o $dpcIsrReport -a dpcisr 2>&1 | Out-Null
+                if (Test-Path $dpcIsrReport) {
+                    $reportSize = [math]::Round((Get-Item $dpcIsrReport).Length / 1KB, 1)
+                    Log ('xperf DPC/ISR report: ' + $reportSize + ' KB') 'PASS'
+                    $dpcIsrData = @{ hasReport = $true; reportFile = 'dpcisr_report.txt' }
+
+                    # Parse DPC summary
+                    $dpcDrivers = @()
+                    $inDpc = $false
+                    foreach ($rline in (Get-Content $dpcIsrReport)) {
+                        if ($rline -match 'DPC Module Summary') { $inDpc = $true; continue }
+                        if ($rline -match 'ISR Module Summary' -and $inDpc) { $inDpc = $false; continue }
+                        if ($rline.Trim() -eq '' -and $inDpc -and $dpcDrivers.Count -gt 0) { $inDpc = $false; continue }
+                        if ($inDpc -and $rline -match '(\S+\.sys)\s+(\d+)\s+[\d.]+\s+[\d.]+\s+([\d.]+)') {
+                            $dpcDrivers += @{
+                                Module = $Matches[1]
+                                Count  = [int]$Matches[2]
+                                MaxUs  = [double]$Matches[3]
+                            }
+                        }
+                    }
+                    if ($dpcDrivers.Count -gt 0) {
+                        $dpcIsrData['dpcDrivers'] = $dpcDrivers | Sort-Object MaxUs -Descending | Select-Object -First 10
+                        $topD = $dpcDrivers[0]
+                        Log ('Top DPC: ' + $topD.Module + ' max ' + $topD.MaxUs + 'us, ' + $topD.Count + ' calls') 'INFO'
+                    }
+
+                    # Parse ISR summary
+                    $isrDrivers = @()
+                    $inIsr = $false
+                    foreach ($rline in (Get-Content $dpcIsrReport)) {
+                        if ($rline -match 'ISR Module Summary') { $inIsr = $true; continue }
+                        if ($rline.Trim() -eq '' -and $inIsr -and $isrDrivers.Count -gt 0) { $inIsr = $false; continue }
+                        if ($inIsr -and $rline -match '(\S+\.sys)\s+(\d+)\s+[\d.]+\s+[\d.]+\s+([\d.]+)') {
+                            $isrDrivers += @{
+                                Module = $Matches[1]
+                                Count  = [int]$Matches[2]
+                                MaxUs  = [double]$Matches[3]
+                            }
+                        }
+                    }
+                    if ($isrDrivers.Count -gt 0) {
+                        $dpcIsrData['isrDrivers'] = $isrDrivers | Sort-Object MaxUs -Descending | Select-Object -First 10
+                    }
+                } else {
+                    Log 'xperf DPC/ISR report not generated' 'WARN'
                 }
+            } catch {
+                Log ('xperf analysis failed: ' + $_.Exception.Message) 'WARN'
             }
-        } catch {
-            Log "tracerpt extraction failed: $($_.Exception.Message)" "WARN"
+        } else {
+            Log 'xperf.exe not found - install Windows ADK' 'WARN'
         }
     }
 } else {
-    Log ""
-    Log "=== Phase 4: Skipped (no WPR trace) ==="
+    Log ''
+    Log '=== Phase 4: Skipped - no WPR trace ==='
 }
 
-# ═══════════════════════════════════════════════════════════════
-# PHASE 5: Registry state capture
-# ═══════════════════════════════════════════════════════════════
-Log ""
-Log "=== Phase 5: Registry snapshot ==="
+# PHASE 5: Registry state
+Log ''
+Log '=== Phase 5: Registry snapshot ==='
 
 $reg = @{}
-
-# MMCSS
 try {
     $mmcss = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -ErrorAction Stop
     $games = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' -ErrorAction Stop
@@ -277,241 +285,205 @@ try {
     $reg['GamesSFIOPriority']       = $games.'SFIO Priority'
 } catch { $reg['MMCSS_Error'] = $_.Exception.Message }
 
-# Defender
 try {
     $mp = Get-MpPreference -ErrorAction Stop
-    $reg['ScanAvgCPULoadFactor']  = $mp.ScanAvgCPULoadFactor
-    $reg['EnableLowCpuPriority']  = [string]$mp.EnableLowCpuPriority
-    $reg['ExclusionPathCount']    = if ($mp.ExclusionPath) { $mp.ExclusionPath.Count } else { 0 }
-    $reg['ExclusionProcessCount'] = if ($mp.ExclusionProcess) { $mp.ExclusionProcess.Count } else { 0 }
+    $reg['ScanAvgCPULoadFactor'] = $mp.ScanAvgCPULoadFactor
+    $reg['EnableLowCpuPriority'] = [string]$mp.EnableLowCpuPriority
+    $excPaths = 0; if ($mp.ExclusionPath) { $excPaths = $mp.ExclusionPath.Count }
+    $excProcs = 0; if ($mp.ExclusionProcess) { $excProcs = $mp.ExclusionProcess.Count }
+    $reg['ExclusionPathCount']    = $excPaths
+    $reg['ExclusionProcessCount'] = $excProcs
 } catch { $reg['Defender_Error'] = $_.Exception.Message }
 
-# GPU MSI + PerfLevelSrc
 $nvKeys = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
     Where-Object { $_.PSChildName -like 'VEN_10DE*' }
 if ($nvKeys) {
     $nvKey = $nvKeys | Select-Object -First 1
-    $msiPath = "$($nvKey.PSPath)\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+    $msiPath = Join-Path $nvKey.PSPath 'Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
     if (Test-Path $msiPath) {
         $msi = Get-ItemProperty $msiPath -ErrorAction SilentlyContinue
-        $reg['GPU_MSISupported']       = $msi.MSISupported
+        $reg['GPU_MSISupported'] = $msi.MSISupported
         $reg['GPU_MessageNumberLimit'] = $msi.MessageNumberLimit
     }
     $reg['GPU_PerfLevelSrc'] = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak' -ErrorAction SilentlyContinue).PerfLevelSrc
 }
 $reg['HAGS_HwSchMode'] = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -ErrorAction SilentlyContinue).HwSchMode
 
-# Interrupt affinities (spot-check key devices)
 $affinities = @{}
-$deviceChecks = @(
-    @{ Name='GPU';     Pattern='VEN_10DE' },
-    @{ Name='NIC';     Pattern='VEN_8086&DEV_125C' },
-    @{ Name='USB_15B6';Pattern='VEN_1022&DEV_15B6' },
-    @{ Name='USB_15B7';Pattern='VEN_1022&DEV_15B7' },
-    @{ Name='USB_43F7';Pattern='VEN_1022&DEV_43F7' },
-    @{ Name='USB_15B8';Pattern='VEN_1022&DEV_15B8' }
+$devChecks = @(
+    @{ Name = 'GPU';      Pattern = 'VEN_10DE' },
+    @{ Name = 'NIC';      Pattern = 'VEN_8086&DEV_125C' },
+    @{ Name = 'USB_15B6'; Pattern = 'VEN_1022&DEV_15B6' },
+    @{ Name = 'USB_15B7'; Pattern = 'VEN_1022&DEV_15B7' },
+    @{ Name = 'USB_43F7'; Pattern = 'VEN_1022&DEV_43F7' },
+    @{ Name = 'USB_15B8'; Pattern = 'VEN_1022&DEV_15B8' }
 )
-foreach ($dc in $deviceChecks) {
-    $dkeys = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Enum\PCI" -ErrorAction SilentlyContinue |
-        Where-Object { $_.PSChildName -like "*$($dc.Pattern)*" }
-    if ($dkeys) {
-        foreach ($dk in $dkeys) {
-            $affPath = "$($dk.PSPath)\Device Parameters\Interrupt Management\Affinity Policy"
-            if (Test-Path $affPath) {
-                $v = Get-ItemProperty $affPath -ErrorAction SilentlyContinue
-                if ($v.AssignmentSetOverride) {
-                    $hex = '0x' + ($v.AssignmentSetOverride[0].ToString('X2'))
-                    $affinities["$($dc.Name)"] = @{
-                        DevicePolicy = $v.DevicePolicy
-                        MaskByte0    = $hex
-                        InstanceId   = $dk.PSChildName
-                    }
-                }
+foreach ($dc in $devChecks) {
+    $dk = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
+        Where-Object { $_.PSChildName -like ('*' + $dc.Pattern + '*') } | Select-Object -First 1
+    if ($dk) {
+        $affPath = Join-Path $dk.PSPath 'Device Parameters\Interrupt Management\Affinity Policy'
+        if (Test-Path $affPath) {
+            $v = Get-ItemProperty $affPath -ErrorAction SilentlyContinue
+            if ($v.AssignmentSetOverride) {
+                $hex = '0x' + $v.AssignmentSetOverride[0].ToString('X2')
+                $affinities[$dc.Name] = @{ DevicePolicy = $v.DevicePolicy; MaskByte0 = $hex }
             }
         }
     }
 }
 $reg['InterruptAffinities'] = $affinities
+Log 'Registry snapshot captured' 'PASS'
 
-Log "Registry snapshot captured" "PASS"
-
-# ═══════════════════════════════════════════════════════════════
 # PHASE 6: Analysis
-# ═══════════════════════════════════════════════════════════════
-Log ""
-Log "=== Phase 6: Analysis ==="
+Log ''
+Log '=== Phase 6: Analysis ==='
 
 $analysis = @()
-$analysis += "=== Experiment Analysis: $Label ==="
-$analysis += "Description: $Description"
-$analysis += "Captured: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-$analysis += "Duration: ${DurationSec}s | WPR: $(-not $SkipWPR)"
-$analysis += ""
+$analysis += '=== Experiment Analysis: ' + $Label + ' ==='
+$analysis += 'Description: ' + $Description
+$analysis += 'Captured: ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+$analysis += 'Duration: ' + $DurationSec + 's'
+$analysis += ''
 
-# CPU interrupt distribution analysis
-$analysis += "--- Interrupt Distribution ---"
-$cpu0Share = 0
-$cpu23Share = 0
-$cpu47Share = 0
+$cpu0Share = 0; $cpu23Share = 0; $cpu47Share = 0
 $totalIntr = 0
 foreach ($c in $cpuData) { $totalIntr += $c.interruptPct }
 if ($totalIntr -gt 0) {
-    $c0 = ($cpuData | Where-Object { $_.cpu -eq 0 }).interruptPct
-    $cpu0Share = [math]::Round($c0 / $totalIntr * 100, 1)
-    $c23 = ($cpuData | Where-Object { $_.cpu -in @(2,3) } | Measure-Object interruptPct -Sum).Sum
-    $cpu23Share = [math]::Round($c23 / $totalIntr * 100, 1)
-    $c47 = ($cpuData | Where-Object { $_.cpu -in @(4,5,6,7) } | Measure-Object interruptPct -Sum).Sum
-    $cpu47Share = [math]::Round($c47 / $totalIntr * 100, 1)
+    $c0val = ($cpuData | Where-Object { $_.cpu -eq 0 }).interruptPct
+    $cpu0Share = [math]::Round($c0val / $totalIntr * 100, 1)
+    $c23val = 0; foreach ($c in ($cpuData | Where-Object { $_.cpu -in @(2,3) })) { $c23val += $c.interruptPct }
+    $cpu23Share = [math]::Round($c23val / $totalIntr * 100, 1)
+    $c47val = 0; foreach ($c in ($cpuData | Where-Object { $_.cpu -in @(4,5,6,7) })) { $c47val += $c.interruptPct }
+    $cpu47Share = [math]::Round($c47val / $totalIntr * 100, 1)
 }
 
-$analysis += "CPU 0 (preferred core):       $cpu0Share% of total interrupt time"
-$analysis += "CPUs 2-3 (input devices):     $cpu23Share% of total interrupt time"
-$analysis += "CPUs 4-7 (GPU/NIC/USB):       $cpu47Share% of total interrupt time"
-$analysis += "CPUs 8-15 (game threads):     $([math]::Round(100 - $cpu0Share - $cpu23Share - $cpu47Share, 1))% of total interrupt time"
-$analysis += ""
+$analysis += '--- Interrupt Distribution ---'
+$analysis += 'CPU 0  preferred:    ' + $cpu0Share + '%'
+$analysis += 'CPUs 2-3 input:      ' + $cpu23Share + '%'
+$analysis += 'CPUs 4-7 GPU/NIC:    ' + $cpu47Share + '%'
+$restShare = [math]::Round(100 - $cpu0Share - $cpu23Share - $cpu47Share, 1)
+$analysis += 'CPUs 8-15 game:      ' + $restShare + '%'
+$analysis += ''
 
-# Target checks
-$analysis += "--- Target Verification ---"
-$targets = @(
-    @{ Name="CPU 0 share <10%";      Value=$cpu0Share;     Target=10;   Op="lt" },
-    @{ Name="Total DPC% <0.5%";      Value=$cpuDpc['_total'].avg; Target=0.5; Op="lt" },
-    @{ Name="Total Interrupt% <1.0%"; Value=$cpuInterrupt['_total'].avg; Target=1.0; Op="lt" }
-)
+$analysis += '--- Targets ---'
+$totalDpcAvg = $cpuDpc['_total'].avg
+$totalIntrAvg = $cpuInterrupt['_total'].avg
 
-foreach ($t in $targets) {
-    $pass = switch ($t.Op) {
-        "lt" { $t.Value -lt $t.Target }
-        "gt" { $t.Value -gt $t.Target }
-    }
-    $status = if ($pass) { "PASS" } else { "REVIEW" }
-    $analysis += "[$status] $($t.Name): $($t.Value) (target: <$($t.Target))"
-    Log "$($t.Name): $($t.Value)" $(if ($pass) { "PASS" } else { "WARN" })
-}
+$chk1 = if ($cpu0Share -lt 10) { 'PASS' } else { 'REVIEW' }
+$chk2 = if ($totalDpcAvg -lt 0.5) { 'PASS' } else { 'REVIEW' }
+$chk3 = if ($totalIntrAvg -lt 1.0) { 'PASS' } else { 'REVIEW' }
 
-$analysis += ""
+$analysis += '[' + $chk1 + '] CPU 0 share <10%: ' + $cpu0Share + '%'
+$analysis += '[' + $chk2 + '] Total DPC <0.5%: ' + $totalDpcAvg + '%'
+$analysis += '[' + $chk3 + '] Total Interrupt <1.0%: ' + $totalIntrAvg + '%'
 
-# Jitter analysis (stdev of interrupt time per CPU)
-$analysis += "--- Jitter Analysis (interrupt% standard deviation) ---"
-$highJitter = $cpuData | Where-Object { $_.interruptStdev -gt 0.5 } | Sort-Object interruptStdev -Descending
-if ($highJitter) {
-    foreach ($hj in $highJitter) {
-        $analysis += "[WARN] CPU $($hj.cpu): interrupt stdev = $($hj.interruptStdev)%"
-    }
-} else {
-    $analysis += "[PASS] No CPUs with interrupt jitter >0.5% stdev"
-}
+Log ('CPU 0 share: ' + $cpu0Share + '%') $chk1
+Log ('Total DPC: ' + $totalDpcAvg + '%') $chk2
+Log ('Total Interrupt: ' + $totalIntrAvg + '%') $chk3
 
-$analysis += ""
-$analysis += "--- Per-CPU Detail ---"
-$analysis += "{0,-6} {1,10} {2,10} {3,12} {4,12}" -f "CPU", "Intr%", "DPC%", "Intr/sec", "IntrStdev"
+$analysis += ''
+$analysis += '--- Per-CPU ---'
 foreach ($c in ($cpuData | Sort-Object cpu)) {
-    $role = switch ($c.cpu) {
-        0 { " <-preferred" }
-        2 { " <-input" }
-        3 { " <-input" }
-        4 { " <-GPU/NIC" }
-        5 { " <-GPU/NIC" }
-        6 { " <-GPU/NIC" }
-        7 { " <-GPU/NIC" }
-        default { "" }
+    $role = ''
+    switch ($c.cpu) { 0 { $role = ' <-preferred' }; 2 { $role = ' <-input' }; 3 { $role = ' <-input' }; 4 { $role = ' <-GPU/NIC' }; 5 { $role = ' <-GPU/NIC' }; 6 { $role = ' <-GPU/NIC' }; 7 { $role = ' <-GPU/NIC' } }
+    $analysis += ('{0,-6} {1,10:N4} {2,10:N4} {3,12:N1}{4}' -f ('CPU' + $c.cpu), $c.interruptPct, $c.dpcPct, $c.intrPerSec, $role)
+}
+
+# xperf results in analysis
+if ($dpcIsrData -and $dpcIsrData.hasReport) {
+    $analysis += ''
+    $analysis += '--- xperf DPC/ISR Analysis ---'
+    if ($dpcIsrData.dpcDrivers) {
+        $analysis += ''
+        $analysis += 'Top DPC offenders:'
+        foreach ($d in $dpcIsrData.dpcDrivers) {
+            $analysis += ('  ' + $d.Module + '  count=' + $d.Count + '  max=' + $d.MaxUs + 'us')
+        }
     }
-    $analysis += ("{0,-6} {1,10:N4} {2,10:N4} {3,12:N1} {4,12:N4}{5}" -f
-        "CPU$($c.cpu)", $c.interruptPct, $c.dpcPct, $c.intrPerSec, $c.interruptStdev, $role)
+    if ($dpcIsrData.isrDrivers) {
+        $analysis += ''
+        $analysis += 'Top ISR offenders:'
+        foreach ($d in $dpcIsrData.isrDrivers) {
+            $analysis += ('  ' + $d.Module + '  count=' + $d.Count + '  max=' + $d.MaxUs + 'us')
+        }
+    }
 }
 
-# WPR trace info
 if ($wprStarted -and (Test-Path $etlFile)) {
-    $analysis += ""
-    $analysis += "--- WPR Trace ---"
-    $analysis += "ETL file: trace.etl ($([math]::Round((Get-Item $etlFile).Length / 1MB, 1)) MB)"
-    $analysis += "Profile: $WPRProfile.$WPRDetail + CPU.$WPRDetail"
-    $analysis += "Open in Windows Performance Analyzer (WPA) for:"
-    $analysis += "  - DPC/ISR duration breakdown by driver (Computation → DPC/ISR)"
-    $analysis += "  - Context switch analysis (Computation → CPU Usage (Precise))"
-    $analysis += "  - Interrupt-to-thread latency"
-    $analysis += "  - Memory hard fault stacks"
+    $analysis += ''
+    $analysis += 'For deeper analysis open trace.etl in WPA'
 }
 
-$analysisFile = Join-Path $outDir "analysis.txt"
+$analysisFile = Join-Path $outDir 'analysis.txt'
 $analysis | Out-File $analysisFile -Encoding UTF8
 
-# ═══════════════════════════════════════════════════════════════
 # PHASE 7: Save JSON
-# ═══════════════════════════════════════════════════════════════
-Log ""
-Log "=== Phase 7: Saving experiment JSON ==="
+Log ''
+Log '=== Phase 7: Saving experiment JSON ==='
 
-$result = [ordered]@{
-    schemaVersion = 2
-    label         = $Label
-    description   = $Description
-    capturedAt    = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
-    durationSec   = $DurationSec
-    hostname      = $env:COMPUTERNAME
-    wprProfile    = if (-not $SkipWPR) { "$WPRProfile.$WPRDetail" } else { $null }
-    wprEtlFile    = if ($wprStarted -and (Test-Path $etlFile)) { "trace.etl" } else { $null }
-    registry      = $reg
-    performance   = $perf
-    cpuData       = $cpuData
-    cpuTotal      = @{
-        interruptPct = $cpuInterrupt['_total'].avg
-        dpcPct       = $cpuDpc['_total'].avg
-        intrPerSec   = $cpuIntrPerSec['_total'].avg
-    }
-    interruptTopology = @{
-        cpu0Share  = $cpu0Share
-        cpu23Share = $cpu23Share
-        cpu47Share = $cpu47Share
-    }
-    analysisFile  = "analysis.txt"
+$wprProf = $null; if (-not $SkipWPR) { $wprProf = $WPRProfile + '.' + $WPRDetail }
+$wprEtl = $null; if ($wprStarted -and (Test-Path $etlFile)) { $wprEtl = 'trace.etl' }
+
+$dpcIsrJson = $null
+if ($dpcIsrData) {
+    $src = 'unknown'; if ($dpcIsrData.hasReport) { $src = 'xperf' }
+    $dpcD = @(); if ($dpcIsrData.dpcDrivers) { $dpcD = $dpcIsrData.dpcDrivers }
+    $isrD = @(); if ($dpcIsrData.isrDrivers) { $isrD = $dpcIsrData.isrDrivers }
+    $dpcIsrJson = @{ source = $src; dpcDrivers = $dpcD; isrDrivers = $isrD }
 }
 
-$jsonFile = Join-Path $outDir "experiment.json"
-$result | ConvertTo-Json -Depth 8 | Out-File $jsonFile -Encoding UTF8
-Log "Saved experiment.json" "PASS"
+$result = [ordered]@{
+    schemaVersion     = 2
+    label             = $Label
+    description       = $Description
+    capturedAt        = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
+    durationSec       = $DurationSec
+    hostname          = $env:COMPUTERNAME
+    wprProfile        = $wprProf
+    wprEtlFile        = $wprEtl
+    registry          = $reg
+    performance       = $perf
+    cpuData           = $cpuData
+    cpuTotal          = @{ interruptPct = $cpuInterrupt['_total'].avg; dpcPct = $cpuDpc['_total'].avg; intrPerSec = $cpuIntrPerSec['_total'].avg }
+    interruptTopology = @{ cpu0Share = $cpu0Share; cpu23Share = $cpu23Share; cpu47Share = $cpu47Share }
+    dpcIsrAnalysis    = $dpcIsrJson
+    analysisFile      = 'analysis.txt'
+}
 
-# ═══════════════════════════════════════════════════════════════
+$jsonFile = Join-Path $outDir 'experiment.json'
+$result | ConvertTo-Json -Depth 8 | Out-File $jsonFile -Encoding UTF8
+Log 'Saved experiment.json' 'PASS'
+
 # PHASE 8: Update dashboard
-# ═══════════════════════════════════════════════════════════════
 if (-not $SkipDashboardUpdate) {
-    Log ""
-    Log "=== Phase 8: Updating dashboard ==="
-    $genScript = Join-Path $scriptRoot "generate_dashboard_data.ps1"
+    Log ''
+    Log '=== Phase 8: Updating dashboard ==='
+    $genScript = Join-Path $scriptRoot 'generate_dashboard_data.ps1'
     if (Test-Path $genScript) {
         try {
             & $genScript
-            Log "Dashboard data regenerated" "PASS"
+            Log 'Dashboard data regenerated' 'PASS'
         } catch {
-            Log "Dashboard update failed: $($_.Exception.Message)" "WARN"
+            Log ('Dashboard update failed: ' + $_.Exception.Message) 'WARN'
         }
-    } else {
-        Log "generate_dashboard_data.ps1 not found" "WARN"
     }
 }
 
-# ═══════════════════════════════════════════════════════════════
 # SUMMARY
-# ═══════════════════════════════════════════════════════════════
-Log ""
-Log "═══════════════════════════════════════════════════"
-Log "=== Pipeline Complete ==="
-Log "═══════════════════════════════════════════════════"
-Log ""
-Log "Output directory: $outDir"
-Log "  experiment.json    — Perf counters + registry + per-CPU data"
+Log ''
+Log '========================================'
+Log '=== Pipeline Complete ==='
+Log '========================================'
+Log ''
+Log ('Output: ' + $outDir)
+Log '  experiment.json - perf counters + registry + per-CPU'
 if ($wprStarted -and (Test-Path $etlFile)) {
-    Log "  trace.etl          — Open in WPA for DPC/ISR driver analysis"
+    Log '  trace.etl       - open in WPA for DPC/ISR drill-down'
+    Log '  dpcisr_report   - xperf DPC/ISR summary'
 }
-Log "  analysis.txt       — Human-readable analysis report"
-Log ""
-Log "Interrupt topology: CPU0=$cpu0Share% | Input(2-3)=$cpu23Share% | GPU/NIC(4-7)=$cpu47Share%"
-Log ""
-Log "Next steps:"
-Log "  1. Open dashboard/index.html to see updated charts"
-if ($wprStarted) {
-    Log "  2. Open trace.etl in Windows Performance Analyzer for DPC/ISR drill-down"
-}
-Log "  3. Commit: git add -A && git commit -m 'exp: $Label'"
+Log '  analysis.txt    - human-readable report'
+Log ''
+Log ('Topology: CPU0=' + $cpu0Share + '% | Input=' + $cpu23Share + '% | GPU/NIC=' + $cpu47Share + '%')
 
-# Save log
-$logLines | Out-File (Join-Path $outDir "pipeline.log") -Encoding UTF8
+$logLines | Out-File (Join-Path $outDir 'pipeline.log') -Encoding UTF8
