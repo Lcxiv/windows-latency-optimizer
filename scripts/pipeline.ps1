@@ -367,8 +367,8 @@ $analysis += 'CPUs 8-15 game:      ' + $restShare + '%'
 $analysis += ''
 
 $analysis += '--- Targets ---'
-$totalDpcAvg = $cpuDpc['_total'].avg
-$totalIntrAvg = $cpuInterrupt['_total'].avg
+$totalDpcAvg = 0; if ($cpuDpc.ContainsKey('_total') -and $cpuDpc['_total']) { $totalDpcAvg = $cpuDpc['_total'].avg }
+$totalIntrAvg = 0; if ($cpuInterrupt.ContainsKey('_total') -and $cpuInterrupt['_total']) { $totalIntrAvg = $cpuInterrupt['_total'].avg }
 
 $chk1 = if ($cpu0Share -lt 10) { 'PASS' } else { 'REVIEW' }
 $chk2 = if ($totalDpcAvg -lt 0.5) { 'PASS' } else { 'REVIEW' }

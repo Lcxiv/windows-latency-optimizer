@@ -1,6 +1,6 @@
 param([string]$Label = "BASELINE")
 
-$outFile = "C:\Users\L\Desktop\windows-latency-optimizer\captures\os_baseline_$Label.txt"
+$outFile = Join-Path $PSScriptRoot ('..\captures\os_baseline_' + $Label + '.txt')
 
 Write-Host "=== OS Performance Capture: $Label ==="
 Write-Host "Sampling for 10 seconds..."
@@ -43,25 +43,37 @@ foreach ($path in ($results.Keys | Sort-Object)) {
     $avg = ($vals | Measure-Object -Average).Average
     $min = ($vals | Measure-Object -Minimum).Minimum
     $max = ($vals | Measure-Object -Maximum).Maximum
-    $shortName = $path -replace '\\\\[^\\]+\\', ''
+    $parts = $path.TrimStart('\').Split('\'); $shortName = ($parts[1..($parts.Length-1)]) -join '\'
     $output += "{0,-55} {1,12:N4} {2,12:N4} {3,12:N4}" -f $shortName, $avg, $min, $max
 }
 
 $output += ""
 $output += "=== Registry Settings ==="
-$mmcss = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
-$games = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
-$output += "SystemResponsiveness: $($mmcss.SystemResponsiveness)"
-$output += "NetworkThrottlingIndex: $($mmcss.NetworkThrottlingIndex)"
-$output += "Games Scheduling Category: $($games.'Scheduling Category')"
-$output += "Games Priority: $($games.Priority)"
-$output += "Games SFIO Priority: $($games.'SFIO Priority')"
-
-$exclusions = (Get-MpPreference).ExclusionPath
-if ($exclusions) {
-    $output += "Defender Exclusions: $($exclusions -join ', ')"
+$mmcss = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -ErrorAction SilentlyContinue
+$games = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games' -ErrorAction SilentlyContinue
+if ($mmcss) {
+    $output += "SystemResponsiveness: $($mmcss.SystemResponsiveness)"
+    $output += "NetworkThrottlingIndex: $($mmcss.NetworkThrottlingIndex)"
 } else {
-    $output += "Defender Exclusions: (none)"
+    $output += "MMCSS SystemProfile: (not found)"
+}
+if ($games) {
+    $output += "Games Scheduling Category: $($games.'Scheduling Category')"
+    $output += "Games Priority: $($games.Priority)"
+    $output += "Games SFIO Priority: $($games.'SFIO Priority')"
+} else {
+    $output += "MMCSS Games Task: (not found)"
+}
+
+try {
+    $exclusions = (Get-MpPreference -ErrorAction Stop).ExclusionPath
+    if ($exclusions) {
+        $output += "Defender Exclusions: $($exclusions -join ', ')"
+    } else {
+        $output += "Defender Exclusions: (none)"
+    }
+} catch {
+    $output += "Defender Exclusions: (unable to query)"
 }
 
 $output | Out-File $outFile -Encoding UTF8

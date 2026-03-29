@@ -811,23 +811,33 @@ function renderCPUInterrupt() {
 
   const source = activeExp.cpuData ? activeExp : baseline;
   const isBaseline = source.id === BASELINE_ID;
-  const max = Math.max(...cpuData.map(c => c.interruptCycleS));
+  // Use interruptCycleS if available (LatencyMon data), fall back to interruptPct (perf counters)
+  const hasLMData = cpuData.some(c => c.interruptCycleS != null);
+  const dataKey = hasLMData ? 'interruptCycleS' : 'interruptPct';
+  const dataLabel = hasLMData ? 'Interrupt cycle time (s)' : 'Interrupt time (%)';
+  const dataSuffix = hasLMData ? 's' : '%';
+  const validData = cpuData.filter(c => c[dataKey] != null);
+  const max = validData.length ? Math.max(...validData.map(c => c[dataKey])) : 0;
 
   charts.cpuInterrupt = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: cpuData.map(c => `CPU ${c.cpu}`),
       datasets: [{
-        label: `Interrupt cycle time (s)${!isBaseline ? ' — Baseline' : ''}`,
-        data: cpuData.map(c => c.interruptCycleS.toFixed(3)),
-        backgroundColor: cpuData.map(c =>
-          c.interruptCycleS === max ? COLORS.redA :
-          c.interruptCycleS > max * 0.1 ? COLORS.amberA : COLORS.blueA
-        ),
-        borderColor: cpuData.map(c =>
-          c.interruptCycleS === max ? COLORS.red :
-          c.interruptCycleS > max * 0.1 ? COLORS.amber : COLORS.blue
-        ),
+        label: `${dataLabel}${!isBaseline ? ' — ' + source.shortName : ''}`,
+        data: cpuData.map(c => c[dataKey] != null ? +c[dataKey].toFixed(4) : null),
+        backgroundColor: cpuData.map(c => {
+          const v = c[dataKey];
+          return v == null ? 'rgba(100,100,100,0.3)' :
+            v === max ? COLORS.redA :
+            v > max * 0.1 ? COLORS.amberA : COLORS.blueA;
+        }),
+        borderColor: cpuData.map(c => {
+          const v = c[dataKey];
+          return v == null ? '#555' :
+            v === max ? COLORS.red :
+            v > max * 0.1 ? COLORS.amber : COLORS.blue;
+        }),
         borderWidth: 1,
         borderRadius: 3
       }]
@@ -836,7 +846,13 @@ function renderCPUInterrupt() {
       plugins: {
         tooltip: {
           callbacks: {
-            label: ctx => ` ${ctx.raw}s interrupt cycles · ISR count: ${cpuData[ctx.dataIndex].isrCount.toLocaleString()}`
+            label: ctx => {
+              const cpu = cpuData[ctx.dataIndex];
+              const parts = [` ${ctx.raw}${dataSuffix}`];
+              if (cpu.isrCount != null) parts.push(`ISR count: ${cpu.isrCount.toLocaleString()}`);
+              if (cpu.intrPerSec != null) parts.push(`Intrs/sec: ${cpu.intrPerSec.toFixed(0)}`);
+              return parts.join(' · ');
+            }
           }
         },
         annotation: undefined
@@ -845,7 +861,7 @@ function renderCPUInterrupt() {
         y: {
           ticks: {
             color: '#7a8fa8', font: { size: 10 },
-            callback: v => v + 's'
+            callback: v => v + dataSuffix
           },
           grid: { color: 'rgba(30,58,95,0.5)' }
         }
@@ -870,7 +886,12 @@ function renderCPUDpcCount() {
   wrap.innerHTML = '<canvas id="cpuDpcCountCanvas" height="220"></canvas>';
   const ctx = document.getElementById('cpuDpcCountCanvas').getContext('2d');
 
-  const maxCount = Math.max(...cpuData.map(c => c.dpcCount));
+  // Use dpcCount if available (LatencyMon), fall back to dpcPct (perf counters)
+  const hasDpcCount = cpuData.some(c => c.dpcCount != null);
+  const dpcKey = hasDpcCount ? 'dpcCount' : 'dpcPct';
+  const dpcLabel = hasDpcCount ? 'DPC count' : 'DPC time (%)';
+  const validDpc = cpuData.filter(c => c[dpcKey] != null);
+  const maxCount = validDpc.length ? Math.max(...validDpc.map(c => c[dpcKey])) : 0;
 
   charts.cpuDpcCount = new Chart(ctx, {
     type: 'bar',
@@ -878,16 +899,20 @@ function renderCPUDpcCount() {
       labels: cpuData.map(c => `CPU ${c.cpu}`),
       datasets: [
         {
-          label: 'DPC count',
-          data: cpuData.map(c => c.dpcCount),
-          backgroundColor: cpuData.map(c =>
-            c.dpcCount === maxCount ? COLORS.redA :
-            c.dpcCount > maxCount * 0.01 ? COLORS.purpleA : COLORS.blueA
-          ),
-          borderColor: cpuData.map(c =>
-            c.dpcCount === maxCount ? COLORS.red :
-            c.dpcCount > maxCount * 0.01 ? COLORS.purple : COLORS.blue
-          ),
+          label: dpcLabel,
+          data: cpuData.map(c => c[dpcKey] != null ? c[dpcKey] : null),
+          backgroundColor: cpuData.map(c => {
+            const v = c[dpcKey];
+            return v == null ? 'rgba(100,100,100,0.3)' :
+              v === maxCount ? COLORS.redA :
+              v > maxCount * 0.01 ? COLORS.purpleA : COLORS.blueA;
+          }),
+          borderColor: cpuData.map(c => {
+            const v = c[dpcKey];
+            return v == null ? '#555' :
+              v === maxCount ? COLORS.red :
+              v > maxCount * 0.01 ? COLORS.purple : COLORS.blue;
+          }),
           borderWidth: 1,
           borderRadius: 3
         }
@@ -899,21 +924,23 @@ function renderCPUDpcCount() {
           callbacks: {
             label: ctx => {
               const cpu = cpuData[ctx.dataIndex];
-              return [
-                ` DPC count: ${cpu.dpcCount.toLocaleString()}`,
-                ` Highest DPC: ${cpu.dpcHighestUs.toFixed(1)}µs`,
-                ` Total DPC time: ${cpu.dpcTotalS.toFixed(4)}s`
-              ];
+              const parts = [];
+              if (cpu.dpcCount != null) parts.push(` DPC count: ${cpu.dpcCount.toLocaleString()}`);
+              if (cpu.dpcPct != null) parts.push(` DPC%: ${cpu.dpcPct.toFixed(4)}%`);
+              if (cpu.dpcHighestUs != null) parts.push(` Highest DPC: ${cpu.dpcHighestUs.toFixed(1)}us`);
+              if (cpu.dpcTotalS != null) parts.push(` Total DPC time: ${cpu.dpcTotalS.toFixed(4)}s`);
+              if (cpu.intrPerSec != null) parts.push(` Intrs/sec: ${cpu.intrPerSec.toFixed(0)}`);
+              return parts.length ? parts : [` ${dpcLabel}: ${ctx.raw}`];
             }
           }
         }
       },
       scales: {
         y: {
-          type: 'logarithmic',
+          type: hasDpcCount ? 'logarithmic' : 'linear',
           ticks: {
             color: '#7a8fa8', font: { size: 10 },
-            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v
+            callback: v => hasDpcCount && v >= 1000 ? (v/1000).toFixed(0)+'K' : v
           },
           grid: { color: 'rgba(30,58,95,0.5)' }
         }
@@ -1013,8 +1040,8 @@ function renderPerfComparison() {
   ];
 
   const labels  = metrics.map(m => m.label);
-  const basVals = metrics.map(m => basPerf  ? +(basPerf[m.key].avg  * m.scale).toFixed(4) : 0);
-  const expVals = metrics.map(m => expPerf  ? +(expPerf[m.key].avg  * m.scale).toFixed(4) : 0);
+  const basVals = metrics.map(m => basPerf && basPerf[m.key] && basPerf[m.key].avg != null ? +(basPerf[m.key].avg * m.scale).toFixed(4) : 0);
+  const expVals = metrics.map(m => expPerf && expPerf[m.key] && expPerf[m.key].avg != null ? +(expPerf[m.key].avg * m.scale).toFixed(4) : 0);
 
   const datasets = isBaseline
     ? [{ label: 'Baseline (avg)', data: basVals, backgroundColor: COLORS.blueA, borderColor: COLORS.blue, borderWidth: 1, borderRadius: 4 }]
@@ -1091,14 +1118,40 @@ function renderRegistryTable() {
     return a !== b;
   }
 
-  const rows = [
-    { key: 'SystemResponsiveness',    label: 'SystemResponsiveness',         desc: 'ms CPU reservation for multimedia' },
-    { key: 'NetworkThrottlingIndex',  label: 'NetworkThrottlingIndex',        desc: 'Max packets/ms (0xFFFFFFFF = off)' },
-    { key: 'GamesSchedulingCategory', label: 'MMCSS Games — Category',        desc: 'Scheduler priority class' },
-    { key: 'GamesPriority',           label: 'MMCSS Games — Priority',        desc: 'MMCSS priority value' },
-    { key: 'GamesSFIOPriority',       label: 'MMCSS Games — SFIO Priority',   desc: 'Synchronous file I/O priority' },
-    { key: 'DefenderExclusions',      label: 'Defender Exclusion Paths',      desc: 'Directories excluded from real-time scan' },
-  ];
+  // Dynamically build rows from all keys present in baseline + experiment
+  const knownDescs = {
+    SystemResponsiveness:       'ms CPU reservation for multimedia',
+    NetworkThrottlingIndex:     'Max packets/ms (0xFFFFFFFF = off)',
+    GamesSchedulingCategory:   'Scheduler priority class',
+    GamesPriority:             'MMCSS priority value',
+    GamesSFIOPriority:         'Synchronous file I/O priority',
+    DefenderExclusions:        'Directories excluded from real-time scan',
+    DefenderExclusionProcessPaths: 'Processes excluded from real-time scan',
+    ScanAvgCPULoadFactor:      'Max CPU% for scheduled scans',
+    EnableLowCpuPriority:      'Run scans at low CPU priority',
+    NvidiaMSISupported:        'MSI mode enabled for GPU',
+    NvidiaMessageNumberLimit:  'MSI message count limit',
+    PerfLevelSrc:              'GPU performance level source',
+    HwSchMode:                 'Hardware-accelerated GPU scheduling',
+    InterruptAffinityPolicy:   'Device interrupt CPU assignment policy',
+    DevicesAffined:            'Devices with explicit CPU affinity',
+    InputDeviceAffinityPolicy: 'Input device interrupt CPU assignment',
+    InputControllersAffined:   'Input USB controllers with affinity',
+    NIC_GPU_USB_AffinityPolicy:'NIC/GPU/USB interrupt CPU assignment',
+    ExclusionPathCount:        'Number of Defender path exclusions',
+    ExclusionProcessCount:     'Number of Defender process exclusions',
+  };
+
+  // Collect all unique keys from both registries
+  const allKeys = new Set();
+  if (base) Object.keys(base).forEach(k => allKeys.add(k));
+  if (exp) Object.keys(exp).forEach(k => allKeys.add(k));
+
+  const rows = Array.from(allKeys).map(key => ({
+    key,
+    label: key.replace(/([A-Z])/g, ' $1').trim(),
+    desc: knownDescs[key] || ''
+  }));
 
   let html = `<table class="reg-table">
     <thead><tr>

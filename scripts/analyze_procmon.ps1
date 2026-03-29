@@ -1,5 +1,10 @@
 $csvPath = Join-Path $PSScriptRoot "..\captures\procmon_capture.csv"
-$csv = Import-Csv $csvPath
+if (-not (Test-Path $csvPath)) {
+    Write-Error "ProcMon CSV not found: $csvPath"
+    Write-Host 'Export a 30-second ProcMon trace as CSV to captures\procmon_capture.csv first.'
+    exit 1
+}
+$csv = @(Import-Csv $csvPath)
 $total = $csv.Count
 
 Write-Host "=== ProcMon Analysis ($total events in 30s) ==="

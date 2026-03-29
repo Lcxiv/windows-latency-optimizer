@@ -87,7 +87,12 @@ $entries = @()
 foreach ($file in $jsonFiles) {
     Write-Host "  Processing: $($file.Name)"
 
-    $raw   = Get-Content $file.FullName -Raw | ConvertFrom-Json
+    try {
+        $raw = Get-Content $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json
+    } catch {
+        Write-Warning "Skipping unreadable file $($file.Name): $($_.Exception.Message)"
+        continue
+    }
     $label = $raw.label -replace '[^a-zA-Z0-9_]', '_'
 
     # Build cpuData array
