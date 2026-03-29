@@ -1,0 +1,43 @@
+﻿[16:32:47] [INFO] === Pipeline Start: EXP10_FORTNITE_GAMING ===
+[16:32:47] [INFO] Description: Live Fortnite gaming session - real GPU/CPU/network load for baseline gaming comparison
+[16:32:47] [INFO] Duration: 300s | WPR: True | Profile: GeneralProfile.Verbose
+[16:32:47] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_163247_EXP10_FORTNITE_GAMING
+[16:32:47] [INFO] Checking system idle state...
+[16:32:51] [WARN] CPU at 47.5% - system may not be idle enough
+[16:32:56] [INFO] 
+[16:32:56] [INFO] === Phase 2: Starting WPR trace ===
+[16:32:56] [PASS] WPR recording started
+[16:32:56] [INFO] 
+[16:32:56] [INFO] === Phase 3: Perf counter capture 300s ===
+[16:37:57] [PASS] Perf capture done: 300 samples
+[16:37:57] [INFO] 
+[16:37:57] [INFO] === Phase 4: Stopping WPR trace ===
+[16:38:46] [PASS] WPR trace saved: trace.etl 12994 MB
+[16:38:46] [INFO] Running xperf DPC/ISR analysis...
+[16:39:25] [PASS] xperf DPC/ISR report: 220.9 KB
+[16:39:25] [INFO] 
+[16:39:25] [INFO] === Phase 5: Registry snapshot ===
+[16:39:26] [PASS] Registry snapshot captured
+[16:39:26] [INFO] 
+[16:39:26] [INFO] === Phase 6: Analysis ===
+[16:39:26] [PASS] CPU 0 share: 3.1%
+[16:39:26] [REVIEW] Total DPC: 1.3281%
+[16:39:26] [REVIEW] Total Interrupt: 1.8664%
+[16:39:26] [INFO] 
+[16:39:26] [INFO] === Phase 7: Saving experiment JSON ===
+[16:39:26] [PASS] Saved experiment.json
+[16:39:26] [INFO] 
+[16:39:26] [INFO] === Phase 8: Updating dashboard ===
+[16:39:27] [PASS] Dashboard data regenerated
+[16:39:27] [INFO] 
+[16:39:27] [INFO] ========================================
+[16:39:27] [INFO] === Pipeline Complete ===
+[16:39:27] [INFO] ========================================
+[16:39:27] [INFO] 
+[16:39:27] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_163247_EXP10_FORTNITE_GAMING
+[16:39:27] [INFO]   experiment.json - perf counters + registry + per-CPU
+[16:39:27] [INFO]   trace.etl       - open in WPA for DPC/ISR drill-down
+[16:39:27] [INFO]   dpcisr_report   - xperf DPC/ISR summary
+[16:39:27] [INFO]   analysis.txt    - human-readable report
+[16:39:27] [INFO] 
+[16:39:27] [INFO] Topology: CPU0=3.1% | Input=4.4% | GPU/NIC=77.9%
