@@ -1,0 +1,37 @@
+﻿=== Experiment Analysis: EXP09_UNDER_LOAD ===
+Description: Synthetic gaming load: 8 CPU stress threads on CPUs 8-15, disk IO bursts, 60pkt/sec UDP loopback
+Captured: 2026-03-29 16:21:54
+Duration: 120s
+
+--- Interrupt Distribution ---
+CPU 0  preferred:    2.1%
+CPUs 2-3 input:      4.7%
+CPUs 4-7 GPU/NIC:    78.8%
+CPUs 8-15 game:      14.4%
+
+--- Targets ---
+[PASS] CPU 0 share <10%: 2.1%
+[REVIEW] Total DPC <0.5%: 0.7057%
+[PASS] Total Interrupt <1.0%: 0.8993%
+
+--- Per-CPU ---
+CPU10      0.2909     0.0520      4,011.0
+CPU11      0.1948     0.0647      3,960.0
+CPU8       0.4809     0.0520      7,113.3
+CPU9       0.3890     0.1427      6,920.4
+CPU14      0.1170     0.0130      1,357.1
+CPU15      0.1040     0.0520      1,609.6
+CPU12      0.1820     0.0000      1,912.0
+CPU13      0.1560     0.0130      2,220.6
+CPU2       0.3558     0.2830      5,706.3 <-input
+CPU3       0.3249     0.1040      5,413.3 <-input
+CPU0       0.2990     0.2599      3,063.6 <-preferred
+CPU1       0.1560     0.0260      3,087.7
+CPU6       2.7918     2.2325      9,957.5 <-GPU/NIC
+CPU7       2.5287     2.6822      9,145.9 <-GPU/NIC
+CPU4       3.3641     2.7765      9,984.9 <-GPU/NIC
+CPU5       2.6540     2.5384      9,204.1 <-GPU/NIC
+
+--- xperf DPC/ISR Analysis ---
+
+For deeper analysis open trace.etl in WPA
