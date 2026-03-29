@@ -1,7 +1,12 @@
-# Large binary captures — track CSV, ignore binary .pml
+# Large binary captures — track CSV/JSON/TXT, ignore binary traces
 captures/*.pml
 captures/*.etl
 captures/*.bl
+captures/**/*.etl
+captures/**/*.pdb
+captures/**/events.csv
+captures/**/report.xml
+captures/**/*.NGENPDB/
 
 # OS artifacts
 Thumbs.db
