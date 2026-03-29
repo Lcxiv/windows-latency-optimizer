@@ -372,16 +372,128 @@ window.EXPERIMENTS = [
   },
 
   // ---------------------------------------------------------------------------
+  // EXP 05 — Post-Reboot Verification
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp05_post_reboot",
+    name: "Exp 05 — Post-Reboot Verification",
+    shortName: "Exp 05",
+    date: "2026-03-29T12:44:53",
+    description: "Post-reboot: verify all registry changes survived and measure interrupt redistribution",
+    tags: ["verification", "post-reboot", "affinity"],
+
+    // All 16 registry checks passed (see captures/os_baseline_EXP05_POST_REBOOT.txt)
+    registry: {
+      // Fix 1 — MMCSS/network (unchanged from EXP01)
+      SystemResponsiveness: 10,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      // Fix 2 — Defender (unchanged from EXP02)
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      DefenderExclusionProcessPaths: [
+        "Fortnite", "EpicGamesLauncher", "nvcontainer.exe",
+        "NVDisplay.Container.exe", "steam.exe"
+      ],
+      // Fix 3 — NVIDIA MSI + PerfLevelSrc (unchanged from EXP03)
+      NvidiaMSISupported: 1,
+      NvidiaMessageNumberLimit: 1,
+      PerfLevelSrc: "0x2222",
+      HwSchMode: 2,
+      // Fix 4 — Interrupt affinity (unchanged from EXP04, now ACTIVE post-reboot)
+      InterruptAffinityPolicy: "DevicePolicy=4 (SpecifiedProcessors), CPUs 4-7 (mask=0xF0)",
+      DevicesAffined: [
+        "NIC: Intel I226-V",
+        "Audio: AMD HDMI", "Audio: NVIDIA HDMI",
+        "USB: AMD xHCI x5"
+      ]
+    },
+
+    // From: captures/os_baseline_EXP05_POST_REBOOT.txt (60s capture, 1s samples)
+    // System was under moderate load (23K ctx switches/sec, 2751 page faults/sec)
+    performance: {
+      AvailableMemoryMB:    { avg: null,   min: null,  max: null  },
+      PagesSec:             { avg: 1.5,    min: null,  max: null  },
+      DiskSecRead:          { avg: null,   min: null,  max: null  },
+      DiskSecWrite:         { avg: null,   min: null,  max: null  },
+      DiskQueueLength:      { avg: null,   min: null,  max: null  },
+      DPCTimePct:           { avg: 0.4293, min: null,  max: null  },
+      InterruptTimePct:     { avg: 0.6179, min: null,  max: null  },
+      ProcessorTimePct:     { avg: null,   min: null,  max: null  },
+      ContextSwitchesSec:   { avg: 23001.8,min: null,  max: null  },
+      ProcessorQueueLength: { avg: null,   min: null,  max: null  }
+    },
+
+    // Key result: CPU 0 interrupt share dropped from 97.7% → 4.2%
+    // CPUs 4-7 now carry the interrupt load (2.2-2.6% each) as intended
+    latencymon: null,
+
+    // Per-CPU data from 60s perf counter capture (% Interrupt Time avg)
+    cpuData: [
+      { cpu: 0,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0260, dpcPct: 0.0260, intrPerSec: 281.4 },
+      { cpu: 1,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 31.3 },
+      { cpu: 2,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.1041, dpcPct: 0.0000, intrPerSec: 924.8 },
+      { cpu: 3,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 526.1 },
+      { cpu: 4,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.2375, dpcPct: 1.6912, intrPerSec: 3286.4 },
+      { cpu: 5,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.0554, dpcPct: 1.5090, intrPerSec: 2031.6 },
+      { cpu: 6,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.5757, dpcPct: 1.4569, intrPerSec: 2855.4 },
+      { cpu: 7,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.5757, dpcPct: 2.1854, intrPerSec: 2295.2 },
+      { cpu: 8,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.2081, dpcPct: 0.0000, intrPerSec: 1830.3 },
+      { cpu: 9,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 676.7 },
+      { cpu: 10, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0520, dpcPct: 0.0000, intrPerSec: 541.1 },
+      { cpu: 11, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0260, dpcPct: 0.0000, intrPerSec: 149.4 },
+      { cpu: 12, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0260, dpcPct: 0.0000, intrPerSec: 63.6 },
+      { cpu: 13, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 16.3 },
+      { cpu: 14, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 22.0 },
+      { cpu: 15, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 11.9 }
+    ]
+  },
+
+  // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
   // Example:
   // {
-  //   id: "exp05_hpet_disable",
-  //   name: "Exp 05 — HPET Disabled",
-  //   shortName: "Exp 05",
+  //   id: "exp06_kb_mouse_affinity",
+  //   name: "Exp 06 — KB/Mouse on Dedicated Cores",
+  //   shortName: "Exp 06",
   //   date: "2026-XX-XXTXX:XX:XX",
-  //   description: "Disabled HPET via bcdedit /set useplatformclock false",
-  //   tags: ["hpet", "timer"],
+  //   description: "Pin keyboard/mouse USB host controllers to CPUs 2-3 (mask=0x0C)",
+  //   tags: ["affinity", "input", "usb"],
   //   registry: { ... },
   //   performance: { ... },
   //   latencymon: { ... },
