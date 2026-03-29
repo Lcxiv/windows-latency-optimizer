@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Latency Optimizer — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="data/experiments.js"></script>
+  <style>
+    :root {
+      --bg:         #0b1120;
+      --surface:    #111827;
+      --surface2:   #1c2840;
+      --surface3:   #243050;
+      --border:     #1e3a5f;
+      --text:       #e2e8f0;
+      --muted:      #7a8fa8;
+      --blue:       #3b82f6;
+      --blue-dim:   #1d4ed8;
+      --green:      #10b981;
+      --amber:      #f59e0b;
+      --red:        #ef4444;
+      --purple:     #a855f7;
+      --cyan:       #06b6d4;
+      --grid-line:  rgba(30, 58, 95, 0.6);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #0d1b2e 0%, #112244 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #f0f6ff;
+      letter-spacing: 0.3px;
+    }
+    header h1 span { color: var(--blue); }
+    .sys-info {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .sys-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .sys-chip strong { color: var(--text); }
+
+    /* ── Experiment selector ── */
+    .exp-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .exp-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+    .exp-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .exp-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .exp-tab:hover { border-color: var(--blue); color: var(--text); }
+    .exp-tab.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--blue);
+      color: #93c5fd;
+      font-weight: 500;
+    }
+    .exp-desc {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--muted);
+      max-width: 480px;
+      text-align: right;
+    }
+    .exp-desc strong { color: var(--text); }
+
+    /* ── Main content ── */
+    main { padding: 20px 24px; max-width: 1600px; }
+
+    /* ── Summary cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .card.blue::before   { background: var(--blue); }
+    .card.green::before  { background: var(--green); }
+    .card.amber::before  { background: var(--amber); }
+    .card.red::before    { background: var(--red); }
+    .card.purple::before { background: var(--purple); }
+    .card.cyan::before   { background: var(--cyan); }
+    .card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+    .card-value { font-size: 24px; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .card-unit  { font-size: 12px; color: var(--muted); margin-left: 2px; }
+    .card-sub   { font-size: 10px; color: var(--muted); margin-top: 4px; }
+    .card-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .badge-pass { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge-warn { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .badge-na   { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 24px 0 12px;
+    }
+    .section-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .section-badge {
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+
+    /* ── Charts grid ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .chart-subtitle {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .chart-wrap { position: relative; }
+
+    /* ── No-data overlay ── */
+    .no-data {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--muted);
+      gap: 6px;
+    }
+    .no-data-icon { font-size: 28px; opacity: 0.4; }
+    .no-data-text { font-size: 12px; }
+    .no-data-hint { font-size: 10px; opacity: 0.7; }
+
+    /* ── Registry table ── */
+    .reg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .reg-table th {
+      text-align: left;
+      padding: 6px 10px;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .reg-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(30,58,95,0.4);
+      vertical-align: top;
+    }
+    .reg-table tr:last-child td { border-bottom: none; }
+    .reg-table tr:hover td { background: rgba(59,130,246,0.04); }
+    .reg-key { font-family: 'Consolas', monospace; color: #7dd3fc; font-size: 11px; }
+    .reg-val { font-family: 'Consolas', monospace; font-size: 11px; }
+    .reg-val.baseline { color: var(--muted); }
+    .reg-val.exp { color: var(--text); }
+    .reg-changed { color: var(--amber); }
+    .reg-improved { color: var(--green); }
+    .reg-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .tag-changed  { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .tag-same     { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+    /* ── Perf comparison table ── */
+    .perf-delta-pos { color: var(--green); }
+    .perf-delta-neg { color: var(--red); }
+    .perf-delta-neu { color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 32px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-card.full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Windows <span>Latency Optimizer</span></h1>
+  <div class="sys-info">
+    <div class="sys-chip"><strong>DESKTOP-V5BN4SC</strong></div>
+    <div class="sys-chip"><strong>AMD Ryzen 7 9800X3D</strong> 8C/16T</div>
+    <div class="sys-chip"><strong>32 GB</strong> RAM</div>
+    <div class="sys-chip">Windows 11 Build <strong>26200</strong></div>
+    <div class="sys-chip">BIOS <strong>3602</strong> (ASUS)</div>
+  </div>
+</header>
+
+<div class="exp-bar">
+  <span class="exp-label">Experiment</span>
+  <div class="exp-tabs" id="expTabs"></div>
+  <div class="exp-desc" id="expDesc"></div>
+</div>
+
+<main>
+  <!-- Summary cards -->
+  <div class="cards" id="summaryCards"></div>
+
+  <!-- LatencyMon section -->
+  <div id="latencySection">
+    <div class="section-header">
+      <h2>DPC / ISR Latency</h2>
+      <div class="section-line"></div>
+      <div class="section-badge" id="latencyBadge">LatencyMon</div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">DPC Execution Time Distribution</div>
+        <div class="chart-subtitle">Count of DPCs grouped by execution time bucket</div>
+        <div class="chart-wrap" id="dpcBucketsWrap"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top DPC Offenders</div>
+        <div class="chart-subtitle">Drivers with highest DPC execution time or total DPC time share</div>
+        <div class="chart-wrap" id="dpcOffendersWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CPU section -->
+  <div id="cpuSection">
+    <div class="section-header">
+      <h2>CPU Interrupt Distribution</h2>
+      <div class="section-line"></div>
+      <div class="section-badge">16 Logical Processors</div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Interrupt Cycle Time per CPU</div>
+        <div class="chart-subtitle">Total seconds spent in interrupt context per logical processor</div>
+        <div class="chart-wrap" id="cpuInterruptWrap"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">DPC Count per CPU</div>
+        <div class="chart-subtitle">Number of DPC executions per logical processor</div>
+        <div class="chart-wrap" id="cpuDpcCountWrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hard pagefaults + perf section -->
+  <div class="section-header">
+    <h2>Performance Metrics</h2>
+    <div class="section-line"></div>
+    <div class="section-badge" id="perfBadge">10s capture</div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Hard Pagefaults by Process</div>
+      <div class="chart-subtitle">Processes causing the most hard page faults (LatencyMon, 1:45 window)</div>
+      <div class="chart-wrap" id="pagefaultsWrap"></div>
+    </div>
+    <div class="chart-card full" style="grid-column: 2;">
+      <div class="chart-title">Performance Counters — Baseline vs Experiment</div>
+      <div class="chart-subtitle">10-second average values; metrics normalized for visibility</div>
+      <div class="chart-wrap" id="perfCompWrap"></div>
+    </div>
+  </div>
+
+  <!-- Registry diff section -->
+  <div class="section-header" id="regHeader" style="display:none">
+    <h2>Registry Settings</h2>
+    <div class="section-line"></div>
+    <div class="section-badge">Before → After</div>
+  </div>
+  <div class="chart-card" id="regCard" style="display:none">
+    <div class="chart-title">Registry Settings Comparison</div>
+    <div class="chart-subtitle">MMCSS / Multimedia / Defender settings</div>
+    <div id="regTableWrap"></div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Data sources: LatencyMon, Windows Performance Counters, Process Monitor</span>
+  <span>|</span>
+  <span>To add new experiments, edit <code>dashboard/data/experiments.js</code></span>
+  <span>|</span>
+  <span><a href="../docs/findings.md">findings.md</a></span>
+</footer>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const BASELINE_ID = 'baseline';
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: {
+      labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 }
+    },
+    tooltip: {
+      backgroundColor: '#1c2840',
+      borderColor: '#1e3a5f',
+      borderWidth: 1,
+      titleColor: '#e2e8f0',
+      bodyColor: '#94a3b8',
+      padding: 10
+    }
+  },
+  scales: {
+    x: {
+      ticks: { color: '#7a8fa8', font: { size: 10 } },
+      grid:  { color: 'rgba(30, 58, 95, 0.5)' }
+    },
+    y: {
+      ticks: { color: '#7a8fa8', font: { size: 10 } },
+      grid:  { color: 'rgba(30, 58, 95, 0.5)' }
+    }
+  }
+};
+
+const COLORS = {
+  blue:   '#3b82f6',
+  green:  '#10b981',
+  amber:  '#f59e0b',
+  red:    '#ef4444',
+  purple: '#a855f7',
+  cyan:   '#06b6d4',
+  blueA:  'rgba(59,130,246,0.7)',
+  greenA: 'rgba(16,185,129,0.7)',
+  amberA: 'rgba(245,158,11,0.7)',
+  redA:   'rgba(239,68,68,0.7)',
+  purpleA:'rgba(168,85,247,0.7)',
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let activeExp   = null;
+let baseline    = null;
+let charts      = {};
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.EXPERIMENTS || !window.EXPERIMENTS.length) {
+    document.body.innerHTML = '<div style="padding:40px;color:#ef4444">Error: experiments.js not loaded. Open index.html via a local server or directly from the filesystem.</div>';
+    return;
+  }
+
+  baseline  = window.EXPERIMENTS.find(e => e.id === BASELINE_ID) || window.EXPERIMENTS[0];
+  activeExp = baseline;
+
+  buildTabs();
+  renderAll();
+});
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs() {
+  const container = document.getElementById('expTabs');
+  container.innerHTML = '';
+  window.EXPERIMENTS.forEach(exp => {
+    const btn = document.createElement('button');
+    btn.className = 'exp-tab' + (exp.id === activeExp.id ? ' active' : '');
+    btn.textContent = exp.shortName || exp.name;
+    btn.title = exp.description;
+    btn.onclick = () => selectExp(exp.id);
+    container.appendChild(btn);
+  });
+}
+
+function selectExp(id) {
+  activeExp = window.EXPERIMENTS.find(e => e.id === id) || baseline;
+  document.querySelectorAll('.exp-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === (activeExp.shortName || activeExp.name));
+  });
+  renderAll();
+}
+
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll() {
+  renderDesc();
+  renderSummaryCards();
+  renderDPCBuckets();
+  renderDPCOffenders();
+  renderCPUInterrupt();
+  renderCPUDpcCount();
+  renderPagefaults();
+  renderPerfComparison();
+  renderRegistryTable();
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function makeNoData(msg, hint) {
+  return `<div class="no-data">
+    <div class="no-data-icon">📊</div>
+    <div class="no-data-text">${msg}</div>
+    <div class="no-data-hint">${hint || ''}</div>
+  </div>`;
+}
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+}
+
+function deepMerge(base, override) {
+  const result = Object.assign({}, base);
+  for (const k in override) {
+    if (typeof override[k] === 'object' && !Array.isArray(override[k]) && override[k] !== null) {
+      result[k] = deepMerge(base[k] || {}, override[k]);
+    } else {
+      result[k] = override[k];
+    }
+  }
+  return result;
+}
+
+function chartOpts(extra) {
+  return deepMerge(CHART_DEFAULTS, extra || {});
+}
+
+// ============================================================
+// DESCRIPTION
+// ============================================================
+function renderDesc() {
+  const el = document.getElementById('expDesc');
+  const d = new Date(activeExp.date);
+  const dateStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) +
+                  ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  el.innerHTML = `<strong>${dateStr}</strong> &nbsp;·&nbsp; ${activeExp.description}`;
+}
+
+// ============================================================
+// SUMMARY CARDS
+// ============================================================
+function renderSummaryCards() {
+  const el = document.getElementById('summaryCards');
+  const lm = activeExp.latencymon;
+  const perf = activeExp.performance;
+
+  const hasLM = !!lm;
+  const isBaseline = activeExp.id === BASELINE_ID;
+
+  const cards = [];
+
+  // LatencyMon result
+  if (hasLM) {
+    const pass = lm.result === 'PASS';
+    cards.push(`<div class="card ${pass ? 'green' : 'red'}">
+      <div class="card-label">LatencyMon Result</div>
+      <div class="card-value">${lm.result}</div>
+      <div class="card-sub">${lm.durationMin.toFixed(0)}min capture on all CPUs</div>
+      <div class="card-badge ${pass ? 'badge-pass' : 'badge-warn'}">${pass ? 'Real-time capable' : 'Latency issues detected'}</div>
+    </div>`);
+
+    cards.push(`<div class="card amber">
+      <div class="card-label">Max DPC Execution</div>
+      <div class="card-value">${lm.maxDPCExecutionUs.toFixed(0)}<span class="card-unit">µs</span></div>
+      <div class="card-sub">${lm.maxDPCExecutionDriver}</div>
+    </div>`);
+
+    cards.push(`<div class="card blue">
+      <div class="card-label">Avg Interrupt → Process</div>
+      <div class="card-value">${lm.avgInterruptToProcessUs.toFixed(1)}<span class="card-unit">µs</span></div>
+      <div class="card-sub">Max: ${lm.maxInterruptToProcessUs.toFixed(0)} µs</div>
+    </div>`);
+
+    cards.push(`<div class="card purple">
+      <div class="card-label">Total DPC Time</div>
+      <div class="card-value">${lm.totalDPCTimePct.toFixed(3)}<span class="card-unit">%</span></div>
+      <div class="card-sub">${lm.dpcBuckets[0].toLocaleString()} DPCs &lt;250µs &nbsp;·&nbsp; ${lm.dpcBuckets[2]} ≥500µs</div>
+    </div>`);
+
+    cards.push(`<div class="card red">
+      <div class="card-label">Hard Pagefaults</div>
+      <div class="card-value">${lm.hardPagefaultsTotal}</div>
+      <div class="card-sub">Top: ${lm.hardPagefaultsTopProcess} (${lm.hardPagefaultsTopCount})</div>
+    </div>`);
+  } else {
+    cards.push(`<div class="card cyan">
+      <div class="card-label">LatencyMon Result</div>
+      <div class="card-value" style="font-size:16px;color:var(--muted)">—</div>
+      <div class="card-badge badge-na">Not yet captured</div>
+    </div>`);
+  }
+
+  // Perf counters (always available)
+  if (perf) {
+    const basePerf = baseline.performance;
+    const dpcDelta = !isBaseline ? (perf.DPCTimePct.avg - basePerf.DPCTimePct.avg).toFixed(3) : null;
+    const intDelta = !isBaseline ? (perf.InterruptTimePct.avg - basePerf.InterruptTimePct.avg).toFixed(3) : null;
+    const pagesBaseline = basePerf.PagesSec.avg;
+    const pagesDelta = !isBaseline && pagesBaseline > 0
+      ? Math.round((perf.PagesSec.avg - pagesBaseline) / pagesBaseline * 100)
+      : null;
+
+    cards.push(`<div class="card cyan">
+      <div class="card-label">% DPC Time (avg)</div>
+      <div class="card-value">${perf.DPCTimePct.avg.toFixed(3)}<span class="card-unit">%</span></div>
+      <div class="card-sub">${dpcDelta !== null ? `vs baseline: ${dpcDelta >= 0 ? '+' : ''}${dpcDelta}%` : '10s sample · baseline'}</div>
+    </div>`);
+
+    cards.push(`<div class="card blue">
+      <div class="card-label">% Interrupt Time (avg)</div>
+      <div class="card-value">${perf.InterruptTimePct.avg.toFixed(3)}<span class="card-unit">%</span></div>
+      <div class="card-sub">${intDelta !== null ? `vs baseline: ${intDelta >= 0 ? '+' : ''}${intDelta}%` : '10s sample · baseline'}</div>
+    </div>`);
+
+    const pagesLabel = pagesDelta !== null
+      ? `vs baseline: ${pagesDelta >= 0 ? '+' : ''}${pagesDelta}%`
+      : '10s sample · baseline';
+    cards.push(`<div class="card ${perf.PagesSec.avg === 0 ? 'green' : 'amber'}">
+      <div class="card-label">Memory Pages/sec</div>
+      <div class="card-value">${perf.PagesSec.avg.toFixed(1)}</div>
+      <div class="card-sub">${pagesLabel}</div>
+    </div>`);
+  }
+
+  el.innerHTML = cards.join('');
+}
+
+// ============================================================
+// DPC BUCKETS CHART
+// ============================================================
+function renderDPCBuckets() {
+  const wrap = document.getElementById('dpcBucketsWrap');
+  destroyChart('dpcBuckets');
+
+  const lm = activeExp.latencymon;
+  if (!lm) {
+    wrap.innerHTML = makeNoData('No LatencyMon data for this experiment', 'Run LatencyMon and add data to experiments.js');
+    return;
+  }
+
+  wrap.innerHTML = '<canvas id="dpcBucketsCanvas" height="220"></canvas>';
+  const ctx = document.getElementById('dpcBucketsCanvas').getContext('2d');
+
+  const bucketLabels = ['<250µs', '250–500µs', '500–10ms', '1–2ms', '2–4ms', '≥4ms'];
+  const dpcData = lm.dpcBuckets;
+  const isrData = lm.isrBuckets;
+
+  charts.dpcBuckets = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: bucketLabels,
+      datasets: [
+        {
+          label: 'DPC count',
+          data: dpcData,
+          backgroundColor: dpcData.map((v, i) =>
+            i === 0 ? COLORS.blueA : i <= 2 ? COLORS.amberA : COLORS.redA
+          ),
+          borderColor: dpcData.map((v, i) =>
+            i === 0 ? COLORS.blue : i <= 2 ? COLORS.amber : COLORS.red
+          ),
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'ISR count',
+          data: isrData,
+          backgroundColor: COLORS.greenA,
+          borderColor: COLORS.green,
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: chartOpts({
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        y: {
+          type: 'logarithmic',
+          ticks: {
+            color: '#7a8fa8',
+            font: { size: 10 },
+            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v
+          },
+          grid: { color: 'rgba(30, 58, 95, 0.5)' }
+        }
+      }
+    })
+  });
+}
+
+// ============================================================
+// DPC OFFENDERS CHART
+// ============================================================
+function renderDPCOffenders() {
+  const wrap = document.getElementById('dpcOffendersWrap');
+  destroyChart('dpcOffenders');
+
+  const lm = activeExp.latencymon;
+  if (!lm || !lm.dpcDrivers || !lm.dpcDrivers.length) {
+    wrap.innerHTML = makeNoData('No driver data for this experiment', 'Run LatencyMon and add dpcDrivers to experiments.js');
+    return;
+  }
+
+  wrap.innerHTML = '<canvas id="dpcOffendersCanvas" height="220"></canvas>';
+  const ctx = document.getElementById('dpcOffendersCanvas').getContext('2d');
+
+  const drivers   = lm.dpcDrivers;
+  const labels    = drivers.map(d => d.driver);
+  const totalPcts = drivers.map(d => d.totalPct != null ? (d.totalPct * 100).toFixed(4) : null);
+  const maxUsArr  = drivers.map(d => d.highestUs);
+
+  charts.dpcOffenders = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Total DPC time (%)',
+          data: totalPcts,
+          backgroundColor: COLORS.blueA,
+          borderColor: COLORS.blue,
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'yPct'
+        },
+        {
+          label: 'Max DPC exec (µs)',
+          data: maxUsArr,
+          backgroundColor: COLORS.amberA,
+          borderColor: COLORS.amber,
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'yUs',
+          type: 'bar'
+        }
+      ]
+    },
+    options: chartOpts({
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              if (v == null) return ` ${ctx.dataset.label}: n/a`;
+              return ctx.dataset.yAxisID === 'yUs'
+                ? ` Max exec: ${v} µs`
+                : ` Total time: ${v}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        yPct: {
+          type: 'linear',
+          position: 'left',
+          title: { display: true, text: 'Total time (%)', color: '#7a8fa8', font: { size: 10 } },
+          ticks: { color: '#7a8fa8', font: { size: 10 } },
+          grid:  { color: 'rgba(30,58,95,0.5)' }
+        },
+        yUs: {
+          type: 'linear',
+          position: 'right',
+          title: { display: true, text: 'Max exec (µs)', color: '#7a8fa8', font: { size: 10 } },
+          ticks: { color: '#7a8fa8', font: { size: 10 } },
+          grid:  { drawOnChartArea: false }
+        },
+        x: { ticks: { color: '#7a8fa8', font: { size: 11 } }, grid: { color: 'rgba(30,58,95,0.5)' } }
+      }
+    })
+  });
+}
+
+// ============================================================
+// CPU INTERRUPT CHART
+// ============================================================
+function renderCPUInterrupt() {
+  const wrap = document.getElementById('cpuInterruptWrap');
+  destroyChart('cpuInterrupt');
+
+  const cpuData = activeExp.cpuData || baseline.cpuData;
+  if (!cpuData) {
+    wrap.innerHTML = makeNoData('No per-CPU data available');
+    return;
+  }
+
+  wrap.innerHTML = '<canvas id="cpuInterruptCanvas" height="220"></canvas>';
+  const ctx = document.getElementById('cpuInterruptCanvas').getContext('2d');
+
+  const source = activeExp.cpuData ? activeExp : baseline;
+  const isBaseline = source.id === BASELINE_ID;
+  const max = Math.max(...cpuData.map(c => c.interruptCycleS));
+
+  charts.cpuInterrupt = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cpuData.map(c => `CPU ${c.cpu}`),
+      datasets: [{
+        label: `Interrupt cycle time (s)${!isBaseline ? ' — Baseline' : ''}`,
+        data: cpuData.map(c => c.interruptCycleS.toFixed(3)),
+        backgroundColor: cpuData.map(c =>
+          c.interruptCycleS === max ? COLORS.redA :
+          c.interruptCycleS > max * 0.1 ? COLORS.amberA : COLORS.blueA
+        ),
+        borderColor: cpuData.map(c =>
+          c.interruptCycleS === max ? COLORS.red :
+          c.interruptCycleS > max * 0.1 ? COLORS.amber : COLORS.blue
+        ),
+        borderWidth: 1,
+        borderRadius: 3
+      }]
+    },
+    options: chartOpts({
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.raw}s interrupt cycles · ISR count: ${cpuData[ctx.dataIndex].isrCount.toLocaleString()}`
+          }
+        },
+        annotation: undefined
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: '#7a8fa8', font: { size: 10 },
+            callback: v => v + 's'
+          },
+          grid: { color: 'rgba(30,58,95,0.5)' }
+        }
+      }
+    })
+  });
+}
+
+// ============================================================
+// CPU DPC COUNT CHART
+// ============================================================
+function renderCPUDpcCount() {
+  const wrap = document.getElementById('cpuDpcCountWrap');
+  destroyChart('cpuDpcCount');
+
+  const cpuData = activeExp.cpuData || baseline.cpuData;
+  if (!cpuData) {
+    wrap.innerHTML = makeNoData('No per-CPU data available');
+    return;
+  }
+
+  wrap.innerHTML = '<canvas id="cpuDpcCountCanvas" height="220"></canvas>';
+  const ctx = document.getElementById('cpuDpcCountCanvas').getContext('2d');
+
+  const maxCount = Math.max(...cpuData.map(c => c.dpcCount));
+
+  charts.cpuDpcCount = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: cpuData.map(c => `CPU ${c.cpu}`),
+      datasets: [
+        {
+          label: 'DPC count',
+          data: cpuData.map(c => c.dpcCount),
+          backgroundColor: cpuData.map(c =>
+            c.dpcCount === maxCount ? COLORS.redA :
+            c.dpcCount > maxCount * 0.01 ? COLORS.purpleA : COLORS.blueA
+          ),
+          borderColor: cpuData.map(c =>
+            c.dpcCount === maxCount ? COLORS.red :
+            c.dpcCount > maxCount * 0.01 ? COLORS.purple : COLORS.blue
+          ),
+          borderWidth: 1,
+          borderRadius: 3
+        }
+      ]
+    },
+    options: chartOpts({
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const cpu = cpuData[ctx.dataIndex];
+              return [
+                ` DPC count: ${cpu.dpcCount.toLocaleString()}`,
+                ` Highest DPC: ${cpu.dpcHighestUs.toFixed(1)}µs`,
+                ` Total DPC time: ${cpu.dpcTotalS.toFixed(4)}s`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          type: 'logarithmic',
+          ticks: {
+            color: '#7a8fa8', font: { size: 10 },
+            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v
+          },
+          grid: { color: 'rgba(30,58,95,0.5)' }
+        }
+      }
+    })
+  });
+}
+
+// ============================================================
+// PAGEFAULTS CHART
+// ============================================================
+function renderPagefaults() {
+  const wrap = document.getElementById('pagefaultsWrap');
+  destroyChart('pagefaults');
+
+  const lm = activeExp.latencymon || (activeExp.id !== BASELINE_ID ? baseline.latencymon : null);
+  if (!lm) {
+    wrap.innerHTML = makeNoData('No LatencyMon data for this experiment');
+    return;
+  }
+
+  wrap.innerHTML = '<canvas id="pagefaultsCanvas" height="220"></canvas>';
+  const ctx = document.getElementById('pagefaultsCanvas').getContext('2d');
+
+  const pf = lm.pagefaultsByProcess;
+  const colors = [COLORS.red, COLORS.amber, COLORS.blue, COLORS.purple, COLORS.cyan, COLORS.green];
+
+  charts.pagefaults = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: pf.map(p => `${p.process} (${p.count})`),
+      datasets: [{
+        data: pf.map(p => p.count),
+        backgroundColor: pf.map((_, i) => colors[i % colors.length] + 'bb'),
+        borderColor: pf.map((_, i) => colors[i % colors.length]),
+        borderWidth: 1.5,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12, padding: 8 }
+        },
+        tooltip: {
+          backgroundColor: '#1c2840',
+          borderColor: '#1e3a5f',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          padding: 10,
+          callbacks: {
+            label: ctx => {
+              const pct = ((ctx.raw / lm.hardPagefaultsTotal) * 100).toFixed(1);
+              return ` ${ctx.raw} pagefaults (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// PERFORMANCE COMPARISON CHART
+// ============================================================
+function renderPerfComparison() {
+  const wrap = document.getElementById('perfCompWrap');
+  const badge = document.getElementById('perfBadge');
+  destroyChart('perfComp');
+
+  const isBaseline = activeExp.id === BASELINE_ID;
+  const expPerf  = activeExp.performance;
+  const basPerf  = baseline.performance;
+
+  if (!expPerf && !basPerf) {
+    wrap.innerHTML = makeNoData('No performance data available');
+    return;
+  }
+
+  badge.textContent = isBaseline ? 'Baseline only' : `Baseline vs ${activeExp.shortName}`;
+
+  wrap.innerHTML = '<canvas id="perfCompCanvas" height="160"></canvas>';
+  const ctx = document.getElementById('perfCompCanvas').getContext('2d');
+
+  // Metrics to display (with display-friendly names and units)
+  const metrics = [
+    { key: 'DPCTimePct',         label: '% DPC Time',        unit: '%',  scale: 1   },
+    { key: 'InterruptTimePct',   label: '% Interrupt Time',  unit: '%',  scale: 1   },
+    { key: 'ProcessorTimePct',   label: '% CPU Time',        unit: '%',  scale: 1   },
+    { key: 'PagesSec',           label: 'Pages/sec',         unit: '',   scale: 1   },
+    { key: 'ContextSwitchesSec', label: 'Context Sw/sec',    unit: '',   scale: 0.001 }, // show in thousands
+  ];
+
+  const labels  = metrics.map(m => m.label);
+  const basVals = metrics.map(m => basPerf  ? +(basPerf[m.key].avg  * m.scale).toFixed(4) : 0);
+  const expVals = metrics.map(m => expPerf  ? +(expPerf[m.key].avg  * m.scale).toFixed(4) : 0);
+
+  const datasets = isBaseline
+    ? [{ label: 'Baseline (avg)', data: basVals, backgroundColor: COLORS.blueA, borderColor: COLORS.blue, borderWidth: 1, borderRadius: 4 }]
+    : [
+        { label: 'Baseline (avg)',         data: basVals, backgroundColor: COLORS.blueA,  borderColor: COLORS.blue,  borderWidth: 1, borderRadius: 4 },
+        { label: `${activeExp.shortName} (avg)`, data: expVals, backgroundColor: COLORS.greenA, borderColor: COLORS.green, borderWidth: 1, borderRadius: 4 }
+      ];
+
+  charts.perfComp = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: chartOpts({
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const m = metrics[ctx.dataIndex];
+              const raw = ctx.dataset.data[ctx.dataIndex];
+              const display = m.scale === 0.001 ? (raw * 1000).toFixed(0) + ' /sec' : raw + (m.unit || '');
+              return ` ${ctx.dataset.label}: ${display}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: '#7a8fa8', font: { size: 10 },
+            callback: v => v
+          },
+          grid: { color: 'rgba(30,58,95,0.5)' },
+          title: { display: true, text: 'Value (Context Sw/sec ÷ 1000)', color: '#7a8fa8', font: { size: 10 } }
+        }
+      }
+    })
+  });
+}
+
+// ============================================================
+// REGISTRY TABLE
+// ============================================================
+function renderRegistryTable() {
+  const header  = document.getElementById('regHeader');
+  const card    = document.getElementById('regCard');
+  const wrap    = document.getElementById('regTableWrap');
+
+  const isBaseline = activeExp.id === BASELINE_ID;
+
+  if (isBaseline) {
+    header.style.display = 'none';
+    card.style.display   = 'none';
+    return;
+  }
+
+  header.style.display = 'flex';
+  card.style.display   = 'block';
+
+  const base = baseline.registry;
+  const exp  = activeExp.registry;
+
+  function fmt(val) {
+    if (val === null || val === undefined) return '—';
+    if (Array.isArray(val)) return val.length ? val.map(v => `<div>${escHtml(v)}</div>`).join('') : '(none)';
+    if (val === 4294967295) return '0xFFFFFFFF (disabled)';
+    return escHtml(String(val));
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function changed(a, b) {
+    if (Array.isArray(a) && Array.isArray(b)) return JSON.stringify(a) !== JSON.stringify(b);
+    return a !== b;
+  }
+
+  const rows = [
+    { key: 'SystemResponsiveness',    label: 'SystemResponsiveness',         desc: 'ms CPU reservation for multimedia' },
+    { key: 'NetworkThrottlingIndex',  label: 'NetworkThrottlingIndex',        desc: 'Max packets/ms (0xFFFFFFFF = off)' },
+    { key: 'GamesSchedulingCategory', label: 'MMCSS Games — Category',        desc: 'Scheduler priority class' },
+    { key: 'GamesPriority',           label: 'MMCSS Games — Priority',        desc: 'MMCSS priority value' },
+    { key: 'GamesSFIOPriority',       label: 'MMCSS Games — SFIO Priority',   desc: 'Synchronous file I/O priority' },
+    { key: 'DefenderExclusions',      label: 'Defender Exclusion Paths',      desc: 'Directories excluded from real-time scan' },
+  ];
+
+  let html = `<table class="reg-table">
+    <thead><tr>
+      <th>Setting</th>
+      <th>Description</th>
+      <th>Baseline</th>
+      <th>${escHtml(activeExp.shortName || activeExp.name)}</th>
+      <th></th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(row => {
+    const bVal = base[row.key];
+    const eVal = exp[row.key];
+    const diff = changed(bVal, eVal);
+    html += `<tr>
+      <td><span class="reg-key">${escHtml(row.label)}</span></td>
+      <td style="color:var(--muted);font-size:11px">${escHtml(row.desc)}</td>
+      <td><span class="reg-val baseline">${fmt(bVal)}</span></td>
+      <td><span class="reg-val exp ${diff ? 'reg-changed' : ''}">${fmt(eVal)}</span></td>
+      <td>${diff ? '<span class="reg-tag tag-changed">changed</span>' : '<span class="reg-tag tag-same">same</span>'}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+</script>
+</body>
+</html>

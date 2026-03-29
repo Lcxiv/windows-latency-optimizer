@@ -1,0 +1,24 @@
+﻿=== OS Performance: AFTER ===
+Captured: 2026-03-28 20:17:58
+Samples: 10 (1s interval)
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  27,930.5000  27,920.0000  27,941.0000
+memory\pages/sec                                              0.0000       0.0000       0.0000
+physicaldisk(_total)\avg. disk sec/read                       0.0000       0.0000       0.0000
+physicaldisk(_total)\avg. disk sec/write                      0.0002       0.0000       0.0004
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.2927       0.0000       0.6832
+processor(_total)\% interrupt time                            0.2244       0.0975       0.7805
+processor(_total)\% processor time                            3.7786       1.9255       5.2673
+system\context switches/sec                              20,475.4353  13,832.4792  24,646.9914
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High
+Games Priority: 6
+Games SFIO Priority: High
+Defender Exclusions: C:\Program Files\Epic Games\Fortnite, C:\Program Files\Epic Games\Launcher

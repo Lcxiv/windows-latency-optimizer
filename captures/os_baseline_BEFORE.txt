@@ -1,0 +1,24 @@
+﻿=== OS Performance: BEFORE ===
+Captured: 2026-03-28 19:53:10
+Samples: 10 (1s interval)
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  27,903.1000  27,890.0000  27,912.0000
+memory\pages/sec                                              9.8942       0.0000      62.9663
+physicaldisk(_total)\avg. disk sec/read                       0.0001       0.0000       0.0005
+physicaldisk(_total)\avg. disk sec/write                      0.0001       0.0000       0.0004
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.2927       0.0000       0.4880
+processor(_total)\% interrupt time                            0.2927       0.0976       0.6832
+processor(_total)\% processor time                            3.4925       1.2282       4.4450
+system\context switches/sec                              19,963.6972  13,882.7695  26,349.3197
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 20
+NetworkThrottlingIndex: 10
+Games Scheduling Category: Medium
+Games Priority: 2
+Games SFIO Priority: Normal
+Defender Exclusions: (none)

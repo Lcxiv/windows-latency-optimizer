@@ -1,0 +1,16 @@
+# Large binary captures — track CSV, ignore binary .pml
+captures/*.pml
+captures/*.etl
+captures/*.bl
+
+# OS artifacts
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+*.code-workspace
+
+# If you want to exclude large CSVs from the repo, uncomment:
+# captures/*.csv
