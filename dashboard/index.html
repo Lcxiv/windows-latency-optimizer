@@ -6,6 +6,7 @@
   <title>Windows Latency Optimizer — Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="data/experiments.js"></script>
+  <script src="data/experiments_generated.js" onerror=""></script>
   <style>
     :root {
       --bg:         #0b1120;
@@ -453,6 +454,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!window.EXPERIMENTS || !window.EXPERIMENTS.length) {
     document.body.innerHTML = '<div style="padding:40px;color:#ef4444">Error: experiments.js not loaded. Open index.html via a local server or directly from the filesystem.</div>';
     return;
+  }
+
+  // Merge auto-generated experiments from pipeline.ps1 / generate_dashboard_data.ps1
+  if (window.EXPERIMENTS_GENERATED && window.EXPERIMENTS_GENERATED.length) {
+    const existingIds = new Set(window.EXPERIMENTS.map(e => e.id));
+    window.EXPERIMENTS_GENERATED.forEach(e => {
+      if (!existingIds.has(e.id)) window.EXPERIMENTS.push(e);
+    });
   }
 
   baseline  = window.EXPERIMENTS.find(e => e.id === BASELINE_ID) || window.EXPERIMENTS[0];

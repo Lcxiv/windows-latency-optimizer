@@ -532,19 +532,104 @@ window.EXPERIMENTS = [
   },
 
   // ---------------------------------------------------------------------------
+  // EXP 07 — Post-Reboot Input Affinity Verification
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp07_input_verified",
+    name: "Exp 07 — Input Affinity Verified",
+    shortName: "Exp 07",
+    date: "2026-03-29T13:35:00",
+    description: "Post-reboot: verify input device interrupts route to CPUs 2-3, GPU/NIC stays on 4-7",
+    tags: ["verification", "post-reboot", "affinity", "input"],
+
+    registry: {
+      InputDeviceAffinityPolicy: "DevicePolicy=4, CPUs 2-3 (mask=0x0C)",
+      NIC_GPU_USB_AffinityPolicy: "CPUs 4-7 (mask=0xF0)",
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true
+    },
+
+    // From: captures/os_baseline_EXP07_POST_REBOOT_INPUT.txt (60s capture)
+    performance: {
+      AvailableMemoryMB:    { avg: null,   min: null,  max: null  },
+      PagesSec:             { avg: null,   min: null,  max: null  },
+      DiskSecRead:          { avg: null,   min: null,  max: null  },
+      DiskSecWrite:         { avg: null,   min: null,  max: null  },
+      DiskQueueLength:      { avg: null,   min: null,  max: null  },
+      DPCTimePct:           { avg: 0.4521, min: null,  max: null  },
+      InterruptTimePct:     { avg: 0.6651, min: null,  max: null  },
+      ProcessorTimePct:     { avg: null,   min: null,  max: null  },
+      ContextSwitchesSec:   { avg: null,   min: null,  max: null  },
+      ProcessorQueueLength: { avg: null,   min: null,  max: null  }
+    },
+
+    // Interrupt topology confirmed:
+    //   CPU 0: 0.5% share (preferred core idle)
+    //   CPUs 2-3: 1.2% share (input devices)
+    //   CPUs 4-7: 95% share (GPU/NIC bulk DPC)
+    //   CPUs 8-15: free for game threads
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0520, dpcPct: 0.0260, intrPerSec: 221.1 },
+      { cpu: 1,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 78.4 },
+      { cpu: 2,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0260, dpcPct: 0.0000, intrPerSec: 630.9 },
+      { cpu: 3,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.1041, dpcPct: 0.0000, intrPerSec: 691.5 },
+      { cpu: 4,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 3.0179, dpcPct: 1.8472, intrPerSec: 2789.2 },
+      { cpu: 5,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.6016, dpcPct: 1.6912, intrPerSec: 2399.2 },
+      { cpu: 6,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.4456, dpcPct: 1.8734, intrPerSec: 2897.3 },
+      { cpu: 7,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 2.0033, dpcPct: 1.7955, intrPerSec: 2310.9 },
+      { cpu: 8,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.2602, dpcPct: 0.0000, intrPerSec: 1557.0 },
+      { cpu: 9,  interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.1301, dpcPct: 0.0000, intrPerSec: 949.4 },
+      { cpu: 10, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 369.5 },
+      { cpu: 11, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 248.1 },
+      { cpu: 12, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 35.5 },
+      { cpu: 13, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 25.0 },
+      { cpu: 14, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 9.8 },
+      { cpu: 15, interruptCycleS: null, isrHighestUs: null, isrCount: null,
+        dpcHighestUs: null, dpcTotalS: null, dpcCount: null,
+        interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 14.9 }
+    ]
+  },
+
+  // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
-  // Example:
-  // {
-  //   id: "exp07_hpet_disable",
-  //   name: "Exp 07 — HPET Disabled",
-  //   shortName: "Exp 07",
-  //   date: "2026-XX-XXTXX:XX:XX",
-  //   description: "Disabled HPET via bcdedit /set useplatformclock false",
-  //   tags: ["hpet", "timer"],
-  //   registry: { ... },
-  //   performance: { ... },
-  //   latencymon: { ... },
-  //   cpuData: [ ... ]
-  // },
+  // New experiments are auto-generated by pipeline.ps1 + generate_dashboard_data.ps1
+  // into dashboard/data/experiments_generated.js (loaded automatically)
 ];

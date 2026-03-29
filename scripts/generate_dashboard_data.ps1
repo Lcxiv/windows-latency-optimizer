@@ -25,7 +25,14 @@ if (-not (Test-Path $ExperimentsDir)) {
     exit 0
 }
 
-$jsonFiles = Get-ChildItem $ExperimentsDir -Filter '*.json' | Sort-Object Name
+# Find JSON files: both flat files (from run_experiment.ps1) and
+# subdirectory experiment.json files (from pipeline.ps1)
+$jsonFiles = @()
+$jsonFiles += Get-ChildItem $ExperimentsDir -Filter '*.json' -File -ErrorAction SilentlyContinue
+$jsonFiles += Get-ChildItem $ExperimentsDir -Directory -ErrorAction SilentlyContinue |
+    ForEach-Object { Get-ChildItem $_.FullName -Filter 'experiment.json' -File -ErrorAction SilentlyContinue }
+$jsonFiles = $jsonFiles | Sort-Object FullName
+
 if ($jsonFiles.Count -eq 0) {
     Write-Warning "No JSON files found in: $ExperimentsDir"
     exit 0

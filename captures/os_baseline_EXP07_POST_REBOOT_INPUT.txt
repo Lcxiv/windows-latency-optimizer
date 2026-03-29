@@ -1,0 +1,35 @@
+﻿=== Exp 07 ΓÇö Post-Reboot Input Affinity Verification ===
+Captured: 2026-03-29 13:31:30
+
+Per-CPU Interrupt Distribution (60s, 1s samples):
+
+CPU      Avg Intr%     Avg DPC%    Avg Intrs/sec
+---      ---------     --------    -------------
+CPU 0    0.0520        0.0260      221.1
+CPU 1    0.0000        0.0000      78.4
+CPU 2    0.0260        0.0000      630.9    <- Input (KB/Mouse)
+CPU 3    0.1041        0.0000      691.5    <- Input (KB/Mouse)
+CPU 4    3.0179        1.8472      2789.2   <- GPU/NIC/USB
+CPU 5    2.6016        1.6912      2399.2   <- GPU/NIC/USB
+CPU 6    2.4456        1.8734      2897.3   <- GPU/NIC/USB
+CPU 7    2.0033        1.7955      2310.9   <- GPU/NIC/USB
+CPU 8    0.2602        0.0000      1557.0
+CPU 9    0.1301        0.0000      949.4
+CPU 10   0.0000        0.0000      369.5
+CPU 11   0.0000        0.0000      248.1
+CPU 12   0.0000        0.0000      35.5
+CPU 13   0.0000        0.0000      25.0
+CPU 14   0.0000        0.0000      9.8
+CPU 15   0.0000        0.0000      14.9
+_TOTAL   0.6651        0.4521      15227.8
+
+=== Group Analysis ===
+CPU 0 (preferred core):       0.052% ΓÇö nearly idle
+CPUs 2-3 (input devices):     0.130% ΓÇö KB/mouse interrupts
+CPUs 4-7 (GPU/NIC/USB-other): 10.068% ΓÇö bulk DPC work
+CPUs 8-15 (game threads):     0.390% ΓÇö free
+
+=== Interrupt Topology Verified ===
+CPU 0 share of total: ~0.5% (was 97.7% baseline)
+Input device isolation to CPUs 2-3: CONFIRMED
+GPU/NIC bulk processing on CPUs 4-7: CONFIRMED
