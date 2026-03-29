@@ -1,0 +1,32 @@
+﻿=== OS Performance: EXP04_CPU_AFFINITY ===
+Captured: 2026-03-29 12:20:53
+Samples: 10 (1s interval)
+Note: registry changes written; REBOOT REQUIRED for interrupt affinity to activate
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  23,321.9000  23,309.0000  23,329.0000
+memory\pages/sec                                              0.1000       0.0000       0.9996
+physicaldisk(_total)\avg. disk sec/read                       0.0000       0.0000       0.0000
+physicaldisk(_total)\avg. disk sec/write                      0.0001       0.0000       0.0003
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.3999       0.0976       0.7803
+processor(_total)\% interrupt time                            0.3805       0.0976       1.0735
+processor(_total)\% processor time                            4.8808       2.3438       6.1924
+system\context switches/sec                              24,236.7315  16,336.7803  29,655.3019
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Interrupt Affinity Written (take effect after reboot) ===
+  NIC  Intel I226-V:  DevicePolicy=4  Mask=0xF0
+  Audio  AMD HDMI:  DevicePolicy=4  Mask=0xF0
+  Audio  NVIDIA HDMI:  DevicePolicy=4  Mask=0xF0
+  USB  AMD 3.10 xHCI (15B7):  DevicePolicy=4  Mask=0xF0
+  USB  AMD 3.20 xHCI (43F7-a):  DevicePolicy=4  Mask=0xF0
+  USB  AMD 3.10 xHCI (15B6):  DevicePolicy=4  Mask=0xF0
+  USB  AMD 3.20 xHCI (43F7-b):  DevicePolicy=4  Mask=0xF0
+  USB  AMD 2.0 xHCI (15B8):  DevicePolicy=4  Mask=0xF0
+
+=== MMCSS / Network Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High

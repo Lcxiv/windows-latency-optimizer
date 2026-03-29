@@ -1,0 +1,64 @@
+﻿=== NIC RSS + Interrupt Affinity State Backup ===
+Captured: 2026-03-29 12:17:47
+Purpose:  Pre-Fix-1 backup - NIC RSS settings, audio/USB interrupt affinity policy
+
+--- Physical Network Adapters ---
+  Name:        Ethernet
+  Description: Intel(R) Ethernet Controller I226-V
+  PNPDeviceID: PCI\VEN_8086&DEV_125C&SUBSYS_88671043&REV_06\60CF84FFFF629DF700
+  RSS: not available for this adapter
+
+--- Audio / Media Devices (PnP) ---
+  FriendlyName: High Definition Audio Device
+  InstanceId:   HDAUDIO\FUNC_01&VEN_1002&DEV_AA01&SUBSYS_00AA0100&REV_1008\5&1A6972F4&0&0001
+  AffinityPolicy: (not set - system default)
+
+  FriendlyName: Realtek USB2.0 Audio
+  InstanceId:   USB\VID_0B05&PID_1A52&MI_00\9&D60B9F&0&0000
+  AffinityPolicy: (not set - system default)
+
+  FriendlyName: High Definition Audio Device
+  InstanceId:   HDAUDIO\FUNC_01&VEN_10DE&DEV_00AB&SUBSYS_10DE0000&REV_1001\5&18741804&0&0001
+  AffinityPolicy: (not set - system default)
+
+--- USB Host Controllers ---
+  FriendlyName: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+  InstanceId:   PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0441
+  AffinityPolicy: DevicePolicy=  AssignmentSetOverride[0]=0x
+
+  FriendlyName: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+  InstanceId:   PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\8&14937218&0&006000400011
+  AffinityPolicy: DevicePolicy=  AssignmentSetOverride[0]=0x
+
+  FriendlyName: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+  InstanceId:   PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0341
+  AffinityPolicy: DevicePolicy=  AssignmentSetOverride[0]=0x
+
+  FriendlyName: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+  InstanceId:   PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2AF91C3C&0&00600011
+  AffinityPolicy: DevicePolicy=  AssignmentSetOverride[0]=0x
+
+  FriendlyName: AMD USB 2.0 eXtensible Host Controller - 1.20 (Microsoft)
+  InstanceId:   PCI\VEN_1022&DEV_15B8&SUBSYS_88771043&REV_00\4&89701DF&0&0043
+  AffinityPolicy: DevicePolicy=  AssignmentSetOverride[0]=0x
+
+=== ROLLBACK COMMANDS ===
+# Run as Administrator:
+
+# Remove interrupt affinity overrides (audio, USB) ΓÇö restores system default
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\HDAUDIO\FUNC_01&VEN_1002&DEV_AA01&SUBSYS_00AA0100&REV_1008\5&1A6972F4&0&0001\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\HDAUDIO\FUNC_01&VEN_1002&DEV_AA01&SUBSYS_00AA0100&REV_1008\5&1A6972F4&0&0001\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\USB\VID_0B05&PID_1A52&MI_00\9&D60B9F&0&0000\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\USB\VID_0B05&PID_1A52&MI_00\9&D60B9F&0&0000\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\HDAUDIO\FUNC_01&VEN_10DE&DEV_00AB&SUBSYS_10DE0000&REV_1001\5&18741804&0&0001\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\HDAUDIO\FUNC_01&VEN_10DE&DEV_00AB&SUBSYS_10DE0000&REV_1001\5&18741804&0&0001\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0441\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0441\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\8&14937218&0&006000400011\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\8&14937218&0&006000400011\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0341\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0341\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2AF91C3C&0&00600011\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2AF91C3C&0&00600011\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B8&SUBSYS_88771043&REV_00\4&89701DF&0&0043\Device Parameters\Interrupt Management\Affinity Policy' -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B8&SUBSYS_88771043&REV_00\4&89701DF&0&0043\Device Parameters\Interrupt Management\Affinity Policy' -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
