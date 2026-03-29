@@ -484,16 +484,64 @@ window.EXPERIMENTS = [
   },
 
   // ---------------------------------------------------------------------------
+  // EXP 06 — KB/Mouse Interrupt Isolation (CPUs 2-3)
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp06_input_affinity",
+    name: "Exp 06 — Input Device Interrupt Isolation",
+    shortName: "Exp 06",
+    date: "2026-03-29T12:49:05",
+    description: "Pin keyboard/mouse USB controllers to CPUs 2-3, separate from GPU/NIC/USB-other on CPUs 4-7",
+    tags: ["affinity", "input", "usb", "keyboard", "mouse"],
+
+    registry: {
+      // Same as Exp05 for all previous fixes, plus:
+      InputDeviceAffinityPolicy: "DevicePolicy=4, CPUs 2-3 (mask=0x0C)",
+      InputControllersAffined: [
+        "USB 3.10 (DEV_15B6) — SteelSeries keyboard  [0C 00 00 00 00 00 00 00]",
+        "USB 3.10 (DEV_15B7) — Razer mouse/keyboard  [0C 00 00 00 00 00 00 00]",
+        "USB 3.20 (DEV_43F7) — ASUS ROG devices      [0C 00 00 00 00 00 00 00]"
+      ],
+      NIC_GPU_USB_AffinityPolicy: "CPUs 4-7 (mask=0xF0) — unchanged from Exp04",
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High"
+    },
+
+    // From: captures/os_baseline_EXP06_INPUT_AFFINITY.txt
+    // Note: interrupt redistribution won't show until next reboot
+    performance: {
+      AvailableMemoryMB:    { avg: 26386.4, min: 26373.0, max: 26410.0 },
+      PagesSec:             { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DiskSecRead:          { avg: 0.0001,  min: 0.0,     max: 0.0005  },
+      DiskSecWrite:         { avg: 0.0001,  min: 0.0,     max: 0.0002  },
+      DiskQueueLength:      { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DPCTimePct:           { avg: 0.2926,  min: 0.0,     max: 0.5853  },
+      InterruptTimePct:     { avg: 0.5560,  min: 0.0974,  max: 1.3656  },
+      ProcessorTimePct:     { avg: 5.1051,  min: 2.5090,  max: 6.9984  },
+      ContextSwitchesSec:   { avg: 25024.5, min: 16675.3, max: 31820.9 },
+      ProcessorQueueLength: { avg: 0.0,     min: 0.0,     max: 0.0     }
+    },
+
+    // LatencyMon to be run after next reboot to verify CPUs 2-3 handle input interrupts
+    // Expected: CPU 2-3 show moderate interrupt load, CPUs 4-7 unchanged for GPU/NIC
+    latencymon: null,
+    cpuData: null
+  },
+
+  // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
   // Example:
   // {
-  //   id: "exp06_kb_mouse_affinity",
-  //   name: "Exp 06 — KB/Mouse on Dedicated Cores",
-  //   shortName: "Exp 06",
+  //   id: "exp07_hpet_disable",
+  //   name: "Exp 07 — HPET Disabled",
+  //   shortName: "Exp 07",
   //   date: "2026-XX-XXTXX:XX:XX",
-  //   description: "Pin keyboard/mouse USB host controllers to CPUs 2-3 (mask=0x0C)",
-  //   tags: ["affinity", "input", "usb"],
+  //   description: "Disabled HPET via bcdedit /set useplatformclock false",
+  //   tags: ["hpet", "timer"],
   //   registry: { ... },
   //   performance: { ... },
   //   latencymon: { ... },
