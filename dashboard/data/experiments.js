@@ -161,16 +161,77 @@ window.EXPERIMENTS = [
     // Run LatencyMon under load and populate this object to enable latency charts
     latencymon: null,
     cpuData: null
-  }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXPERIMENT 02 — Defender Optimization
+  // Applied: 2026-03-29 | Fix 2 from implementation-plan.md
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp02_defender",
+    name: "Exp 02 — Defender Optimization",
+    shortName: "Exp 02",
+    date: "2026-03-29T12:01:34",
+    description: "Process exclusions for Fortnite/EAC/BEService, shader cache path exclusions, ScanAvgCPULoadFactor=5, EnableLowCpuPriority=true, scans rescheduled to 3 AM",
+    tags: ["defender", "exclusions", "scan-priority"],
+
+    registry: {
+      // MMCSS/network unchanged from Exp 01
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      // Defender — expanded from Exp 01
+      DefenderExclusions: [
+        "C:\\Program Files\\Epic Games\\Fortnite",
+        "C:\\Program Files\\Epic Games\\Launcher",
+        "C:\\ProgramData\\Epic\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\FortniteGame",
+        "C:\\Users\\L\\AppData\\Local\\Temp"
+      ],
+      DefenderExclusionProcesses: [
+        "FortniteClient-Win64-Shipping.exe",
+        "EpicGamesLauncher.exe",
+        "EasyAntiCheat.exe",
+        "EasyAntiCheat_EOS.exe",
+        "BEService.exe"
+      ],
+      DefenderScanAvgCPULoadFactor: 5,
+      DefenderEnableLowCpuPriority: true,
+      DefenderScanScheduleTime: "03:00:00",
+      DefenderScanScheduleQuickScanTime: "03:30:00"
+    },
+
+    // From: captures/os_baseline_EXP02_DEFENDER.txt
+    // Note: system idle at capture time — CPU/context-switch values lower than typical
+    performance: {
+      AvailableMemoryMB:    { avg: 25848.1, min: 25829.0, max: 25852.0 },
+      PagesSec:             { avg: 0.0999,  min: 0.0,     max: 0.9987  },
+      DiskSecRead:          { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DiskSecWrite:         { avg: 0.0001,  min: 0.0,     max: 0.0002  },
+      DiskQueueLength:      { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DPCTimePct:           { avg: 0.0781,  min: 0.0,     max: 0.2930  },
+      InterruptTimePct:     { avg: 0.0293,  min: 0.0,     max: 0.0976  },
+      ProcessorTimePct:     { avg: 0.8737,  min: 0.0,     max: 3.0305  },
+      ContextSwitchesSec:   { avg: 2417.6,  min: 1975.2,  max: 2766.2  },
+      ProcessorQueueLength: { avg: 0.0,     min: 0.0,     max: 0.0     }
+    },
+
+    // LatencyMon not yet captured — run after gaming session to measure pagefault reduction
+    latencymon: null,
+    cpuData: null
+  },
 
   // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
   // Example:
   // {
-  //   id: "exp02_hpet_disable",
-  //   name: "Exp 02 — HPET Disabled",
-  //   shortName: "Exp 02",
+  //   id: "exp05_hpet_disable",
+  //   name: "Exp 05 — HPET Disabled",
+  //   shortName: "Exp 05",
   //   date: "2026-XX-XXTXX:XX:XX",
   //   description: "Disabled HPET via bcdedit /set useplatformclock false",
   //   tags: ["hpet", "timer"],

@@ -1,0 +1,29 @@
+﻿=== OS Performance: EXP02_DEFENDER ===
+Captured: 2026-03-29 12:01:34
+Samples: 10 (1s interval)
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  25,848.1000  25,829.0000  25,852.0000
+memory\pages/sec                                              0.0999       0.0000       0.9987
+physicaldisk(_total)\avg. disk sec/read                       0.0000       0.0000       0.0000
+physicaldisk(_total)\avg. disk sec/write                      0.0001       0.0000       0.0002
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.0781       0.0000       0.2930
+processor(_total)\% interrupt time                            0.0293       0.0000       0.0976
+processor(_total)\% processor time                            0.8737       0.0000       3.0305
+system\context switches/sec                               2,417.5824   1,975.2408   2,766.2316
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High
+Games Priority: 6
+Games SFIO Priority: High
+Defender ExclusionPath count: 6
+Defender ExclusionProcess count: 5
+Defender ScanAvgCPULoadFactor: 5
+Defender EnableLowCpuPriority: True
+Defender ScanScheduleTime: 03:00:00
+Defender ScanScheduleQuickScanTime: 03:30:00
