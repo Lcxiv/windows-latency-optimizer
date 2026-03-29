@@ -1,0 +1,24 @@
+﻿=== OS Performance: EXP06_INPUT_AFFINITY ===
+Captured: 2026-03-29 12:49:05
+Samples: 10 (1s interval)
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  26,386.4000  26,373.0000  26,410.0000
+memory\pages/sec                                              0.0000       0.0000       0.0000
+physicaldisk(_total)\avg. disk sec/read                       0.0001       0.0000       0.0005
+physicaldisk(_total)\avg. disk sec/write                      0.0001       0.0000       0.0002
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.2926       0.0000       0.5853
+processor(_total)\% interrupt time                            0.5560       0.0974       1.3656
+processor(_total)\% processor time                            5.1051       2.5090       6.9984
+system\context switches/sec                              25,024.4558  16,675.2655  31,820.8834
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High
+Games Priority: 6
+Games SFIO Priority: High
+Defender Exclusions: C:\Program Files\Epic Games\Fortnite, C:\Program Files\Epic Games\Launcher, C:\ProgramData\Epic\EpicGamesLauncher, C:\Users\L\AppData\Local\EpicGamesLauncher, C:\Users\L\AppData\Local\FortniteGame, C:\Users\L\AppData\Local\Temp

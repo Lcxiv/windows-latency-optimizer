@@ -1,0 +1,39 @@
+﻿=== Pre-Exp06 Backup: Input Device Affinity ===
+Captured: 2026-03-29 12:48:34
+
+These controllers currently have DevicePolicy=4 (CPUs 4-7, mask=0xF0).
+Exp06 will move them to CPUs 2-3 (mask=0x0C).
+
+=== Current State ===
+
+[USB 3.10 (DEV_15B6) ΓÇö SteelSeries keyboard]
+  InstanceId: PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0341
+  DevicePolicy: 4
+  AssignmentSetOverride: F0 00 00 00 00 00 00 00
+
+[USB 3.10 (DEV_15B7) ΓÇö Razer mouse/keyboard]
+  InstanceId: PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0441
+  DevicePolicy: 4
+  AssignmentSetOverride: F0 00 00 00 00 00 00 00
+
+[USB 3.20 (DEV_43F7) ΓÇö ASUS ROG devices]
+  InstanceId: PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2af91c3c&0&00600011
+  DevicePolicy: 4
+  AssignmentSetOverride: F0 00 00 00 00 00 00 00
+
+=== Rollback Commands (restore CPUs 4-7 / mask=0xF0) ===
+
+# USB 3.10 (DEV_15B6) ΓÇö SteelSeries keyboard
+New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0341\Device Parameters\Interrupt Management\Affinity Policy' -Force | Out-Null
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0341\Device Parameters\Interrupt Management\Affinity Policy' -Name DevicePolicy -Value 4 -Type DWord
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0341\Device Parameters\Interrupt Management\Affinity Policy' -Name AssignmentSetOverride -Value ([byte[]](0xF0,0x00,0x00,0x00,0x00,0x00,0x00,0x00)) -PropertyType Binary -Force | Out-Null
+
+# USB 3.10 (DEV_15B7) ΓÇö Razer mouse/keyboard
+New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0441\Device Parameters\Interrupt Management\Affinity Policy' -Force | Out-Null
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0441\Device Parameters\Interrupt Management\Affinity Policy' -Name DevicePolicy -Value 4 -Type DWord
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1ebe6a9c&0&0441\Device Parameters\Interrupt Management\Affinity Policy' -Name AssignmentSetOverride -Value ([byte[]](0xF0,0x00,0x00,0x00,0x00,0x00,0x00,0x00)) -PropertyType Binary -Force | Out-Null
+
+# USB 3.20 (DEV_43F7) ΓÇö ASUS ROG devices
+New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2af91c3c&0&00600011\Device Parameters\Interrupt Management\Affinity Policy' -Force | Out-Null
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2af91c3c&0&00600011\Device Parameters\Interrupt Management\Affinity Policy' -Name DevicePolicy -Value 4 -Type DWord
+New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2af91c3c&0&00600011\Device Parameters\Interrupt Management\Affinity Policy' -Name AssignmentSetOverride -Value ([byte[]](0xF0,0x00,0x00,0x00,0x00,0x00,0x00,0x00)) -PropertyType Binary -Force | Out-Null
