@@ -1,0 +1,40 @@
+﻿=== Defender State Backup ===
+Captured: 2026-03-29 11:56:58
+Purpose:  Pre-Fix-2 backup — Defender exclusions and scan settings
+
+--- Exclusion Paths ---
+  C:\Program Files\Epic Games\Fortnite
+  C:\Program Files\Epic Games\Launcher
+
+--- Exclusion Processes ---
+  (none)
+
+--- Exclusion Extensions ---
+  (none)
+
+--- Scan Settings ---
+  ScanAvgCPULoadFactor:                  50
+  EnableLowCpuPriority:                  False
+  DisableScanningMappedNetworkDrivesForFullScan: True
+  ScanScheduleDay:                       0
+  ScanScheduleTime:                      02:00:00
+  ScanScheduleQuickScanTime:             00:00:00
+
+--- Real-Time Protection State ---
+  RealTimeProtectionEnabled:   True
+  AntivirusEnabled:            True
+  BehaviorMonitorEnabled:      True
+  IoavProtectionEnabled:       True
+  OnAccessProtectionEnabled:   True
+
+=== ROLLBACK COMMANDS ===
+# Run as Administrator to restore this state:
+
+# Restore path exclusions
+Add-MpPreference -ExclusionPath 'C:\Program Files\Epic Games\Fortnite'
+Add-MpPreference -ExclusionPath 'C:\Program Files\Epic Games\Launcher'
+
+Set-MpPreference -ScanAvgCPULoadFactor 50
+Set-MpPreference -EnableLowCpuPriority False
+Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan True
+Set-MpPreference -ScanScheduleDay 0
