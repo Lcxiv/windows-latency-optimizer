@@ -1,0 +1,62 @@
+﻿=== Post-Reboot Verification ===
+Captured: 2026-03-29 12:40:34
+
+--- Fix 3: NVIDIA Registry ---
+  [PASS]  GPU MSISupported: 1  (expected: 1)
+  [PASS]  GPU MessageNumberLimit: 1  (expected: 1)
+  [PASS]  GPU DevicePolicy: 4  (expected: 4)
+  [PASS]  GPU AffinityMask[0]: 0xF0  (expected: 0xF0)
+  [PASS]  GPU PerfLevelSrc: 0x2222  (expected: 0x2222)
+  [PASS]  HAGS HwSchMode: 2  (expected: 2)
+
+--- Fix 1: Interrupt Affinity Registry ---
+  [PASS]  NIC  Intel I226-V: 0xF0  (expected: 0xF0)
+  [PASS]  Audio  AMD HDMI: 0xF0  (expected: 0xF0)
+  [PASS]  Audio  NVIDIA HDMI: 0xF0  (expected: 0xF0)
+  [PASS]  USB AMD 3.10 (15B7): 0xF0  (expected: 0xF0)
+  [PASS]  USB AMD 3.20 (43F7-a): 0xF0  (expected: 0xF0)
+  [PASS]  USB AMD 3.10 (15B6): 0xF0  (expected: 0xF0)
+  [PASS]  USB AMD 3.20 (43F7-b): 0xF0  (expected: 0xF0)
+  [PASS]  USB AMD 2.0 (15B8): 0xF0  (expected: 0xF0)
+
+--- Fix 2: Defender Settings ---
+  [PASS]  ScanAvgCPULoadFactor: 5  (expected: 5)
+  [PASS]  EnableLowCpuPriority: True  (expected: True)
+  INFO  ExclusionPath count:    6    (expected: 6)
+  INFO  ExclusionProcess count: 5  (expected: 5)
+
+--- MSI Mode Active Check (post-reboot) ---
+  [INFO]  GPU found in legacy IRQ table ΓÇö MSI mode may not be active yet or driver uses hybrid
+
+=== All registry checks PASSED ===
+
+=== Per-CPU Interrupt/DPC Distribution (60s capture, 1s samples) ===
+Captured: 2026-03-29 12:44:53
+
+CPU           Avg Intr%       Avg DPC%    Avg Intrs/sec
+----------------------------------------------------------
+CPU 0            0.0260         0.0260            281.4
+CPU 1            0.0000         0.0000             31.3
+CPU 2            0.1041         0.0000            924.8
+CPU 3            0.0000         0.0000            526.1
+CPU 4            2.2375         1.6912          3,286.4
+CPU 5            2.0554         1.5090          2,031.6
+CPU 6            2.5757         1.4569          2,855.4
+CPU 7            2.5757         2.1854          2,295.2
+CPU 8            0.2081         0.0000          1,830.3
+CPU 9            0.0000         0.0000            676.7
+CPU 10           0.0520         0.0000            541.1
+CPU 11           0.0260         0.0000            149.4
+CPU 12           0.0260         0.0000             63.6
+CPU 13           0.0000         0.0000             16.3
+CPU 14           0.0000         0.0000             22.0
+CPU 15           0.0000         0.0000             11.9
+----------------------------------------------------------
+_TOTAL           0.6179         0.4293         15,543.5
+
+=== Target Verification ===
+CPU 0 share of total interrupt%: 4.2%  (target: <50% ΓÇö was ~97.7% pre-fix)
+[REVIEW]  Total DPC%: 0.4293%  (target: <0.050%)
+INFO  Context Switches/sec avg: 23001.8
+INFO  Page Faults/sec avg:       2751.6
+INFO  Pages/sec avg:             1.5
