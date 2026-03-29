@@ -294,6 +294,84 @@ window.EXPERIMENTS = [
   },
 
   // ---------------------------------------------------------------------------
+  // EXPERIMENT 04 — CPU Interrupt Affinity Redistribution
+  // Applied: 2026-03-29 | Fix 1 from implementation-plan.md
+  // REBOOT REQUIRED — registry written, changes activate on next boot
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp04_cpu_affinity",
+    name: "Exp 04 — CPU Interrupt Affinity",
+    shortName: "Exp 04",
+    date: "2026-03-29T12:20:53",
+    description: "Interrupt affinity pinned to CPUs 4-7 for: NIC (Intel I226-V), audio (AMD HDMI + NVIDIA HDMI), 5x AMD USB xHCI controllers. RSS unavailable for I226-V driver — affinity registry used instead. Reboot required.",
+    tags: ["cpu-affinity", "interrupt", "nic", "usb", "audio"],
+
+    registry: {
+      // MMCSS/network unchanged from Exp 01
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      // Defender unchanged from Exp 02
+      DefenderExclusions: [
+        "C:\\Program Files\\Epic Games\\Fortnite",
+        "C:\\Program Files\\Epic Games\\Launcher",
+        "C:\\ProgramData\\Epic\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\FortniteGame",
+        "C:\\Users\\L\\AppData\\Local\\Temp"
+      ],
+      DefenderExclusionProcesses: [
+        "FortniteClient-Win64-Shipping.exe",
+        "EpicGamesLauncher.exe",
+        "EasyAntiCheat.exe",
+        "EasyAntiCheat_EOS.exe",
+        "BEService.exe"
+      ],
+      DefenderScanAvgCPULoadFactor: 5,
+      DefenderEnableLowCpuPriority: true,
+      // NVIDIA unchanged from Exp 03
+      NvidiaMSISupported: 1,
+      NvidiaMessageNumberLimit: 1,
+      NvidiaPerfLevelSrc: "0x2222",
+      NvidiaHwSchMode: 2,
+      // Interrupt affinity — new in this experiment
+      InterruptAffinityPolicy: "DevicePolicy=4 (SpecifiedProcessors), CPUs 4-7 (mask=0xF0)",
+      DevicesAffined: [
+        "NIC: Intel I226-V (PCI\\VEN_8086&DEV_125C...)",
+        "Audio: AMD HDMI (HDAUDIO\\FUNC_01&VEN_1002...)",
+        "Audio: NVIDIA HDMI (HDAUDIO\\FUNC_01&VEN_10DE...)",
+        "USB: AMD 3.10 xHCI (VEN_1022&DEV_15B7)",
+        "USB: AMD 3.20 xHCI (VEN_1022&DEV_43F7) x2",
+        "USB: AMD 3.10 xHCI (VEN_1022&DEV_15B6)",
+        "USB: AMD 2.0 xHCI (VEN_1022&DEV_15B8)"
+      ]
+    },
+
+    // From: captures/os_baseline_EXP04_CPU_AFFINITY.txt
+    // Note: registry changes written pre-reboot; interrupt redistribution not yet active
+    performance: {
+      AvailableMemoryMB:    { avg: 23321.9, min: 23309.0, max: 23329.0 },
+      PagesSec:             { avg: 0.1,     min: 0.0,     max: 0.9996  },
+      DiskSecRead:          { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DiskSecWrite:         { avg: 0.0001,  min: 0.0,     max: 0.0003  },
+      DiskQueueLength:      { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DPCTimePct:           { avg: 0.3999,  min: 0.0976,  max: 0.7803  },
+      InterruptTimePct:     { avg: 0.3805,  min: 0.0976,  max: 1.0735  },
+      ProcessorTimePct:     { avg: 4.8808,  min: 2.3438,  max: 6.1924  },
+      ContextSwitchesSec:   { avg: 24236.7, min: 16336.8, max: 29655.3 },
+      ProcessorQueueLength: { avg: 0.0,     min: 0.0,     max: 0.0     }
+    },
+
+    // LatencyMon must be run AFTER rebooting to see interrupt redistribution effect.
+    // Target: CPU 0 interrupt cycle time < 2.0s (down from 7.83s baseline)
+    // Target: CPUs 4-7 interrupt cycle time > 0.5s each
+    latencymon: null,
+    cpuData: null
+  },
+
+  // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
   // Example:
