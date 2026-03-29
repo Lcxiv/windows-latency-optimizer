@@ -1,0 +1,37 @@
+﻿=== Experiment Analysis: EXP08_FULL_ANALYSIS ===
+Description: Full system analysis after all optimizations and review fixes
+Captured: 2026-03-29 15:44:06
+Duration: 120s
+
+--- Interrupt Distribution ---
+CPU 0  preferred:    0.2%
+CPUs 2-3 input:      1.7%
+CPUs 4-7 GPU/NIC:    94.6%
+CPUs 8-15 game:      3.5%
+
+--- Targets ---
+[PASS] CPU 0 share <10%: 0.2%
+[PASS] Total DPC <0.5%: 0.4385%
+[PASS] Total Interrupt <1.0%: 0.5254%
+
+--- Per-CPU ---
+CPU10      0.0130     0.0000        739.9
+CPU11      0.0780     0.0130      1,027.6
+CPU8       0.0910     0.0260      2,497.3
+CPU9       0.0780     0.0260      3,145.4
+CPU14      0.0000     0.0130         47.1
+CPU15      0.0130     0.0000         76.3
+CPU12      0.0000     0.0130         96.3
+CPU13      0.0130     0.0000        144.5
+CPU2       0.0647     0.0130      1,384.0 <-input
+CPU3       0.0778     0.0130      1,959.3 <-input
+CPU0       0.0130     0.0000        281.4 <-preferred
+CPU1       0.0130     0.0000        435.4
+CPU6       2.0789     1.7934      5,086.1 <-GPU/NIC
+CPU7       1.9491     1.7667      5,326.3 <-GPU/NIC
+CPU4       2.1177     1.7021      4,204.6 <-GPU/NIC
+CPU5       1.8059     1.6373      5,180.5 <-GPU/NIC
+
+--- xperf DPC/ISR Analysis ---
+
+For deeper analysis open trace.etl in WPA

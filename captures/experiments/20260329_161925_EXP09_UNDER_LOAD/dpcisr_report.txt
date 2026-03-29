@@ -1,0 +1,685 @@
+
+--------------------------
+DPC Info
+
+--------------------------
+CPU Usage Summing By Module For the Whole Trace
+
+CPU Usage from 0 us to 126118435 us:
+
+     CPU 0 Usage,      CPU 1 Usage,      CPU 2 Usage,      CPU 3 Usage,      CPU 4 Usage,      CPU 5 Usage,      CPU 6 Usage,      CPU 7 Usage,      CPU 8 Usage,      CPU 9 Usage,      CPU 10 Usage,      CPU 11 Usage,      CPU 12 Usage,      CPU 13 Usage,      CPU 14 Usage,      CPU 15 Usage, 
+     usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %, Module
+       31   0.00,        22   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,        17   0.00,         0   0.00,         0   0.00,         0   0.00,        23   0.00,         0   0.00,         0   0.00,         0   0.00, ACPI.sys
+        1   0.00,         0   0.00,         5   0.00,         1   0.00,        14   0.00,        13   0.00,         7   0.00,        22   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, CLASSPNP.SYS
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, FLTMGR.SYS
+    48817   0.04,       151   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, HDAudBus.sys
+       21   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, HdAudio.sys
+       14   0.00,         0   0.00,         0   0.00,         0   0.00,         1   0.00,         0   0.00,         1   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, Ndu.sys
+        5   0.00,         0   0.00,         0   0.00,         5   0.00,        17   0.00,        31   0.00,        25   0.00,        42   0.00,         0   0.00,         6   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, Ntfs.sys
+        0   0.00,         0   0.00,    307015   0.24,     47670   0.04,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, USBXHCI.SYS
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         7   0.00,         0   0.00,         4   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, UnionFS.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         5   0.00,         6   0.00,        12   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, WdFilter.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,        40   0.00,         0   0.00,         0   0.00,      6873   0.01,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, afd.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         5   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, dfsc.sys
+     1879   0.00,      1447   0.00,      4167   0.00,      3393   0.00,   1306850   1.04,   1317874   1.04,   1304189   1.03,   1246616   0.99,      6082   0.00,      5022   0.00,      2935   0.00,      1842   0.00,      1412   0.00,       917   0.00,       729   0.00,       520   0.00, dxgkrnl.sys
+       52   0.00,        91   0.00,       192   0.00,       218   0.00,      1155   0.00,      1078   0.00,       823   0.00,      1673   0.00,         0   0.00,       270   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, dxgmms2.sys
+        1   0.00,         0   0.00,         0   0.00,        16   0.00,        17   0.00,         0   0.00,        15   0.00,       100   0.00,         0   0.00,        33   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, fse.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         6   0.00,         0   0.00,         9   0.00,        11   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, hvservice.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,        18   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, iorate.sys
+   312315   0.25,         3   0.00,        11   0.00,        28   0.00,       112   0.00,       123   0.00,        93   0.00,       136   0.00,         0   0.00,        16   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, ndis.sys
+     8611   0.01,      8956   0.01,     17753   0.01,     19368   0.02,     48501   0.04,     50797   0.04,     48272   0.04,     61055   0.05,     24962   0.02,     31775   0.03,     14940   0.01,     18793   0.01,      8729   0.01,     10758   0.01,      9649   0.01,     10907   0.01, ntoskrnl.exe
+       16   0.00,        39   0.00,       149   0.00,        60   0.00,   1739534   1.38,   1274759   1.01,   1283194   1.02,   1235959   0.98,         2   0.00,       117   0.00,         3   0.00,        19   0.00,        17   0.00,         0   0.00,         0   0.00,         0   0.00, nvlddmkm.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         1   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, rdyboost.sys
+     8773   0.01,     21315   0.02,     15127   0.01,     32547   0.03,     22413   0.02,     24114   0.02,     36690   0.03,     23410   0.02,     20709   0.02,     36172   0.03,     11987   0.01,     26476   0.02,      5861   0.00,     15629   0.01,      6407   0.01,     13262   0.01, storport.sys
+        0   0.00,         0   0.00,         5   0.00,         0   0.00,        16   0.00,        15   0.00,        11   0.00,        14   0.00,         0   0.00,         6   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, storvsp.sys
+      163   0.00,        60   0.00,       184   0.00,       115   0.00,       652   0.00,       603   0.00,       627   0.00,       681   0.00,       135   0.00,       143   0.00,        57   0.00,        72   0.00,        34   0.00,        39   0.00,        25   0.00,        37   0.00, symcryptk.dll
+      833   0.00,      1334   0.00,      1205   0.00,      1303   0.00,      1190   0.00,      1501   0.00,      1839   0.00,      1354   0.00,      3859   0.00,      1547   0.00,      1587   0.00,       903   0.00,      1278   0.00,      1116   0.00,      1874   0.00,      1654   0.00, tcpip.sys
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, vmswitch.sys
+
+Total = 802055
+Elapsed Time, >        0 usecs AND <=        1 usecs, 241611, or  30.12%
+Elapsed Time, >        1 usecs AND <=        2 usecs,  17291, or   2.16%
+Elapsed Time, >        2 usecs AND <=        4 usecs,  88880, or  11.08%
+Elapsed Time, >        4 usecs AND <=        8 usecs, 130995, or  16.33%
+Elapsed Time, >        8 usecs AND <=       16 usecs, 114542, or  14.28%
+Elapsed Time, >       16 usecs AND <=       32 usecs,  82146, or  10.24%
+Elapsed Time, >       32 usecs AND <=       64 usecs,  80395, or  10.02%
+Elapsed Time, >       64 usecs AND <=      128 usecs,  41209, or   5.14%
+Elapsed Time, >      128 usecs AND <=      256 usecs,   4808, or   0.60%
+Elapsed Time, >      256 usecs AND <=      512 usecs,    161, or   0.02%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,     15, or   0.00%
+Elapsed Time, >     1024 usecs AND <=     2048 usecs,      1, or   0.00%
+Elapsed Time, >     2048 usecs AND <=     4096 usecs,      0, or   0.00%
+Elapsed Time, >     4096 usecs AND <=     8192 usecs,      0, or   0.00%
+Elapsed Time, >     8192 usecs AND <=    16384 usecs,      0, or   0.00%
+Elapsed Time, >    16384 usecs AND <=    32768 usecs,      0, or   0.00%
+Elapsed Time, >    32768 usecs AND <=    65536 usecs,      0, or   0.00%
+Elapsed Time, >    65536 usecs AND <=   131072 usecs,      0, or   0.00%
+Elapsed Time, >   131072 usecs AND <=   262144 usecs,      0, or   0.00%
+Elapsed Time, >   262144 usecs AND <=   524288 usecs,      0, or   0.00%
+Elapsed Time, >   524288 usecs AND <=  1048576 usecs,      0, or   0.00%
+Elapsed Time, >  1048576 usecs AND <=  2097152 usecs,      0, or   0.00%
+Elapsed Time, >  2097152 usecs                      ,      1, or   0.00%
+Total,                                                802055
+
+Total = 4 for module ACPI.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      0, or   0.00%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      0, or   0.00%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      4, or 100.00%
+Total,                                                     4
+
+Total = 62 for module CLASSPNP.SYS
+Elapsed Time, >        0 usecs AND <=        1 usecs,     32, or  51.61%
+Elapsed Time, >        1 usecs AND <=        2 usecs,     30, or  48.39%
+Total,                                                    62
+
+Total = 1 for module FLTMGR.SYS
+Elapsed Time, >        0 usecs AND <=        1 usecs,      1, or 100.00%
+Total,                                                     1
+
+Total = 10225 for module HDAudBus.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      1, or   0.01%
+Elapsed Time, >        2 usecs AND <=        4 usecs,   4424, or  43.27%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   5544, or  54.22%
+Elapsed Time, >        8 usecs AND <=       16 usecs,    250, or   2.44%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      4, or   0.04%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      0, or   0.00%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      2, or   0.02%
+Total,                                                 10225
+
+Total = 7 for module HdAudio.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      4, or  57.14%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      3, or  42.86%
+Total,                                                     7
+
+Total = 4 for module Ndu.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      2, or  50.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      1, or  25.00%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      1, or  25.00%
+Total,                                                     4
+
+Total = 25 for module Ntfs.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      3, or  12.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,     21, or  84.00%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      1, or   4.00%
+Total,                                                    25
+
+Total = 20997 for module USBXHCI.SYS
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,     15, or   0.07%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    109, or   0.52%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   3011, or  14.34%
+Elapsed Time, >        8 usecs AND <=       16 usecs,   5611, or  26.72%
+Elapsed Time, >       16 usecs AND <=       32 usecs,  11632, or  55.40%
+Elapsed Time, >       32 usecs AND <=       64 usecs,    561, or   2.67%
+Elapsed Time, >       64 usecs AND <=      128 usecs,     54, or   0.26%
+Elapsed Time, >      128 usecs AND <=      256 usecs,      2, or   0.01%
+Elapsed Time, >      256 usecs AND <=      512 usecs,      2, or   0.01%
+Total,                                                 20997
+
+Total = 2 for module UnionFS.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      2, or 100.00%
+Total,                                                     2
+
+Total = 4 for module WdFilter.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      4, or 100.00%
+Total,                                                     4
+
+Total = 1618 for module afd.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      1, or   0.06%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    912, or  56.37%
+Elapsed Time, >        4 usecs AND <=        8 usecs,    669, or  41.35%
+Elapsed Time, >        8 usecs AND <=       16 usecs,     32, or   1.98%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      1, or   0.06%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      0, or   0.00%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      3, or   0.19%
+Total,                                                  1618
+
+Total = 1 for module dfsc.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      1, or 100.00%
+Total,                                                     1
+
+Total = 232727 for module dxgkrnl.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,   5927, or   2.55%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   5162, or   2.22%
+Elapsed Time, >        2 usecs AND <=        4 usecs,  22151, or   9.52%
+Elapsed Time, >        4 usecs AND <=        8 usecs,  72223, or  31.03%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  60285, or  25.90%
+Elapsed Time, >       16 usecs AND <=       32 usecs,  28168, or  12.10%
+Elapsed Time, >       32 usecs AND <=       64 usecs,   6972, or   3.00%
+Elapsed Time, >       64 usecs AND <=      128 usecs,  27480, or  11.81%
+Elapsed Time, >      128 usecs AND <=      256 usecs,   4255, or   1.83%
+Elapsed Time, >      256 usecs AND <=      512 usecs,     94, or   0.04%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,      9, or   0.00%
+Elapsed Time, >     1024 usecs AND <=     2048 usecs,      1, or   0.00%
+Total,                                                232727
+
+Total = 1163 for module dxgmms2.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      1, or   0.09%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    458, or  39.38%
+Elapsed Time, >        4 usecs AND <=        8 usecs,    670, or  57.61%
+Elapsed Time, >        8 usecs AND <=       16 usecs,     26, or   2.24%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      5, or   0.43%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      1, or   0.09%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      2, or   0.17%
+Total,                                                  1163
+
+Total = 17 for module fse.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      2, or  11.76%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      3, or  17.65%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      1, or   5.88%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      7, or  41.18%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      3, or  17.65%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      0, or   0.00%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      1, or   5.88%
+Total,                                                    17
+
+Total = 4 for module hvservice.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      3, or  75.00%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      1, or  25.00%
+Total,                                                     4
+
+Total = 3 for module iorate.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      0, or   0.00%
+Elapsed Time, >        4 usecs AND <=        8 usecs,      3, or 100.00%
+Total,                                                     3
+
+Total = 23219 for module ndis.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,    129, or   0.56%
+Elapsed Time, >        2 usecs AND <=        4 usecs,   8607, or  37.07%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   3306, or  14.24%
+Elapsed Time, >        8 usecs AND <=       16 usecs,   4296, or  18.50%
+Elapsed Time, >       16 usecs AND <=       32 usecs,   4430, or  19.08%
+Elapsed Time, >       32 usecs AND <=       64 usecs,   2100, or   9.04%
+Elapsed Time, >       64 usecs AND <=      128 usecs,    325, or   1.40%
+Elapsed Time, >      128 usecs AND <=      256 usecs,     23, or   0.10%
+Elapsed Time, >      256 usecs AND <=      512 usecs,      3, or   0.01%
+Total,                                                 23219
+
+Total = 56373 for module ntoskrnl.exe
+Elapsed Time, >        0 usecs AND <=        1 usecs,   1509, or   2.68%
+Elapsed Time, >        1 usecs AND <=        2 usecs,    868, or   1.54%
+Elapsed Time, >        2 usecs AND <=        4 usecs,  30061, or  53.33%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   7481, or  13.27%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  11227, or  19.92%
+Elapsed Time, >       16 usecs AND <=       32 usecs,   4874, or   8.65%
+Elapsed Time, >       32 usecs AND <=       64 usecs,    224, or   0.40%
+Elapsed Time, >       64 usecs AND <=      128 usecs,     57, or   0.10%
+Elapsed Time, >      128 usecs AND <=      256 usecs,     40, or   0.07%
+Elapsed Time, >      256 usecs AND <=      512 usecs,     32, or   0.06%
+Total,                                                 56373
+
+Total = 386452 for module nvlddmkm.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs, 223486, or  57.83%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   8629, or   2.23%
+Elapsed Time, >        2 usecs AND <=        4 usecs,   2233, or   0.58%
+Elapsed Time, >        4 usecs AND <=        8 usecs,  14682, or   3.80%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  20893, or   5.41%
+Elapsed Time, >       16 usecs AND <=       32 usecs,  32306, or   8.36%
+Elapsed Time, >       32 usecs AND <=       64 usecs,  70446, or  18.23%
+Elapsed Time, >       64 usecs AND <=      128 usecs,  13256, or   3.43%
+Elapsed Time, >      128 usecs AND <=      256 usecs,    488, or   0.13%
+Elapsed Time, >      256 usecs AND <=      512 usecs,     28, or   0.01%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,      4, or   0.00%
+Elapsed Time, >     1024 usecs AND <=     2048 usecs,      0, or   0.00%
+Elapsed Time, >     2048 usecs AND <=     4096 usecs,      0, or   0.00%
+Elapsed Time, >     4096 usecs AND <=     8192 usecs,      0, or   0.00%
+Elapsed Time, >     8192 usecs AND <=    16384 usecs,      0, or   0.00%
+Elapsed Time, >    16384 usecs AND <=    32768 usecs,      0, or   0.00%
+Elapsed Time, >    32768 usecs AND <=    65536 usecs,      0, or   0.00%
+Elapsed Time, >    65536 usecs AND <=   131072 usecs,      0, or   0.00%
+Elapsed Time, >   131072 usecs AND <=   262144 usecs,      0, or   0.00%
+Elapsed Time, >   262144 usecs AND <=   524288 usecs,      0, or   0.00%
+Elapsed Time, >   524288 usecs AND <=  1048576 usecs,      0, or   0.00%
+Elapsed Time, >  1048576 usecs AND <=  2097152 usecs,      0, or   0.00%
+Elapsed Time, >  2097152 usecs                      ,      1, or   0.00%
+Total,                                                386452
+
+Total = 1 for module rdyboost.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      1, or 100.00%
+Total,                                                     1
+
+Total = 56568 for module storport.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,   4502, or   7.96%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   1480, or   2.62%
+Elapsed Time, >        2 usecs AND <=        4 usecs,  15666, or  27.69%
+Elapsed Time, >        4 usecs AND <=        8 usecs,  22574, or  39.91%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  11728, or  20.73%
+Elapsed Time, >       16 usecs AND <=       32 usecs,    534, or   0.94%
+Elapsed Time, >       32 usecs AND <=       64 usecs,     52, or   0.09%
+Elapsed Time, >       64 usecs AND <=      128 usecs,     28, or   0.05%
+Elapsed Time, >      128 usecs AND <=      256 usecs,      0, or   0.00%
+Elapsed Time, >      256 usecs AND <=      512 usecs,      2, or   0.00%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,      2, or   0.00%
+Total,                                                 56568
+
+Total = 12 for module storvsp.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      2, or  16.67%
+Elapsed Time, >        4 usecs AND <=        8 usecs,     10, or  83.33%
+Total,                                                    12
+
+Total = 1054 for module symcryptk.dll
+Elapsed Time, >        0 usecs AND <=        1 usecs,      8, or   0.76%
+Elapsed Time, >        1 usecs AND <=        2 usecs,    103, or   9.77%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    754, or  71.54%
+Elapsed Time, >        4 usecs AND <=        8 usecs,    178, or  16.89%
+Elapsed Time, >        8 usecs AND <=       16 usecs,      4, or   0.38%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      5, or   0.47%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      2, or   0.19%
+Total,                                                  1054
+
+Total = 11511 for module tcpip.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,   6138, or  53.32%
+Elapsed Time, >        1 usecs AND <=        2 usecs,    868, or   7.54%
+Elapsed Time, >        2 usecs AND <=        4 usecs,   3499, or  30.40%
+Elapsed Time, >        4 usecs AND <=        8 usecs,    608, or   5.28%
+Elapsed Time, >        8 usecs AND <=       16 usecs,    180, or   1.56%
+Elapsed Time, >       16 usecs AND <=       32 usecs,    180, or   1.56%
+Elapsed Time, >       32 usecs AND <=       64 usecs,     37, or   0.32%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      1, or   0.01%
+Total,                                                 11511
+
+Total = 1 for module vmswitch.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,      1, or 100.00%
+Total,                                                     1
+
+All Module = 802055,  Total = 802055,   EQUAL
+
+--------------------------
+Usage From 0 ms to 126118 ms, Summing In 1 second intervals. Intervals=127
+
+                       ,      CPU 0 Usage ,      CPU 1 Usage ,      CPU 2 Usage ,      CPU 3 Usage ,      CPU 4 Usage ,      CPU 5 Usage ,      CPU 6 Usage ,      CPU 7 Usage ,      CPU 8 Usage ,      CPU 9 Usage ,      CPU 10 Usage ,      CPU 11 Usage ,      CPU 12 Usage ,      CPU 13 Usage ,      CPU 14 Usage ,      CPU 15 Usage 
+Start (ms) End (ms)    ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % 
+         0-1000      :,        83   0.01,         8   0.00,       120   0.01,        30   0.00,     23215   2.32,     22168   2.22,     25304   2.53,     27682   2.77,       238   0.02,       140   0.01,       119   0.01,        21   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      1000-2000      :,       287   0.03,         8   0.00,        23   0.00,         0   0.00,     14072   1.41,     12305   1.23,     13295   1.33,     12256   1.23,        96   0.01,       107   0.01,        27   0.00,         7   0.00,        11   0.00,         0   0.00,         4   0.00,         0   0.00
+      2000-3000      :,       248   0.02,        27   0.00,       169   0.02,        82   0.01,     23648   2.36,     25100   2.51,     23889   2.39,     24795   2.48,       262   0.03,       166   0.02,       213   0.02,        61   0.01,         0   0.00,        19   0.00,         0   0.00,         0   0.00
+      3000-4000      :,        35   0.00,        17   0.00,       138   0.01,        22   0.00,     16880   1.69,     16439   1.64,     17100   1.71,     16390   1.64,       153   0.02,        43   0.00,        46   0.00,        15   0.00,        16   0.00,         0   0.00,         0   0.00,         0   0.00
+      4000-5000      :,         0   0.00,         0   0.00,       181   0.02,       158   0.02,     19823   1.98,     19132   1.91,     20752   2.08,     19938   1.99,       310   0.03,       182   0.02,        55   0.01,         0   0.00,         7   0.00,         0   0.00,         8   0.00,         0   0.00
+      5000-6000      :,       332   0.03,         0   0.00,       188   0.02,        61   0.01,     17288   1.73,     20078   2.01,     20453   2.05,     20065   2.01,       271   0.03,       173   0.02,        88   0.01,        32   0.00,         0   0.00,         0   0.00,        10   0.00,         8   0.00
+      6000-7000      :,        93   0.01,         0   0.00,        65   0.01,        37   0.00,     16030   1.60,     16134   1.61,     16197   1.62,     16962   1.70,       163   0.02,        66   0.01,        16   0.00,        35   0.00,         0   0.00,         0   0.00,         0   0.00,         3   0.00
+      7000-8000      :,       333   0.03,         0   0.00,        68   0.01,        28   0.00,     21769   2.18,     24776   2.48,     24735   2.47,     24768   2.48,       236   0.02,       126   0.01,        68   0.01,        64   0.01,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      8000-9000      :,        93   0.01,        11   0.00,        74   0.01,        61   0.01,     19438   1.94,     21355   2.14,     20783   2.08,     21645   2.16,       171   0.02,       165   0.02,        52   0.01,        24   0.00,         8   0.00,         0   0.00,         9   0.00,        24   0.00
+      9000-10000     :,         4   0.00,        37   0.00,      6321   0.63,      1188   0.12,     30370   3.04,     24689   2.47,     19189   1.92,     20000   2.00,       308   0.03,       181   0.02,       191   0.02,        31   0.00,        61   0.01,         0   0.00,         0   0.00,         0   0.00
+     10000-11000     :,       598   0.06,        11   0.00,      2872   0.29,       251   0.03,     27944   2.79,     23353   2.34,     23251   2.33,     23232   2.32,       177   0.02,       181   0.02,        45   0.00,        36   0.00,         0   0.00,        12   0.00,        30   0.00,         0   0.00
+     11000-12000     :,       400   0.04,         0   0.00,      8591   0.86,      1276   0.13,     35018   3.50,     18929   1.89,     18311   1.83,     17742   1.77,       494   0.05,       241   0.02,       145   0.01,        67   0.01,       106   0.01,         8   0.00,        67   0.01,         0   0.00
+     12000-13000     :,       804   0.08,       196   0.02,      4136   0.41,      1009   0.10,     26166   2.62,     17836   1.78,     15571   1.56,     14039   1.40,       314   0.03,       328   0.03,       151   0.02,       102   0.01,        69   0.01,       122   0.01,        61   0.01,        55   0.01
+     13000-14000     :,       389   0.04,         7   0.00,      4305   0.43,      1780   0.18,     27046   2.70,      9441   0.94,      8739   0.87,      6853   0.69,       139   0.01,        48   0.00,         9   0.00,        36   0.00,        12   0.00,         0   0.00,         5   0.00,         3   0.00
+     14000-15000     :,      1017   0.10,       108   0.01,      4727   0.47,      1948   0.19,     20817   2.08,      7398   0.74,     13675   1.37,      6585   0.66,      1569   0.16,       307   0.03,       270   0.03,        92   0.01,        70   0.01,        40   0.00,        41   0.00,         8   0.00
+     15000-16000     :,      1249   0.12,        56   0.01,      2300   0.23,      1058   0.11,     14491   1.45,      7572   0.76,     13383   1.34,      6102   0.61,       951   0.10,       229   0.02,       255   0.03,        12   0.00,        68   0.01,        46   0.00,        37   0.00,        42   0.00
+     16000-17000     :,      1348   0.13,       116   0.01,      3974   0.40,      1491   0.15,     18939   1.89,      6370   0.64,      8309   0.83,      5604   0.56,       931   0.09,       712   0.07,       305   0.03,       236   0.02,       157   0.02,        43   0.00,       102   0.01,        74   0.01
+     17000-18000     :,      5062   0.51,       300   0.03,      3512   0.35,      2068   0.21,     17076   1.71,      6747   0.67,     10243   1.02,      6838   0.68,      1229   0.12,       926   0.09,       462   0.05,       437   0.04,       180   0.02,       207   0.02,        92   0.01,       124   0.01
+     18000-19000     :,     11674   1.17,       401   0.04,      5055   0.51,       948   0.09,     30109   3.01,     15324   1.53,     19824   1.98,     14883   1.49,      2171   0.22,       830   0.08,       931   0.09,       336   0.03,       547   0.05,       225   0.02,       304   0.03,       229   0.02
+     19000-20000     :,      6360   0.64,        11   0.00,      1428   0.14,       263   0.03,     19076   1.91,     14955   1.50,     15800   1.58,     14382   1.44,       398   0.04,       168   0.02,       161   0.02,       112   0.01,       135   0.01,        42   0.00,        35   0.00,         0   0.00
+     20000-21000     :,      5037   0.50,       185   0.02,       419   0.04,       143   0.01,     29130   2.91,     31154   3.12,     29635   2.96,     29981   3.00,       788   0.08,       372   0.04,       998   0.10,       116   0.01,       152   0.02,        55   0.01,       203   0.02,        24   0.00
+     21000-22000     :,     12758   1.28,      3436   0.34,     10548   1.05,      3631   0.36,     34700   3.47,     22478   2.25,     22584   2.26,     19199   1.92,      1360   0.14,      2882   0.29,       947   0.09,      2893   0.29,      1081   0.11,      2021   0.20,      3191   0.32,      2065   0.21
+     22000-23000     :,     11084   1.11,      3237   0.32,      8371   0.84,      5691   0.57,     36110   3.61,     28236   2.82,     26892   2.69,     27375   2.74,      1199   0.12,      6535   0.65,      1094   0.11,      4314   0.43,       408   0.04,      2324   0.23,       494   0.05,      1692   0.17
+     23000-24000     :,      4626   0.46,      1020   0.10,      5971   0.60,      3575   0.36,     28141   2.81,     21518   2.15,     19860   1.99,     17124   1.71,      1047   0.10,      3491   0.35,       464   0.05,      1748   0.17,       465   0.05,       764   0.08,       364   0.04,       696   0.07
+     24000-25000     :,      4251   0.43,       236   0.02,      4213   0.42,      1255   0.13,     29691   2.97,     24089   2.41,     23568   2.36,     20808   2.08,      1065   0.11,       537   0.05,       543   0.05,       595   0.06,       219   0.02,       220   0.02,        86   0.01,       163   0.02
+     25000-26000     :,      6116   0.61,       694   0.07,      2497   0.25,       881   0.09,     28447   2.84,     27327   2.73,     30882   3.09,     29405   2.94,      3494   0.35,      1209   0.12,      1875   0.19,       963   0.10,      1128   0.11,       660   0.07,       789   0.08,       529   0.05
+     26000-27000     :,      3894   0.39,       155   0.02,      4902   0.49,      1124   0.11,     27570   2.76,     18981   1.90,     22243   2.22,     16707   1.67,       642   0.06,       508   0.05,       359   0.04,       171   0.02,       188   0.02,       139   0.01,       133   0.01,       196   0.02
+     27000-28000     :,      4264   0.43,       410   0.04,       866   0.09,       850   0.09,     23486   2.35,     22095   2.21,     26914   2.69,     22945   2.29,       417   0.04,      1141   0.11,       381   0.04,       442   0.04,       164   0.02,       318   0.03,       209   0.02,       282   0.03
+     28000-29000     :,      3770   0.38,       947   0.09,       609   0.06,      2409   0.24,     21389   2.14,     23552   2.36,     19726   1.97,     17281   1.73,       814   0.08,      3504   0.35,       360   0.04,      1568   0.16,       109   0.01,       503   0.05,       357   0.04,       462   0.05
+     29000-30000     :,       366   0.04,       123   0.01,       452   0.05,       332   0.03,     23346   2.33,     21995   2.20,     21758   2.18,     23156   2.32,       612   0.06,       586   0.06,       292   0.03,       374   0.04,        96   0.01,       260   0.03,       621   0.06,       466   0.05
+     30000-31000     :,        40   0.00,        54   0.01,       122   0.01,       170   0.02,     17920   1.79,     17099   1.71,     17920   1.79,     19463   1.95,       197   0.02,       223   0.02,        73   0.01,        81   0.01,        23   0.00,        62   0.01,       148   0.01,        53   0.01
+     31000-32000     :,       621   0.06,       375   0.04,       703   0.07,       603   0.06,     22632   2.26,     20824   2.08,     21759   2.18,     22631   2.26,       698   0.07,       629   0.06,       691   0.07,       698   0.07,       455   0.05,       341   0.03,       855   0.09,       703   0.07
+     32000-33000     :,      7234   0.72,      1263   0.13,       718   0.07,      1644   0.16,     25241   2.52,     25420   2.54,     25424   2.54,     26563   2.66,      1031   0.10,      2984   0.30,       827   0.08,      1567   0.16,       577   0.06,      1013   0.10,       568   0.06,      1203   0.12
+     33000-34000     :,      4149   0.41,      1965   0.20,       499   0.05,      2407   0.24,     19469   1.95,     18890   1.89,     18384   1.84,     18236   1.82,       934   0.09,      3329   0.33,       540   0.05,      2317   0.23,       398   0.04,      1382   0.14,       377   0.04,      1390   0.14
+     34000-35000     :,      7275   0.73,      1602   0.16,       465   0.05,      2349   0.23,     21964   2.20,     24509   2.45,     24651   2.47,     23752   2.38,       593   0.06,     10775   1.08,       362   0.04,      2108   0.21,       224   0.02,      1218   0.12,       181   0.02,      1164   0.12
+     35000-36000     :,      6343   0.63,       205   0.02,       227   0.02,       513   0.05,     10315   1.03,     10109   1.01,     10810   1.08,     10575   1.06,       288   0.03,      1532   0.15,       178   0.02,       422   0.04,        49   0.00,       255   0.03,       104   0.01,       173   0.02
+     36000-37000     :,      9800   0.98,       874   0.09,       584   0.06,      1060   0.11,     24265   2.43,     23768   2.38,     23488   2.35,     24649   2.46,       654   0.07,      1917   0.19,       480   0.05,      1117   0.11,       369   0.04,       853   0.09,       253   0.03,       718   0.07
+     37000-38000     :,      6867   0.69,      1658   0.17,       304   0.03,      1691   0.17,     14785   1.48,     14868   1.49,     15731   1.57,     14327   1.43,       572   0.06,      1742   0.17,       214   0.02,      1662   0.17,       190   0.02,       954   0.10,        95   0.01,       767   0.08
+     38000-39000     :,     10092   1.01,       489   0.05,       544   0.05,       803   0.08,     25527   2.55,     26512   2.65,     25262   2.53,     27805   2.78,       534   0.05,      1090   0.11,       444   0.04,       681   0.07,       211   0.02,       606   0.06,       310   0.03,       434   0.04
+     39000-40000     :,      6294   0.63,       766   0.08,       621   0.06,      1341   0.13,     17776   1.78,     17013   1.70,     16004   1.60,     19835   1.98,       698   0.07,      1555   0.16,       626   0.06,      1257   0.13,       514   0.05,      1035   0.10,       304   0.03,       779   0.08
+     40000-41000     :,      6128   0.61,      1381   0.14,       721   0.07,      1409   0.14,     20131   2.01,     20679   2.07,     20364   2.04,     22618   2.26,      1123   0.11,      1444   0.14,       589   0.06,      1845   0.18,       446   0.04,      1556   0.16,       372   0.04,      1587   0.16
+     41000-42000     :,      4860   0.49,      2017   0.20,       662   0.07,      4113   0.41,     23999   2.40,     27479   2.75,     28064   2.81,     27224   2.72,      1081   0.11,      2058   0.21,       699   0.07,      2360   0.24,       502   0.05,      2061   0.21,       302   0.03,      1469   0.15
+     42000-43000     :,     13494   1.35,       344   0.03,       157   0.02,      1376   0.14,     20033   2.00,     20960   2.10,     19283   1.93,     19913   1.99,       256   0.03,       774   0.08,       106   0.01,       511   0.05,       161   0.02,       383   0.04,       165   0.02,       308   0.03
+     43000-44000     :,     13909   1.39,       332   0.03,       181   0.02,       488   0.05,     26802   2.68,     26206   2.62,     24161   2.42,     26543   2.65,       298   0.03,       544   0.05,       294   0.03,       323   0.03,       238   0.02,       226   0.02,       207   0.02,       227   0.02
+     44000-45000     :,      2177   0.22,        78   0.01,       183   0.02,       218   0.02,     26661   2.67,     26553   2.66,     23681   2.37,     25584   2.56,       360   0.04,       307   0.03,       200   0.02,       190   0.02,       119   0.01,        83   0.01,       118   0.01,        44   0.00
+     45000-46000     :,       991   0.10,       117   0.01,       211   0.02,       207   0.02,     28857   2.89,     27783   2.78,     28191   2.82,     28817   2.88,       347   0.03,       373   0.04,       231   0.02,       232   0.02,       166   0.02,       157   0.02,       182   0.02,       129   0.01
+     46000-47000     :,       799   0.08,        62   0.01,       154   0.02,       101   0.01,     17278   1.73,     19196   1.92,     16714   1.67,     17079   1.71,       176   0.02,       271   0.03,        95   0.01,        96   0.01,        40   0.00,        94   0.01,       117   0.01,        84   0.01
+     47000-48000     :,       841   0.08,       114   0.01,      3418   0.34,       781   0.08,     29432   2.94,     30388   3.04,     24351   2.44,     25656   2.57,       260   0.03,       285   0.03,       164   0.02,       189   0.02,       107   0.01,       158   0.02,        65   0.01,       102   0.01
+     48000-49000     :,      1529   0.15,        44   0.00,      7655   0.77,      1623   0.16,     27026   2.70,     22382   2.24,     16039   1.60,     16339   1.63,       377   0.04,       331   0.03,       218   0.02,       145   0.01,        37   0.00,       153   0.02,       120   0.01,       109   0.01
+     49000-50000     :,      5308   0.53,       196   0.02,      9330   0.93,      1765   0.18,     31783   3.18,     25151   2.52,     19522   1.95,     21533   2.15,       311   0.03,       687   0.07,       227   0.02,       472   0.05,        75   0.01,       162   0.02,       104   0.01,       112   0.01
+     50000-51000     :,      2102   0.21,        29   0.00,      1815   0.18,      1358   0.14,      6760   0.68,      3349   0.33,      2574   0.26,      2697   0.27,       240   0.02,       440   0.04,        52   0.01,        75   0.01,        15   0.00,        48   0.00,        12   0.00,        21   0.00
+     51000-52000     :,       606   0.06,        42   0.00,       246   0.02,       278   0.03,      5271   0.53,      5315   0.53,      5442   0.54,      6400   0.64,       164   0.02,       325   0.03,        75   0.01,        80   0.01,         3   0.00,        53   0.01,        37   0.00,        60   0.01
+     52000-53000     :,      1811   0.18,       307   0.03,       233   0.02,       395   0.04,     20530   2.05,     23058   2.31,     20372   2.04,     23577   2.36,       342   0.03,       577   0.06,       267   0.03,       433   0.04,       108   0.01,       239   0.02,       148   0.01,       211   0.02
+     53000-54000     :,       631   0.06,        62   0.01,       123   0.01,       190   0.02,     19314   1.93,     19620   1.96,     20820   2.08,     19940   1.99,       131   0.01,       385   0.04,        66   0.01,       177   0.02,        63   0.01,        54   0.01,        20   0.00,       100   0.01
+     54000-55000     :,      4833   0.48,       141   0.01,     10295   1.03,      1159   0.12,     32380   3.24,     21064   2.11,     21612   2.16,     18100   1.81,       228   0.02,       357   0.04,       119   0.01,       266   0.03,       135   0.01,       151   0.02,        77   0.01,       103   0.01
+     55000-56000     :,     13557   1.36,        85   0.01,      4218   0.42,       500   0.05,     23498   2.35,     18283   1.83,     19899   1.99,     14620   1.46,       121   0.01,       338   0.03,        76   0.01,       218   0.02,       141   0.01,        71   0.01,       103   0.01,        28   0.00
+     56000-57000     :,     11172   1.12,       120   0.01,      4542   0.45,       518   0.05,     28316   2.83,     22292   2.23,     22056   2.21,     21710   2.17,       293   0.03,       366   0.04,        87   0.01,       232   0.02,       156   0.02,       119   0.01,       106   0.01,       140   0.01
+     57000-58000     :,     18518   1.85,       151   0.02,      5121   0.51,       408   0.04,     25825   2.58,     21264   2.13,     20458   2.05,     19045   1.90,       195   0.02,       481   0.05,       293   0.03,       213   0.02,        53   0.01,       251   0.03,       126   0.01,        72   0.01
+     58000-59000     :,      1571   0.16,        85   0.01,      8737   0.87,      1879   0.19,     31231   3.12,     20337   2.03,     22267   2.23,     16108   1.61,       266   0.03,       240   0.02,       129   0.01,       275   0.03,        46   0.00,        62   0.01,        85   0.01,        52   0.01
+     59000-60000     :,     17324   1.73,       310   0.03,      8057   0.81,      1286   0.13,     28859   2.89,     22032   2.20,     21497   2.15,     18778   1.88,       212   0.02,       431   0.04,       269   0.03,       305   0.03,       162   0.02,       231   0.02,       166   0.02,       305   0.03
+     60000-61000     :,      8430   0.84,       305   0.03,      3946   0.39,      1778   0.18,     25905   2.59,     23174   2.32,     21366   2.14,     19024   1.90,       320   0.03,       550   0.06,       182   0.02,       258   0.03,        75   0.01,       257   0.03,       100   0.01,       336   0.03
+     61000-62000     :,      1636   0.16,       192   0.02,       888   0.09,      1432   0.14,     22600   2.26,     21552   2.16,     23399   2.34,     21995   2.20,       332   0.03,       574   0.06,       302   0.03,       468   0.05,       220   0.02,       245   0.02,       146   0.01,      1025   0.10
+     62000-63000     :,       902   0.09,       111   0.01,       221   0.02,       184   0.02,     20513   2.05,     22303   2.23,     22371   2.24,     23971   2.40,       289   0.03,       265   0.03,       194   0.02,       196   0.02,        73   0.01,        90   0.01,         9   0.00,        84   0.01
+     63000-64000     :,      1134   0.11,       101   0.01,       226   0.02,       155   0.02,     26522   2.65,     23168   2.32,     25307   2.53,     24530   2.45,       346   0.03,       281   0.03,       144   0.01,       177   0.02,        80   0.01,       148   0.01,        84   0.01,        49   0.00
+     64000-65000     :,      1142   0.11,        94   0.01,      1274   0.13,       271   0.03,     21914   2.19,     22395   2.24,     22945   2.29,     23000   2.30,       261   0.03,       367   0.04,       178   0.02,       194   0.02,        59   0.01,       156   0.02,        48   0.00,        74   0.01
+     65000-66000     :,      1599   0.16,        99   0.01,      9721   0.97,      1095   0.11,     34392   3.44,     23348   2.33,     23184   2.32,     19439   1.94,       101   0.01,       476   0.05,       205   0.02,       315   0.03,        73   0.01,       142   0.01,       114   0.01,       135   0.01
+     66000-67000     :,       882   0.09,        63   0.01,      7469   0.75,      1271   0.13,     32617   3.26,     20266   2.03,     19106   1.91,     17719   1.77,       277   0.03,       347   0.03,        87   0.01,       227   0.02,        24   0.00,       134   0.01,        60   0.01,        69   0.01
+     67000-68000     :,       614   0.06,        98   0.01,      2356   0.24,       349   0.03,     24308   2.43,     22721   2.27,     22681   2.27,     21417   2.14,       203   0.02,       332   0.03,        84   0.01,       243   0.02,       109   0.01,        56   0.01,        94   0.01,        93   0.01
+     68000-69000     :,       901   0.09,        84   0.01,       434   0.04,       138   0.01,     23941   2.39,     24995   2.50,     22966   2.30,     24893   2.49,       247   0.02,       464   0.05,       157   0.02,       225   0.02,        58   0.01,        80   0.01,        40   0.00,        71   0.01
+     69000-70000     :,       441   0.04,        57   0.01,       418   0.04,       189   0.02,     23897   2.39,     21628   2.16,     22616   2.26,     22243   2.22,       111   0.01,       407   0.04,        68   0.01,       231   0.02,        12   0.00,       138   0.01,        21   0.00,        35   0.00
+     70000-71000     :,       750   0.07,       132   0.01,      1384   0.14,       282   0.03,     24810   2.48,     23011   2.30,     22611   2.26,     25707   2.57,       269   0.03,       401   0.04,       165   0.02,       205   0.02,        45   0.00,       113   0.01,        51   0.01,        81   0.01
+     71000-72000     :,      5122   0.51,        60   0.01,      2853   0.29,       480   0.05,     25311   2.53,     22481   2.25,     21825   2.18,     20895   2.09,       251   0.03,       225   0.02,       161   0.02,       188   0.02,        66   0.01,       102   0.01,       103   0.01,       188   0.02
+     72000-73000     :,       758   0.08,        72   0.01,      8602   0.86,      1077   0.11,     35383   3.54,     21646   2.16,     22531   2.25,     18129   1.81,       268   0.03,       262   0.03,       187   0.02,       199   0.02,        40   0.00,       142   0.01,        76   0.01,       153   0.02
+     73000-74000     :,      5247   0.52,        44   0.00,       357   0.04,       121   0.01,     19892   1.99,     21808   2.18,     20659   2.07,     22879   2.29,       201   0.02,       304   0.03,       156   0.02,       160   0.02,        34   0.00,        78   0.01,        12   0.00,        78   0.01
+     74000-75000     :,      3171   0.32,       104   0.01,      9360   0.94,       867   0.09,     33698   3.37,     21915   2.19,     22184   2.22,     18850   1.88,       286   0.03,       285   0.03,       228   0.02,       304   0.03,        91   0.01,       216   0.02,        81   0.01,       232   0.02
+     75000-76000     :,     16015   1.60,       223   0.02,      4598   0.46,       591   0.06,     28201   2.82,     21267   2.13,     20863   2.09,     18731   1.87,       361   0.04,       431   0.04,       243   0.02,       277   0.03,       210   0.02,       144   0.01,        98   0.01,       217   0.02
+     76000-77000     :,      5508   0.55,       609   0.06,     11639   1.16,      4399   0.44,     34373   3.44,     18965   1.90,     17803   1.78,     15368   1.54,       280   0.03,       717   0.07,       201   0.02,      1001   0.10,       126   0.01,       387   0.04,       141   0.01,       226   0.02
+     77000-78000     :,      2664   0.27,       106   0.01,      7162   0.72,      1417   0.14,     29984   3.00,     19025   1.90,     21375   2.14,     19230   1.92,       191   0.02,       395   0.04,       178   0.02,       200   0.02,        79   0.01,       130   0.01,        82   0.01,        51   0.01
+     78000-79000     :,      6004   0.60,        56   0.01,      6903   0.69,      1422   0.14,     30529   3.05,     20789   2.08,     18714   1.87,     17677   1.77,       492   0.05,       369   0.04,       120   0.01,       225   0.02,        92   0.01,       110   0.01,       147   0.01,       113   0.01
+     79000-80000     :,      1835   0.18,        81   0.01,       234   0.02,       168   0.02,     25190   2.52,     26408   2.64,     26807   2.68,     24509   2.45,       246   0.02,       322   0.03,       249   0.02,       195   0.02,        47   0.00,        79   0.01,       123   0.01,        78   0.01
+     80000-81000     :,      1268   0.13,       100   0.01,      1032   0.10,       652   0.07,     15681   1.57,     14589   1.46,     15037   1.50,     14109   1.41,       408   0.04,       210   0.02,       228   0.02,       205   0.02,        65   0.01,        67   0.01,        42   0.00,        22   0.00
+     81000-82000     :,      1001   0.10,        12   0.00,      1057   0.11,       761   0.08,      9204   0.92,      3723   0.37,      4104   0.41,      4240   0.42,       327   0.03,       103   0.01,       212   0.02,        81   0.01,        15   0.00,        27   0.00,        55   0.01,         0   0.00
+     82000-83000     :,       927   0.09,        59   0.01,      4681   0.47,      1088   0.11,     22371   2.24,      9047   0.90,      9242   0.92,      9460   0.95,       424   0.04,       354   0.04,       188   0.02,       152   0.02,       198   0.02,        36   0.00,        83   0.01,        79   0.01
+     83000-84000     :,      3555   0.36,       119   0.01,      6201   0.62,       444   0.04,     38740   3.87,     27963   2.80,     24377   2.44,     24824   2.48,       638   0.06,       320   0.03,       392   0.04,       214   0.02,       249   0.02,       196   0.02,       218   0.02,        95   0.01
+     84000-85000     :,      1688   0.17,        89   0.01,      6209   0.62,       373   0.04,     30371   3.04,     23029   2.30,     23558   2.36,     22224   2.22,       458   0.05,       246   0.02,       246   0.02,       191   0.02,       186   0.02,       172   0.02,       248   0.02,       178   0.02
+     85000-86000     :,      1453   0.15,        80   0.01,       151   0.02,       125   0.01,     24888   2.49,     26756   2.68,     25005   2.50,     24407   2.44,       404   0.04,       371   0.04,       190   0.02,       174   0.02,        70   0.01,        59   0.01,        62   0.01,        96   0.01
+     86000-87000     :,       870   0.09,       498   0.05,       609   0.06,       199   0.02,     28593   2.86,     30859   3.09,     30324   3.03,     29813   2.98,       349   0.03,       307   0.03,       205   0.02,       215   0.02,       143   0.01,       133   0.01,       103   0.01,       100   0.01
+     87000-88000     :,       750   0.07,       147   0.01,       182   0.02,        90   0.01,     23928   2.39,     24213   2.42,     24178   2.42,     25513   2.55,       352   0.04,       206   0.02,       214   0.02,       173   0.02,        81   0.01,        42   0.00,       127   0.01,        58   0.01
+     88000-89000     :,      1311   0.13,       111   0.01,       194   0.02,       224   0.02,     29585   2.96,     28726   2.87,     29389   2.94,     28183   2.82,       251   0.03,       263   0.03,       233   0.02,       146   0.01,       186   0.02,        53   0.01,        79   0.01,        52   0.01
+     89000-90000     :,       849   0.08,        71   0.01,       559   0.06,       141   0.01,     17089   1.71,     17985   1.80,     17246   1.72,     18420   1.84,       240   0.02,       132   0.01,       193   0.02,        96   0.01,        83   0.01,        51   0.01,        24   0.00,        63   0.01
+     90000-91000     :,       689   0.07,        58   0.01,       252   0.03,       112   0.01,     29932   2.99,     27063   2.71,     27696   2.77,     29718   2.97,       353   0.04,       287   0.03,       203   0.02,       126   0.01,        96   0.01,       109   0.01,        87   0.01,        55   0.01
+     91000-92000     :,       768   0.08,        40   0.00,       151   0.02,        67   0.01,     16938   1.69,     18234   1.82,     17998   1.80,     17113   1.71,       380   0.04,       211   0.02,       141   0.01,       174   0.02,        66   0.01,        44   0.00,        40   0.00,        60   0.01
+     92000-93000     :,      1390   0.14,       107   0.01,       212   0.02,       177   0.02,     28331   2.83,     28814   2.88,     28912   2.89,     28325   2.83,       325   0.03,       262   0.03,       124   0.01,       134   0.01,       128   0.01,        72   0.01,       119   0.01,       113   0.01
+     93000-94000     :,      1759   0.18,        88   0.01,       387   0.04,       135   0.01,     21717   2.17,     20447   2.04,     20341   2.03,     21472   2.15,       403   0.04,       298   0.03,       116   0.01,       163   0.02,       136   0.01,        82   0.01,        63   0.01,        78   0.01
+     94000-95000     :,       691   0.07,        66   0.01,       445   0.04,       105   0.01,     25414   2.54,     24188   2.42,     23654   2.37,     23286   2.33,       370   0.04,       255   0.03,       210   0.02,       156   0.02,        62   0.01,        68   0.01,        64   0.01,        67   0.01
+     95000-96000     :,       856   0.09,        64   0.01,       304   0.03,        90   0.01,     24752   2.48,     24203   2.42,     24584   2.46,     25180   2.52,       290   0.03,       251   0.03,       185   0.02,       152   0.02,        74   0.01,        61   0.01,        77   0.01,        78   0.01
+     96000-97000     :,       740   0.07,        62   0.01,      5796   0.58,       526   0.05,     26413   2.64,     22117   2.21,     18785   1.88,     18792   1.88,       266   0.03,       226   0.02,       156   0.02,        65   0.01,       112   0.01,        49   0.00,       164   0.02,        73   0.01
+     97000-98000     :,       868   0.09,        95   0.01,      1207   0.12,       111   0.01,     34671   3.47,     30714   3.07,     31560   3.16,     32812   3.28,       307   0.03,       279   0.03,       154   0.02,       154   0.02,       139   0.01,       111   0.01,       103   0.01,       143   0.01
+     98000-99000     :,       900   0.09,        59   0.01,       259   0.03,        98   0.01,     29247   2.92,     30700   3.07,     29800   2.98,     30574   3.06,       486   0.05,       245   0.02,       238   0.02,       182   0.02,        53   0.01,        85   0.01,       104   0.01,        31   0.00
+     99000-100000    :,      1346   0.13,        66   0.01,       205   0.02,       152   0.02,     33268   3.33,     32506   3.25,     34450   3.45,     34317   3.43,       333   0.03,       322   0.03,       209   0.02,       172   0.02,        35   0.00,        80   0.01,        66   0.01,       101   0.01
+    100000-101000    :,      1076   0.11,        25   0.00,       194   0.02,        88   0.01,     28093   2.81,     22956   2.30,     24376   2.44,     25477   2.55,       457   0.05,       126   0.01,       192   0.02,        68   0.01,        94   0.01,        65   0.01,        67   0.01,        36   0.00
+    101000-102000    :,      3924   0.39,        82   0.01,       297   0.03,       204   0.02,     32942   3.29,     32486   3.25,     32512   3.25,     38016   3.80,       389   0.04,       369   0.04,       208   0.02,       205   0.02,       107   0.01,        85   0.01,       161   0.02,       183   0.02
+    102000-103000    :,       634   0.06,        38   0.00,       551   0.06,       101   0.01,     27995   2.80,     26707   2.67,     27160   2.72,     28042   2.80,       440   0.04,       215   0.02,       195   0.02,       124   0.01,       117   0.01,        55   0.01,        81   0.01,        29   0.00
+    103000-104000    :,       950   0.10,        35   0.00,       291   0.03,       113   0.01,     30740   3.07,     29772   2.98,     27847   2.78,     30906   3.09,       558   0.06,       198   0.02,       275   0.03,       154   0.02,       114   0.01,        83   0.01,       106   0.01,        79   0.01
+    104000-105000    :,       703   0.07,        93   0.01,       334   0.03,       107   0.01,     31433   3.14,     32852   3.29,     33768   3.38,     34909   3.49,       380   0.04,       185   0.02,       271   0.03,       167   0.02,       167   0.02,       104   0.01,       119   0.01,        79   0.01
+    105000-106000    :,       912   0.09,        58   0.01,       125   0.01,       135   0.01,     27291   2.73,     25323   2.53,     28065   2.81,     29008   2.90,       392   0.04,       223   0.02,       305   0.03,       135   0.01,       112   0.01,        64   0.01,       105   0.01,        79   0.01
+    106000-107000    :,      1107   0.11,       127   0.01,      4212   0.42,       310   0.03,     36432   3.64,     32524   3.25,     31730   3.17,     32215   3.22,       349   0.03,       339   0.03,       302   0.03,       252   0.03,       220   0.02,       130   0.01,       148   0.01,       114   0.01
+    107000-108000    :,      1121   0.11,        60   0.01,      8495   0.85,      2105   0.21,     29322   2.93,     16385   1.64,     15365   1.54,     13018   1.30,       431   0.04,       339   0.03,        98   0.01,       120   0.01,        85   0.01,        76   0.01,        88   0.01,        44   0.00
+    108000-109000    :,      1619   0.16,        51   0.01,      1614   0.16,       888   0.09,      7645   0.76,      3793   0.38,      3071   0.31,      2245   0.22,       390   0.04,       341   0.03,        68   0.01,       104   0.01,        38   0.00,        90   0.01,        25   0.00,        64   0.01
+    109000-110000    :,       810   0.08,        74   0.01,      5688   0.57,      1740   0.17,     16555   1.66,      6733   0.67,      5826   0.58,      3747   0.37,       235   0.02,       343   0.03,       155   0.02,       223   0.02,        37   0.00,        51   0.01,        26   0.00,        47   0.00
+    110000-111000    :,      1657   0.17,       112   0.01,      4058   0.41,       656   0.07,     25465   2.55,     23720   2.37,     25389   2.54,     24343   2.43,       248   0.02,       357   0.04,       148   0.01,       240   0.02,       107   0.01,       142   0.01,       129   0.01,       180   0.02
+    111000-112000    :,       611   0.06,        50   0.01,      4991   0.50,      1274   0.13,     27964   2.80,     22480   2.25,     21035   2.10,     21478   2.15,       208   0.02,       210   0.02,       115   0.01,       182   0.02,        61   0.01,        68   0.01,        76   0.01,        63   0.01
+    112000-113000    :,       855   0.09,        80   0.01,      4770   0.48,       657   0.07,     28750   2.87,     23453   2.35,     23936   2.39,     20962   2.10,       294   0.03,       256   0.03,       252   0.03,       110   0.01,        88   0.01,        62   0.01,        74   0.01,        10   0.00
+    113000-114000    :,      1480   0.15,       100   0.01,      7786   0.78,      1637   0.16,     28214   2.82,     21619   2.16,     22970   2.30,     17530   1.75,       327   0.03,       311   0.03,       173   0.02,        96   0.01,        81   0.01,        16   0.00,       152   0.02,        61   0.01
+    114000-115000    :,       502   0.05,        26   0.00,      7513   0.75,       913   0.09,     29506   2.95,     19762   1.98,     22756   2.28,     16254   1.63,       236   0.02,       204   0.02,       142   0.01,       118   0.01,        32   0.00,        42   0.00,        36   0.00,        56   0.01
+    115000-116000    :,      1440   0.14,        48   0.00,      3223   0.32,       396   0.04,     28453   2.85,     22925   2.29,     24241   2.42,     19511   1.95,       224   0.02,       204   0.02,       128   0.01,        88   0.01,       136   0.01,        45   0.00,        66   0.01,        58   0.01
+    116000-117000    :,       526   0.05,        58   0.01,      4208   0.42,       802   0.08,     29267   2.93,     22300   2.23,     22105   2.21,     18544   1.85,       269   0.03,       277   0.03,       101   0.01,       142   0.01,       144   0.01,        46   0.00,       132   0.01,        16   0.00
+    117000-118000    :,       905   0.09,        64   0.01,      7457   0.75,       814   0.08,     32476   3.25,     22760   2.28,     25347   2.53,     19723   1.97,       340   0.03,       178   0.02,       115   0.01,       195   0.02,       106   0.01,        74   0.01,        72   0.01,        20   0.00
+    118000-119000    :,       568   0.06,        27   0.00,      2544   0.25,       369   0.04,     23997   2.40,     22056   2.21,     23213   2.32,     18636   1.86,       371   0.04,       191   0.02,       149   0.01,       119   0.01,        40   0.00,        48   0.00,        35   0.00,        52   0.01
+    119000-120000    :,       576   0.06,        90   0.01,      1927   0.19,       179   0.02,     25917   2.59,     23836   2.38,     25828   2.58,     23095   2.31,       272   0.03,       189   0.02,       179   0.02,       238   0.02,       166   0.02,        11   0.00,         4   0.00,        46   0.00
+    120000-121000    :,       578   0.06,        65   0.01,       608   0.06,       151   0.02,     24732   2.47,     22856   2.29,     23071   2.31,     21950   2.19,       304   0.03,       193   0.02,       209   0.02,       144   0.01,        52   0.01,        11   0.00,        48   0.00,        60   0.01
+    121000-122000    :,      1134   0.11,       109   0.01,      1230   0.12,       171   0.02,     25270   2.53,     23467   2.35,     23488   2.35,     22726   2.27,       294   0.03,       223   0.02,        59   0.01,       121   0.01,        66   0.01,       122   0.01,        99   0.01,       109   0.01
+    122000-123000    :,       908   0.09,        74   0.01,      2827   0.28,       465   0.05,     26596   2.66,     25973   2.60,     26880   2.69,     22295   2.23,       245   0.02,       270   0.03,       194   0.02,       270   0.03,        50   0.01,       180   0.02,       122   0.01,        85   0.01
+    123000-124000    :,       698   0.07,        79   0.01,      2698   0.27,       711   0.07,     25435   2.54,     22449   2.24,     23939   2.39,     21409   2.14,       184   0.02,       282   0.03,       172   0.02,       209   0.02,        97   0.01,        79   0.01,        30   0.00,        53   0.01
+    124000-125000    :,       350   0.04,        91   0.01,       102   0.01,       108   0.01,     19780   1.98,     19063   1.91,     20719   2.07,     17226   1.72,       239   0.02,       168   0.02,       168   0.02,       188   0.02,        10   0.00,       114   0.01,        49   0.00,        42   0.00
+    125000-126000    :,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+    126000-126118    :,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+
+--------------------------
+Interrupt Info
+
+--------------------------
+CPU Usage Summing By Module For the Whole Trace
+
+CPU Usage from 0 us to 126118435 us:
+
+     CPU 0 Usage,      CPU 1 Usage,      CPU 2 Usage,      CPU 3 Usage,      CPU 4 Usage,      CPU 5 Usage,      CPU 6 Usage,      CPU 7 Usage,      CPU 8 Usage,      CPU 9 Usage,      CPU 10 Usage,      CPU 11 Usage,      CPU 12 Usage,      CPU 13 Usage,      CPU 14 Usage,      CPU 15 Usage, 
+     usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %,      usec      %, Module
+    46291   0.04,       158   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, HDAudBus.sys
+        0   0.00,         0   0.00,     16253   0.01,      2643   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, USBXHCI.SYS
+        0   0.00,         0   0.00,         0   0.00,         0   0.00,   3348506   2.66,   3036304   2.41,   3000261   2.38,   2713817   2.15,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, dxgkrnl.sys
+    10161   0.01,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00, ndis.sys
+       68   0.00,      4676   0.00,      1840   0.00,      3215   0.00,      2629   0.00,      2448   0.00,      4094   0.00,      2351   0.00,      2444   0.00,      3813   0.00,      1517   0.00,      2782   0.00,       750   0.00,      1593   0.00,       895   0.00,      1300   0.00, storport.sys
+
+Total = 491730
+Elapsed Time, >        0 usecs AND <=        1 usecs,  86065, or  17.50%
+Elapsed Time, >        1 usecs AND <=        2 usecs,  13394, or   2.72%
+Elapsed Time, >        2 usecs AND <=        4 usecs,   2581, or   0.52%
+Elapsed Time, >        4 usecs AND <=        8 usecs,  15139, or   3.08%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  60392, or  12.28%
+Elapsed Time, >       16 usecs AND <=       32 usecs, 180867, or  36.78%
+Elapsed Time, >       32 usecs AND <=       64 usecs, 111438, or  22.66%
+Elapsed Time, >       64 usecs AND <=      128 usecs,  21595, or   4.39%
+Elapsed Time, >      128 usecs AND <=      256 usecs,    236, or   0.05%
+Elapsed Time, >      256 usecs AND <=      512 usecs,     13, or   0.00%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,      6, or   0.00%
+Elapsed Time, >     1024 usecs AND <=     2048 usecs,      4, or   0.00%
+Total,                                                491730
+
+Total = 10242 for module HDAudBus.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    781, or   7.63%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   9304, or  90.84%
+Elapsed Time, >        8 usecs AND <=       16 usecs,    153, or   1.49%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      4, or   0.04%
+Total,                                                 10242
+
+Total = 20981 for module USBXHCI.SYS
+Elapsed Time, >        0 usecs AND <=        1 usecs,  13788, or  65.72%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   6882, or  32.80%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    264, or   1.26%
+Elapsed Time, >        4 usecs AND <=        8 usecs,     24, or   0.11%
+Elapsed Time, >        8 usecs AND <=       16 usecs,     22, or   0.10%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      1, or   0.00%
+Total,                                                 20981
+
+Total = 380512 for module dxgkrnl.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,      0, or   0.00%
+Elapsed Time, >        1 usecs AND <=        2 usecs,      0, or   0.00%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    445, or   0.12%
+Elapsed Time, >        4 usecs AND <=        8 usecs,   5756, or   1.51%
+Elapsed Time, >        8 usecs AND <=       16 usecs,  60165, or  15.81%
+Elapsed Time, >       16 usecs AND <=       32 usecs, 180856, or  47.53%
+Elapsed Time, >       32 usecs AND <=       64 usecs, 111437, or  29.29%
+Elapsed Time, >       64 usecs AND <=      128 usecs,  21594, or   5.67%
+Elapsed Time, >      128 usecs AND <=      256 usecs,    236, or   0.06%
+Elapsed Time, >      256 usecs AND <=      512 usecs,     13, or   0.00%
+Elapsed Time, >      512 usecs AND <=     1024 usecs,      6, or   0.00%
+Elapsed Time, >     1024 usecs AND <=     2048 usecs,      4, or   0.00%
+Total,                                                380512
+
+Total = 23094 for module ndis.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,  21823, or  94.50%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   1006, or   4.36%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    243, or   1.05%
+Elapsed Time, >        4 usecs AND <=        8 usecs,     12, or   0.05%
+Elapsed Time, >        8 usecs AND <=       16 usecs,     10, or   0.04%
+Total,                                                 23094
+
+Total = 56901 for module storport.sys
+Elapsed Time, >        0 usecs AND <=        1 usecs,  50454, or  88.67%
+Elapsed Time, >        1 usecs AND <=        2 usecs,   5506, or   9.68%
+Elapsed Time, >        2 usecs AND <=        4 usecs,    848, or   1.49%
+Elapsed Time, >        4 usecs AND <=        8 usecs,     43, or   0.08%
+Elapsed Time, >        8 usecs AND <=       16 usecs,     42, or   0.07%
+Elapsed Time, >       16 usecs AND <=       32 usecs,      6, or   0.01%
+Elapsed Time, >       32 usecs AND <=       64 usecs,      1, or   0.00%
+Elapsed Time, >       64 usecs AND <=      128 usecs,      1, or   0.00%
+Total,                                                 56901
+
+All Module = 491730,  Total = 491730,   EQUAL
+
+--------------------------
+Usage From 0 ms to 126118 ms, Summing In 1 second intervals. Intervals=127
+
+                       ,      CPU 0 Usage ,      CPU 1 Usage ,      CPU 2 Usage ,      CPU 3 Usage ,      CPU 4 Usage ,      CPU 5 Usage ,      CPU 6 Usage ,      CPU 7 Usage ,      CPU 8 Usage ,      CPU 9 Usage ,      CPU 10 Usage ,      CPU 11 Usage ,      CPU 12 Usage ,      CPU 13 Usage ,      CPU 14 Usage ,      CPU 15 Usage 
+Start (ms) End (ms)    ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % ,    (usec)      % 
+         0-1000      :,        14   0.00,         1   0.00,         6   0.00,         2   0.00,     24138   2.41,     23083   2.31,     23515   2.35,     22624   2.26,         3   0.00,         3   0.00,         4   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      1000-2000      :,        14   0.00,         0   0.00,         0   0.00,         0   0.00,     15501   1.55,     15332   1.53,     15682   1.57,     14141   1.41,         4   0.00,         0   0.00,         2   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+      2000-3000      :,         4   0.00,         3   0.00,         4   0.00,         1   0.00,     24508   2.45,     23314   2.33,     25320   2.53,     23912   2.39,         2   0.00,         0   0.00,         5   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      3000-4000      :,         0   0.00,         3   0.00,         3   0.00,         0   0.00,     18440   1.84,     17824   1.78,     18990   1.90,     17505   1.75,         3   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      4000-5000      :,         0   0.00,         0   0.00,         1   0.00,         2   0.00,     21501   2.15,     20552   2.06,     22306   2.23,     20368   2.04,         6   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      5000-6000      :,        13   0.00,         6   0.00,         5   0.00,         0   0.00,     20663   2.07,     19600   1.96,     21688   2.17,     21142   2.11,         3   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      6000-7000      :,         5   0.00,         0   0.00,         3   0.00,         0   0.00,     17774   1.78,     17121   1.71,     17634   1.76,     17174   1.72,         3   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      7000-8000      :,         7   0.00,         0   0.00,         0   0.00,         0   0.00,     23439   2.34,     22671   2.27,     24145   2.41,     23332   2.33,        16   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      8000-9000      :,         3   0.00,         8   0.00,         1   0.00,         0   0.00,     21829   2.18,     20881   2.09,     22367   2.24,     21068   2.11,         3   0.00,         0   0.00,         3   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+      9000-10000     :,         0   0.00,         0   0.00,       367   0.04,        55   0.01,     30162   3.02,     24855   2.49,     20800   2.08,     16786   1.68,         5   0.00,         0   0.00,         7   0.00,         0   0.00,         7   0.00,         0   0.00,         0   0.00,         0   0.00
+     10000-11000     :,        11   0.00,         7   0.00,       147   0.01,        11   0.00,     26552   2.66,     24423   2.44,     23438   2.34,     21006   2.10,         3   0.00,         1   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00
+     11000-12000     :,         8   0.00,         0   0.00,       448   0.04,        64   0.01,     35322   3.53,     29258   2.93,     24642   2.46,     18648   1.86,         3   0.00,         5   0.00,         1   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+     12000-13000     :,        22   0.00,        18   0.00,       210   0.02,        48   0.00,     25592   2.56,     22623   2.26,     17564   1.76,     14898   1.49,         8   0.00,        19   0.00,         7   0.00,        11   0.00,         4   0.00,         9   0.00,         5   0.00,         4   0.00
+     13000-14000     :,        10   0.00,         3   0.00,       193   0.02,        75   0.01,     19399   1.94,     15856   1.59,      8694   0.87,      6851   0.69,         3   0.00,         1   0.00,         0   0.00,         4   0.00,         1   0.00,         0   0.00,         0   0.00,         0   0.00
+     14000-15000     :,        27   0.00,        46   0.00,       268   0.03,        99   0.01,     16208   1.62,     13126   1.31,      8894   0.89,      7548   0.75,       139   0.01,        28   0.00,        25   0.00,        13   0.00,         7   0.00,         1   0.00,         3   0.00,         1   0.00
+     15000-16000     :,        66   0.01,        24   0.00,       141   0.01,        53   0.01,     11971   1.20,     10519   1.05,      8893   0.89,      7607   0.76,        87   0.01,        17   0.00,        24   0.00,         1   0.00,         7   0.00,         1   0.00,         5   0.00,         3   0.00
+     16000-17000     :,        39   0.00,        47   0.00,       211   0.02,        90   0.01,     13914   1.39,     11748   1.17,      7182   0.72,      5653   0.57,        82   0.01,        57   0.01,        26   0.00,        20   0.00,        12   0.00,         4   0.00,         6   0.00,         3   0.00
+     17000-18000     :,       168   0.02,        67   0.01,       194   0.02,       135   0.01,     12973   1.30,     10648   1.06,      7528   0.75,      6362   0.64,       101   0.01,        81   0.01,        37   0.00,        36   0.00,        12   0.00,        12   0.00,         8   0.00,         6   0.00
+     18000-19000     :,       372   0.04,       322   0.03,       371   0.04,        90   0.01,     24002   2.40,     20272   2.03,     18277   1.83,     14992   1.50,       226   0.02,       113   0.01,        91   0.01,        30   0.00,        58   0.01,        12   0.00,        20   0.00,        12   0.00
+     19000-20000     :,       217   0.02,         0   0.00,        72   0.01,        17   0.00,     19823   1.98,     17771   1.78,     17135   1.71,     15479   1.55,        10   0.00,         4   0.00,         5   0.00,         3   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00
+     20000-21000     :,       181   0.02,        46   0.00,        38   0.00,         2   0.00,     27393   2.74,     24382   2.44,     26005   2.60,     24536   2.45,        37   0.00,         6   0.00,       112   0.01,         0   0.00,         4   0.00,         0   0.00,        13   0.00,         0   0.00
+     21000-22000     :,       323   0.03,       541   0.05,       591   0.06,       268   0.03,     32120   3.21,     26488   2.65,     20469   2.05,     17376   1.74,        54   0.01,       247   0.02,        34   0.00,       250   0.03,        33   0.00,       142   0.01,       309   0.03,       134   0.01
+     22000-23000     :,       315   0.03,       391   0.04,       479   0.05,       484   0.05,     33147   3.31,     28339   2.83,     25576   2.56,     20056   2.01,        80   0.01,       640   0.06,        72   0.01,       403   0.04,        29   0.00,       218   0.02,        26   0.00,       153   0.02
+     23000-24000     :,       175   0.02,       121   0.01,       350   0.03,       260   0.03,     25968   2.60,     22899   2.29,     18615   1.86,     15488   1.55,        50   0.01,       310   0.03,        27   0.00,       148   0.01,         7   0.00,        69   0.01,        16   0.00,        57   0.01
+     24000-25000     :,       177   0.02,        72   0.01,       251   0.03,        75   0.01,     27173   2.72,     23839   2.38,     21273   2.13,     19522   1.95,        52   0.01,        34   0.00,        32   0.00,        52   0.01,        14   0.00,         8   0.00,        26   0.00,         8   0.00
+     25000-26000     :,       190   0.02,       339   0.03,       205   0.02,        28   0.00,     24901   2.49,     23492   2.35,     24981   2.50,     23630   2.36,       262   0.03,        47   0.00,       126   0.01,        28   0.00,        71   0.01,        13   0.00,        28   0.00,         6   0.00
+     26000-27000     :,       172   0.02,        28   0.00,       245   0.02,        53   0.01,     25715   2.57,     22963   2.30,     21139   2.11,     18424   1.84,         9   0.00,        20   0.00,        13   0.00,         3   0.00,         8   0.00,         6   0.00,         9   0.00,         2   0.00
+     27000-28000     :,       211   0.02,        35   0.00,        58   0.01,        39   0.00,     25285   2.53,     23320   2.33,     25728   2.57,     23103   2.31,        14   0.00,        64   0.01,        15   0.00,        22   0.00,         6   0.00,        11   0.00,         4   0.00,        14   0.00
+     28000-29000     :,       150   0.02,        83   0.01,        50   0.00,       207   0.02,     20680   2.07,     20258   2.03,     19191   1.92,     17677   1.77,        41   0.00,       318   0.03,        19   0.00,       139   0.01,        10   0.00,        41   0.00,         6   0.00,        21   0.00
+     29000-30000     :,         7   0.00,        52   0.01,        17   0.00,        24   0.00,     23367   2.34,     22474   2.25,     22709   2.27,     21172   2.12,        29   0.00,        35   0.00,        14   0.00,        24   0.00,         7   0.00,        15   0.00,        40   0.00,        13   0.00
+     30000-31000     :,         0   0.00,        10   0.00,         6   0.00,         7   0.00,     20294   2.03,     18920   1.89,     20561   2.06,     19475   1.95,         5   0.00,         2   0.00,         4   0.00,         1   0.00,         0   0.00,         1   0.00,        10   0.00,         0   0.00
+     31000-32000     :,        10   0.00,        88   0.01,        42   0.00,        45   0.00,     23481   2.35,     22039   2.20,     23275   2.33,     21766   2.18,        33   0.00,        44   0.00,        53   0.01,        62   0.01,        27   0.00,        29   0.00,        59   0.01,        51   0.01
+     32000-33000     :,      1728   0.17,       187   0.02,        45   0.00,       125   0.01,     25700   2.57,     23694   2.37,     25615   2.56,     24746   2.47,        60   0.01,       159   0.02,        60   0.01,       109   0.01,        40   0.00,        71   0.01,        34   0.00,        80   0.01
+     33000-34000     :,       586   0.06,       228   0.02,        37   0.00,       208   0.02,     22082   2.21,     19038   1.90,     20427   2.04,     19329   1.93,        62   0.01,       198   0.02,        36   0.00,       199   0.02,        30   0.00,       124   0.01,        22   0.00,       117   0.01
+     34000-35000     :,       699   0.07,       177   0.02,        26   0.00,       198   0.02,     24955   2.50,     24315   2.43,     26175   2.62,     24781   2.48,        29   0.00,       203   0.02,        17   0.00,       177   0.02,        11   0.00,        99   0.01,         4   0.00,        82   0.01
+     35000-36000     :,       672   0.07,        12   0.00,        20   0.00,        27   0.00,     14180   1.42,     13745   1.37,     14642   1.46,     13533   1.35,        16   0.00,        29   0.00,         5   0.00,        18   0.00,         0   0.00,        13   0.00,         5   0.00,         7   0.00
+     36000-37000     :,       824   0.08,        80   0.01,        37   0.00,        67   0.01,     26454   2.65,     24760   2.48,     26757   2.68,     25170   2.52,        31   0.00,        71   0.01,        23   0.00,        70   0.01,        22   0.00,        54   0.01,        17   0.00,        37   0.00
+     37000-38000     :,       650   0.06,       119   0.01,        16   0.00,       139   0.01,     21707   2.17,     19391   1.94,     21351   2.14,     20446   2.04,        18   0.00,       138   0.01,        15   0.00,       139   0.01,         5   0.00,        87   0.01,         4   0.00,        51   0.01
+     38000-39000     :,       784   0.08,        50   0.01,        27   0.00,        49   0.00,     27347   2.73,     25279   2.53,     27629   2.76,     25486   2.55,        24   0.00,        70   0.01,        19   0.00,        42   0.00,         4   0.00,        32   0.00,        13   0.00,        25   0.00
+     39000-40000     :,       639   0.06,       137   0.01,        39   0.00,       108   0.01,     18985   1.90,     18075   1.81,     18118   1.81,     17358   1.74,        56   0.01,        98   0.01,        46   0.00,        96   0.01,        37   0.00,        69   0.01,        30   0.00,        67   0.01
+     40000-41000     :,       647   0.06,       163   0.02,        47   0.00,       108   0.01,     20676   2.07,     19925   1.99,     21583   2.16,     20027   2.00,        79   0.01,        98   0.01,        40   0.00,       157   0.02,        28   0.00,       112   0.01,        25   0.00,       124   0.01
+     41000-42000     :,       598   0.06,       231   0.02,        50   0.01,       198   0.02,     29286   2.93,     27468   2.75,     29638   2.96,     29353   2.94,        89   0.01,       184   0.02,        57   0.01,       190   0.02,        35   0.00,       163   0.02,        22   0.00,       119   0.01
+     42000-43000     :,       766   0.08,        58   0.01,        14   0.00,        39   0.00,     24975   2.50,     24849   2.48,     25545   2.55,     23162   2.32,        13   0.00,        36   0.00,         4   0.00,        39   0.00,         8   0.00,        18   0.00,         5   0.00,        14   0.00
+     43000-44000     :,       765   0.08,        95   0.01,         9   0.00,         5   0.00,     30244   3.02,     28282   2.83,     28591   2.86,     28064   2.81,         8   0.00,         3   0.00,        13   0.00,         6   0.00,         6   0.00,         6   0.00,         1   0.00,         4   0.00
+     44000-45000     :,       513   0.05,        25   0.00,         3   0.00,         3   0.00,     29501   2.95,     29270   2.93,     29979   3.00,     27538   2.75,         6   0.00,         0   0.00,         3   0.00,         1   0.00,         5   0.00,         3   0.00,         4   0.00,         0   0.00
+     45000-46000     :,       475   0.05,        21   0.00,         7   0.00,         2   0.00,     31791   3.18,     29171   2.92,     31967   3.20,     30504   3.05,        17   0.00,         1   0.00,         7   0.00,         0   0.00,         8   0.00,         0   0.00,         6   0.00,         0   0.00
+     46000-47000     :,       451   0.05,        15   0.00,         3   0.00,         0   0.00,     23409   2.34,     23195   2.32,     23682   2.37,     22205   2.22,         4   0.00,         3   0.00,         4   0.00,         0   0.00,         3   0.00,         2   0.00,         0   0.00,         0   0.00
+     47000-48000     :,       446   0.04,        22   0.00,       174   0.02,        30   0.00,     33079   3.31,     30938   3.09,     28492   2.85,     27196   2.72,         8   0.00,         0   0.00,         1   0.00,         1   0.00,         2   0.00,         0   0.00,         4   0.00,         2   0.00
+     48000-49000     :,       479   0.05,         7   0.00,       374   0.04,        82   0.01,     30927   3.09,     28613   2.86,     24542   2.45,     19906   1.99,         7   0.00,         7   0.00,        11   0.00,         2   0.00,         3   0.00,         3   0.00,         1   0.00,         0   0.00
+     49000-50000     :,       652   0.07,        18   0.00,       477   0.05,        88   0.01,     34805   3.48,     29131   2.91,     23526   2.35,     20407   2.04,         9   0.00,        26   0.00,        21   0.00,        12   0.00,         3   0.00,         3   0.00,         0   0.00,         3   0.00
+     50000-51000     :,      2181   0.22,         3   0.00,       123   0.01,        87   0.01,      2346   0.23,      1445   0.14,      1001   0.10,       562   0.06,         8   0.00,         5   0.00,         1   0.00,         0   0.00,         2   0.00,         2   0.00,         1   0.00,         0   0.00
+     51000-52000     :,       438   0.04,         3   0.00,        17   0.00,        14   0.00,      5641   0.56,      4865   0.49,      5322   0.53,      5017   0.50,         4   0.00,        11   0.00,         9   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00
+     52000-53000     :,       494   0.05,        24   0.00,         7   0.00,        23   0.00,     32491   3.25,     30895   3.09,     31607   3.16,     29637   2.96,        13   0.00,        35   0.00,        24   0.00,        13   0.00,         6   0.00,         9   0.00,         4   0.00,         4   0.00
+     53000-54000     :,       434   0.04,         1   0.00,         6   0.00,         5   0.00,     26069   2.61,     24821   2.48,     25965   2.60,     24786   2.48,         5   0.00,         7   0.00,         0   0.00,         4   0.00,         0   0.00,         1   0.00,         0   0.00,         1   0.00
+     54000-55000     :,       552   0.06,         6   0.00,       536   0.05,        66   0.01,     38312   3.83,     31957   3.20,     27700   2.77,     21640   2.16,        10   0.00,         4   0.00,         5   0.00,         0   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00
+     55000-56000     :,       754   0.08,         5   0.00,       217   0.02,        23   0.00,     26008   2.60,     23289   2.33,     21365   2.14,     17753   1.78,         2   0.00,         4   0.00,         2   0.00,         5   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00
+     56000-57000     :,       765   0.08,         9   0.00,       235   0.02,        15   0.00,     33413   3.34,     29773   2.98,     28046   2.80,     24436   2.44,         9   0.00,         3   0.00,         4   0.00,         0   0.00,         2   0.00,         0   0.00,         2   0.00,         4   0.00
+     57000-58000     :,       935   0.09,         2   0.00,       243   0.02,        16   0.00,     28349   2.83,     25478   2.55,     24482   2.45,     21846   2.18,         3   0.00,         4   0.00,         5   0.00,         6   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00
+     58000-59000     :,       466   0.05,        10   0.00,       466   0.05,        61   0.01,     32936   3.29,     28098   2.81,     25378   2.54,     20017   2.00,         7   0.00,         5   0.00,         5   0.00,         0   0.00,         0   0.00,         1   0.00,         4   0.00,         0   0.00
+     59000-60000     :,       786   0.08,        96   0.01,       441   0.04,        56   0.01,     33488   3.35,     28362   2.84,     26045   2.60,     21917   2.19,        14   0.00,        15   0.00,        10   0.00,         4   0.00,         7   0.00,         7   0.00,         4   0.00,         5   0.00
+     60000-61000     :,       665   0.07,        73   0.01,       212   0.02,        39   0.00,     29565   2.96,     25917   2.59,     26365   2.64,     23447   2.34,        10   0.00,        31   0.00,         8   0.00,        12   0.00,         6   0.00,        14   0.00,         7   0.00,        10   0.00
+     61000-62000     :,       485   0.05,        34   0.00,        41   0.00,        17   0.00,     29905   2.99,     26620   2.66,     29196   2.92,     27112   2.71,        14   0.00,        23   0.00,        14   0.00,        17   0.00,        12   0.00,        15   0.00,         4   0.00,        10   0.00
+     62000-63000     :,       440   0.04,        20   0.00,         7   0.00,         6   0.00,     27946   2.79,     25909   2.59,     27820   2.78,     26697   2.67,         2   0.00,         5   0.00,        10   0.00,         0   0.00,         4   0.00,         1   0.00,         0   0.00,         0   0.00
+     63000-64000     :,       467   0.05,        10   0.00,        11   0.00,         3   0.00,     30890   3.09,     29202   2.92,     31728   3.17,     29424   2.94,         7   0.00,         3   0.00,         4   0.00,         1   0.00,         3   0.00,         3   0.00,         0   0.00,         1   0.00
+     64000-65000     :,       464   0.05,         6   0.00,        76   0.01,         6   0.00,     26496   2.65,     25521   2.55,     25142   2.51,     24184   2.42,         8   0.00,         5   0.00,         5   0.00,         3   0.00,         3   0.00,         0   0.00,         0   0.00,         0   0.00
+     65000-66000     :,       508   0.05,         6   0.00,       489   0.05,        55   0.01,     37188   3.72,     31287   3.13,     27667   2.77,     22096   2.21,         0   0.00,        14   0.00,         5   0.00,         6   0.00,         3   0.00,         1   0.00,         2   0.00,         3   0.00
+     66000-67000     :,       448   0.04,         4   0.00,       376   0.04,        68   0.01,     31905   3.19,     27669   2.77,     22839   2.28,     19227   1.92,        22   0.00,         5   0.00,         5   0.00,         1   0.00,         0   0.00,         0   0.00,         4   0.00,         0   0.00
+     67000-68000     :,       437   0.04,        15   0.00,        63   0.01,        12   0.00,     27838   2.78,     26675   2.67,     28483   2.85,     26084   2.61,         9   0.00,         9   0.00,         0   0.00,         3   0.00,         2   0.00,         0   0.00,         0   0.00,         2   0.00
+     68000-69000     :,       447   0.04,        18   0.00,        18   0.00,         5   0.00,     28361   2.84,     27319   2.73,     29547   2.95,     27741   2.77,        11   0.00,         5   0.00,         2   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+     69000-70000     :,       435   0.04,         2   0.00,        20   0.00,         4   0.00,     25974   2.60,     24264   2.43,     26863   2.69,     24668   2.47,         8   0.00,         1   0.00,         4   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+     70000-71000     :,       439   0.04,        11   0.00,        74   0.01,         4   0.00,     30439   3.04,     28286   2.83,     29917   2.99,     27557   2.76,        13   0.00,         5   0.00,         7   0.00,         5   0.00,         1   0.00,         3   0.00,         0   0.00,         0   0.00
+     71000-72000     :,       571   0.06,         4   0.00,       149   0.01,        15   0.00,     27217   2.72,     26054   2.61,     24631   2.46,     22736   2.27,         7   0.00,         2   0.00,         5   0.00,         3   0.00,         0   0.00,         1   0.00,         0   0.00,         2   0.00
+     72000-73000     :,       440   0.04,         8   0.00,       423   0.04,        51   0.01,     35011   3.50,     30354   3.04,     26233   2.62,     21787   2.18,         8   0.00,         5   0.00,         8   0.00,         4   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00
+     73000-74000     :,       535   0.05,         5   0.00,        16   0.00,         2   0.00,     23878   2.39,     22987   2.30,     23636   2.36,     23015   2.30,         6   0.00,         0   0.00,         2   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+     74000-75000     :,       535   0.05,        11   0.00,       469   0.05,        54   0.01,     35832   3.58,     30191   3.02,     26320   2.63,     21153   2.12,         8   0.00,         0   0.00,         5   0.00,         4   0.00,         2   0.00,         7   0.00,         2   0.00,         3   0.00
+     75000-76000     :,       853   0.09,        13   0.00,       233   0.02,        28   0.00,     29764   2.98,     26694   2.67,     25367   2.54,     22767   2.28,         9   0.00,        10   0.00,         8   0.00,         9   0.00,         4   0.00,         7   0.00,         3   0.00,         5   0.00
+     76000-77000     :,       555   0.06,        49   0.00,       574   0.06,       367   0.04,     35872   3.59,     29338   2.93,     23172   2.32,     17349   1.73,        11   0.00,        47   0.00,        10   0.00,        88   0.01,         7   0.00,        24   0.00,         5   0.00,         8   0.00
+     77000-78000     :,       499   0.05,         3   0.00,       341   0.03,        68   0.01,     33377   3.34,     27435   2.74,     24761   2.48,     20203   2.02,        11   0.00,         4   0.00,         6   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         2   0.00
+     78000-79000     :,       610   0.06,         4   0.00,       357   0.04,        62   0.01,     31770   3.18,     27768   2.78,     24160   2.42,     21553   2.16,         5   0.00,         5   0.00,         0   0.00,         5   0.00,         1   0.00,         2   0.00,         1   0.00,         2   0.00
+     79000-80000     :,       493   0.05,         3   0.00,        14   0.00,         5   0.00,     31759   3.18,     29748   2.97,     31850   3.19,     30197   3.02,         6   0.00,         5   0.00,         6   0.00,         2   0.00,         0   0.00,         2   0.00,         5   0.00,         0   0.00
+     80000-81000     :,      1077   0.11,         9   0.00,        83   0.01,        65   0.01,     16138   1.61,     14954   1.50,     16046   1.60,     14257   1.43,         8   0.00,         6   0.00,         5   0.00,         4   0.00,         1   0.00,         3   0.00,         0   0.00,         0   0.00
+     81000-82000     :,      1131   0.11,         0   0.00,        76   0.01,        47   0.00,      5083   0.51,      3749   0.37,      2166   0.22,      2150   0.22,         2   0.00,         2   0.00,         0   0.00,         1   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00
+     82000-83000     :,       533   0.05,        13   0.00,       245   0.02,        62   0.01,     15538   1.55,     12899   1.29,      8049   0.80,      6546   0.65,         7   0.00,         8   0.00,         6   0.00,         3   0.00,         7   0.00,         0   0.00,         0   0.00,         0   0.00
+     83000-84000     :,       541   0.05,        21   0.00,       308   0.03,        17   0.00,     35572   3.56,     31442   3.14,     29533   2.95,     24682   2.47,        10   0.00,        10   0.00,        10   0.00,         6   0.00,        12   0.00,         4   0.00,         9   0.00,         2   0.00
+     84000-85000     :,       487   0.05,        13   0.00,       316   0.03,        17   0.00,     33919   3.39,     29188   2.92,     29782   2.98,     25384   2.54,         7   0.00,         8   0.00,         4   0.00,         0   0.00,         7   0.00,         1   0.00,         2   0.00,         2   0.00
+     85000-86000     :,       495   0.05,        12   0.00,        10   0.00,         0   0.00,     29487   2.95,     28158   2.82,     30618   3.06,     28525   2.85,         9   0.00,         0   0.00,        10   0.00,         4   0.00,         3   0.00,         0   0.00,         4   0.00,         0   0.00
+     86000-87000     :,       474   0.05,        16   0.00,        26   0.00,         2   0.00,     32539   3.25,     29655   2.97,     32495   3.25,     29776   2.98,        13   0.00,         1   0.00,         1   0.00,         3   0.00,         2   0.00,         0   0.00,         5   0.00,         0   0.00
+     87000-88000     :,       450   0.04,        11   0.00,         6   0.00,         0   0.00,     27966   2.80,     25998   2.60,     28746   2.87,     27539   2.75,         5   0.00,         2   0.00,         2   0.00,         2   0.00,         2   0.00,         0   0.00,         3   0.00,         0   0.00
+     88000-89000     :,       468   0.05,        14   0.00,         3   0.00,         1   0.00,     31135   3.11,     28223   2.82,     30186   3.02,     29631   2.96,         0   0.00,         4   0.00,        11   0.00,         0   0.00,         8   0.00,         0   0.00,         3   0.00,         0   0.00
+     89000-90000     :,       452   0.05,         8   0.00,        29   0.00,         1   0.00,     23891   2.39,     21833   2.18,     23561   2.36,     22632   2.26,         5   0.00,         1   0.00,         4   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+     90000-91000     :,       445   0.04,         8   0.00,        12   0.00,         2   0.00,     30879   3.09,     28472   2.85,     30416   3.04,     29312   2.93,         6   0.00,         3   0.00,         5   0.00,         2   0.00,         2   0.00,         1   0.00,         3   0.00,         0   0.00
+     91000-92000     :,       449   0.04,         7   0.00,         5   0.00,         0   0.00,     22892   2.29,     20797   2.08,     23233   2.32,     22221   2.22,         7   0.00,         2   0.00,         2   0.00,         1   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+     92000-93000     :,       483   0.05,        12   0.00,        11   0.00,         0   0.00,     30979   3.10,     28968   2.90,     31347   3.13,     29599   2.96,         8   0.00,         0   0.00,         2   0.00,         0   0.00,         2   0.00,         1   0.00,         2   0.00,         0   0.00
+     93000-94000     :,       482   0.05,        14   0.00,        15   0.00,         3   0.00,     25808   2.58,     23804   2.38,     25327   2.53,     23722   2.37,         8   0.00,         5   0.00,         4   0.00,         0   0.00,         3   0.00,         1   0.00,         0   0.00,         2   0.00
+     94000-95000     :,       442   0.04,         6   0.00,        18   0.00,        13   0.00,     28272   2.83,     26214   2.62,     28089   2.81,     25512   2.55,         6   0.00,         4   0.00,         8   0.00,         1   0.00,         3   0.00,         1   0.00,         4   0.00,         2   0.00
+     95000-96000     :,       480   0.05,         1   0.00,         8   0.00,         0   0.00,     27638   2.76,     25778   2.58,     28879   2.89,     27106   2.71,         6   0.00,         0   0.00,         7   0.00,         0   0.00,         4   0.00,         0   0.00,         0   0.00,         0   0.00
+     96000-97000     :,       451   0.05,        14   0.00,       304   0.03,        24   0.00,     30832   3.08,     26608   2.66,     24801   2.48,     21658   2.17,        10   0.00,         0   0.00,         8   0.00,         0   0.00,         1   0.00,         0   0.00,         2   0.00,         0   0.00
+     97000-98000     :,       465   0.05,         9   0.00,        63   0.01,         3   0.00,     34169   3.42,     31315   3.13,     32872   3.29,     30307   3.03,         7   0.00,         1   0.00,         0   0.00,         2   0.00,         4   0.00,         1   0.00,         0   0.00,         2   0.00
+     98000-99000     :,       449   0.04,         4   0.00,        10   0.00,         0   0.00,     31958   3.20,     29681   2.97,     32428   3.24,     30264   3.03,         5   0.00,         1   0.00,         3   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+     99000-100000    :,       463   0.05,        12   0.00,        11   0.00,         0   0.00,     34160   3.42,     31015   3.10,     33646   3.36,     31716   3.17,         8   0.00,         2   0.00,        15   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00
+    100000-101000    :,       460   0.05,         6   0.00,         8   0.00,         1   0.00,     29940   2.99,     27669   2.77,     28811   2.88,     26856   2.69,         5   0.00,         0   0.00,         6   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+    101000-102000    :,       538   0.05,        14   0.00,         9   0.00,         0   0.00,     35511   3.55,     32672   3.27,     34422   3.44,     33449   3.34,         4   0.00,         1   0.00,         5   0.00,         6   0.00,         5   0.00,         4   0.00,         0   0.00,         2   0.00
+    102000-103000    :,       431   0.04,        15   0.00,        16   0.00,         0   0.00,     29217   2.92,     28244   2.82,     30294   3.03,     27806   2.78,         5   0.00,         0   0.00,         6   0.00,         0   0.00,         2   0.00,         0   0.00,         2   0.00,         0   0.00
+    103000-104000    :,       449   0.04,         2   0.00,         3   0.00,         0   0.00,     30933   3.09,     29610   2.96,     30798   3.08,     27684   2.77,         7   0.00,         5   0.00,         8   0.00,         1   0.00,         3   0.00,         0   0.00,         0   0.00,         2   0.00
+    104000-105000    :,       447   0.04,         3   0.00,         8   0.00,         0   0.00,     33616   3.36,     30713   3.07,     32887   3.29,     31506   3.15,         6   0.00,         1   0.00,         7   0.00,         1   0.00,         5   0.00,         1   0.00,         3   0.00,         0   0.00
+    105000-106000    :,       469   0.05,        14   0.00,         3   0.00,         1   0.00,     29061   2.91,     27184   2.72,     28744   2.87,     27866   2.79,         4   0.00,         2   0.00,         9   0.00,         1   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00
+    106000-107000    :,       470   0.05,        25   0.00,       217   0.02,         6   0.00,     37362   3.74,     33487   3.35,     34371   3.44,     30533   3.05,         9   0.00,         1   0.00,         7   0.00,         4   0.00,         9   0.00,         1   0.00,         0   0.00,         0   0.00
+    107000-108000    :,       482   0.05,         5   0.00,       444   0.04,       112   0.01,     29827   2.98,     26117   2.61,     21226   2.12,     16117   1.61,         9   0.00,         1   0.00,         0   0.00,         1   0.00,         3   0.00,         2   0.00,         0   0.00,         0   0.00
+    108000-109000    :,      1463   0.15,         1   0.00,        99   0.01,        52   0.01,      2870   0.29,      1800   0.18,      1276   0.13,       858   0.09,         3   0.00,         2   0.00,         3   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+    109000-110000    :,       481   0.05,         4   0.00,       319   0.03,       106   0.01,     13451   1.35,     11210   1.12,      7621   0.76,      4876   0.49,         0   0.00,         6   0.00,         1   0.00,         3   0.00,         0   0.00,         2   0.00,         3   0.00,         0   0.00
+    110000-111000    :,       512   0.05,        12   0.00,       206   0.02,        30   0.00,     33470   3.35,     31442   3.14,     32331   3.23,     28018   2.80,         8   0.00,        10   0.00,         4   0.00,         2   0.00,         2   0.00,         3   0.00,         0   0.00,         0   0.00
+    111000-112000    :,       432   0.04,         5   0.00,       248   0.02,        56   0.01,     32097   3.21,     28938   2.89,     27484   2.75,     23629   2.36,         4   0.00,         0   0.00,         6   0.00,         4   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+    112000-113000    :,       446   0.04,         4   0.00,       236   0.02,        26   0.00,     33409   3.34,     28845   2.88,     28812   2.88,     25345   2.53,         5   0.00,         1   0.00,         3   0.00,         1   0.00,         4   0.00,         0   0.00,         2   0.00,         0   0.00
+    113000-114000    :,       468   0.05,        12   0.00,       410   0.04,        70   0.01,     33063   3.31,     27467   2.75,     25080   2.51,     21110   2.11,        10   0.00,         3   0.00,         2   0.00,         1   0.00,         1   0.00,         0   0.00,         0   0.00,         0   0.00
+    114000-115000    :,       426   0.04,         9   0.00,       366   0.04,        42   0.00,     31041   3.10,     26284   2.63,     23398   2.34,     19856   1.99,         7   0.00,         1   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         4   0.00,         0   0.00
+    115000-116000    :,       479   0.05,         1   0.00,       177   0.02,        18   0.00,     32555   3.26,     29148   2.91,     29623   2.96,     25643   2.56,         6   0.00,         4   0.00,         4   0.00,         0   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00
+    116000-117000    :,       452   0.05,         6   0.00,       207   0.02,        36   0.00,     31201   3.12,     28194   2.82,     26010   2.60,     23517   2.35,         6   0.00,         8   0.00,         2   0.00,         0   0.00,         2   0.00,         0   0.00,         3   0.00,         0   0.00
+    117000-118000    :,       463   0.05,         8   0.00,       356   0.04,        34   0.00,     35586   3.56,     30673   3.07,     27689   2.77,     23142   2.31,         9   0.00,         0   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00
+    118000-119000    :,       442   0.04,         0   0.00,       131   0.01,        12   0.00,     24669   2.47,     23232   2.32,     23658   2.37,     20808   2.08,         9   0.00,         2   0.00,         4   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+    119000-120000    :,       444   0.04,         0   0.00,        98   0.01,         7   0.00,     29885   2.99,     28324   2.83,     29463   2.95,     26848   2.68,         9   0.00,         1   0.00,         2   0.00,         3   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+    120000-121000    :,       435   0.04,        11   0.00,        33   0.00,         2   0.00,     26830   2.68,     25526   2.55,     26364   2.64,     24504   2.45,         5   0.00,         3   0.00,         4   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00,         2   0.00
+    121000-122000    :,       444   0.04,         0   0.00,        55   0.01,         3   0.00,     28625   2.86,     26495   2.65,     27668   2.77,     25305   2.53,         5   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00,         0   0.00
+    122000-123000    :,       483   0.05,         4   0.00,       139   0.01,        15   0.00,     32255   3.23,     30322   3.03,     30130   3.01,     27813   2.78,         8   0.00,         2   0.00,         2   0.00,         3   0.00,         0   0.00,         0   0.00,         0   0.00,         2   0.00
+    123000-124000    :,       442   0.04,         4   0.00,       114   0.01,        32   0.00,     28678   2.87,     26039   2.60,     25207   2.52,     23984   2.40,         4   0.00,         6   0.00,         3   0.00,         2   0.00,         2   0.00,         0   0.00,         0   0.00,         0   0.00
+    124000-125000    :,       334   0.03,         2   0.00,         2   0.00,         3   0.00,     23753   2.38,     22121   2.21,     23691   2.37,     21424   2.14,         4   0.00,         0   0.00,         0   0.00,         2   0.00,         0   0.00,         1   0.00,         0   0.00,         0   0.00
+    125000-126000    :,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+    126000-126118    :,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00,         0   0.00
+
+
+Distribution of number of 2000 ms intervals w.r.t. DPC/ISR usage:
+
+                ,                      CPU 0,                      CPU 1,                      CPU 2,                      CPU 3,                      CPU 4,                      CPU 5,                      CPU 6,                      CPU 7,                      CPU 8,                      CPU 9,                      CPU 10,                      CPU 11,                      CPU 12,                      CPU 13,                      CPU 14,                      CPU 15
+ DPC/ISR Usage %,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined,      DPC      ISR Combined
+>=  0 AND <=   1,       62,       64,       60,       64,       64,       64,       64,       64,       64,       64,       64,       64,        3,        3,        1,        7,        4,        2,        5,        6,        3,        7,        6,        3,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64
+>   1 AND <=   5,        2,        0,        4,        0,        0,        0,        0,        0,        0,        0,        0,        0,       61,       61,       20,       57,       60,       38,       59,       58,       37,       57,       58,       50,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>   5 AND <=  10,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,       43,        0,        0,       24,        0,        0,       24,        0,        0,       11,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>  10 AND <=  20,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>  20 AND <=  40,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>  40 AND <=  60,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>  60 AND <=  80,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+>  80 AND <= 100,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0,        0
+---
+Total:          ,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64,       64
