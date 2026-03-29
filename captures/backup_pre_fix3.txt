@@ -1,0 +1,37 @@
+﻿=== NVIDIA / GPU State Backup ===
+Captured: 2026-03-29 12:08:26
+Purpose:  Pre-Fix-3 backup - NVIDIA MSI mode, power level, HAGS, interrupt affinity
+
+--- GPU Device ---
+  FriendlyName: NVIDIA GeForce RTX 5070 Ti
+  InstanceId:   PCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1\253C1C6A232DB04800
+  Status:       OK
+
+--- MSI (MessageSignaledInterruptProperties) ---
+  Key exists: False (no override - system default)
+  MSISupported:       (not set - driver default)
+  MessageNumberLimit: (not set)
+
+--- GPU Interrupt Affinity Policy ---
+  Key exists: False (no override - system default)
+
+--- Hardware-Accelerated GPU Scheduling (HAGS) ---
+  HwSchMode: 2  (1=disabled, 2=enabled, null=not set)
+
+--- NVIDIA Display Class Key (PerfLevelSrc) ---
+  Key: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000
+  ProviderName:  NVIDIA
+  PerfLevelSrc:    (null=not set, 0x2222=max perf)
+
+=== ROLLBACK COMMANDS ===
+# Run as Administrator, then reboot:
+
+# Revert MSI mode
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\EnumPCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1\253C1C6A232DB04800\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties' -Name 'MSISupported' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\EnumPCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1\253C1C6A232DB04800\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties' -Name 'MessageNumberLimit' -ErrorAction SilentlyContinue
+
+# Revert HAGS
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -Name 'HwSchMode' -Value 2 -Type DWord
+
+# PerfLevelSrc was not set - to revert:
+Remove-ItemProperty -Path 'Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000' -Name 'PerfLevelSrc' -ErrorAction SilentlyContinue

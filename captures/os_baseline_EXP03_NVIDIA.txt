@@ -1,0 +1,33 @@
+﻿=== OS Performance: EXP03_NVIDIA ===
+Captured: 2026-03-29 12:16:16
+Samples: 10 (1s interval)
+Note: registry changes written; REBOOT REQUIRED for MSI/affinity to activate
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  25,594.8000  25,559.0000  25,607.0000
+memory\pages/sec                                              0.1999       0.0000       1.9995
+physicaldisk(_total)\avg. disk sec/read                       0.0000       0.0000       0.0005
+physicaldisk(_total)\avg. disk sec/write                      0.0002       0.0000       0.0003
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.3121       0.0000       0.7804
+processor(_total)\% interrupt time                            0.2732       0.0000       0.5855
+processor(_total)\% processor time                            4.3345       2.3232       6.3518
+system\context switches/sec                              23,082.5991  15,897.5506  30,496.6840
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High
+Games Priority: 6
+Games SFIO Priority: High
+
+=== NVIDIA Registry Settings (take effect after reboot) ===
+GPU: NVIDIA GeForce RTX 5070 Ti
+MSISupported: 1
+MessageNumberLimit: 1
+PerfLevelSrc: 0x2222
+HwSchMode (HAGS): 2
+GPU DevicePolicy: 4
+GPU AffinityMask[0]: 0xF0 (CPUs 4-7)
