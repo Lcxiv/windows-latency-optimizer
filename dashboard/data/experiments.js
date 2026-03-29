@@ -225,6 +225,75 @@ window.EXPERIMENTS = [
   },
 
   // ---------------------------------------------------------------------------
+  // EXPERIMENT 03 — NVIDIA MSI Mode + Max Performance Power + GPU Affinity
+  // Applied: 2026-03-29 | Fix 3 from implementation-plan.md
+  // REBOOT REQUIRED — registry written, changes activate on next boot
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp03_nvidia_msi",
+    name: "Exp 03 — NVIDIA MSI + Power",
+    shortName: "Exp 03",
+    date: "2026-03-29T12:16:16",
+    description: "GPU MSI mode enabled (MSISupported=1, MessageNumberLimit=1), PerfLevelSrc=0x2222 (max perf), GPU interrupt affinity pinned to CPUs 4-7. HAGS was already enabled. Reboot required.",
+    tags: ["nvidia", "msi", "power", "gpu-affinity"],
+
+    registry: {
+      // MMCSS/network unchanged from Exp 01
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      // Defender unchanged from Exp 02
+      DefenderExclusions: [
+        "C:\\Program Files\\Epic Games\\Fortnite",
+        "C:\\Program Files\\Epic Games\\Launcher",
+        "C:\\ProgramData\\Epic\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\EpicGamesLauncher",
+        "C:\\Users\\L\\AppData\\Local\\FortniteGame",
+        "C:\\Users\\L\\AppData\\Local\\Temp"
+      ],
+      DefenderExclusionProcesses: [
+        "FortniteClient-Win64-Shipping.exe",
+        "EpicGamesLauncher.exe",
+        "EasyAntiCheat.exe",
+        "EasyAntiCheat_EOS.exe",
+        "BEService.exe"
+      ],
+      DefenderScanAvgCPULoadFactor: 5,
+      DefenderEnableLowCpuPriority: true,
+      // NVIDIA — new in this experiment
+      GPU: "NVIDIA GeForce RTX 5070 Ti",
+      NvidiaMSISupported: 1,
+      NvidiaMessageNumberLimit: 1,
+      NvidiaPerfLevelSrc: "0x2222",
+      NvidiaHwSchMode: 2,
+      NvidiaGPUInterruptDevicePolicy: 4,
+      NvidiaGPUInterruptAffinityMask: "0xF0 (CPUs 4-7)"
+    },
+
+    // From: captures/os_baseline_EXP03_NVIDIA.txt
+    // Note: registry written pre-reboot; perf impact of MSI/affinity not yet visible
+    performance: {
+      AvailableMemoryMB:    { avg: 25594.8, min: 25559.0, max: 25607.0 },
+      PagesSec:             { avg: 0.1999,  min: 0.0,     max: 1.9995  },
+      DiskSecRead:          { avg: 0.0,     min: 0.0,     max: 0.0005  },
+      DiskSecWrite:         { avg: 0.0002,  min: 0.0,     max: 0.0003  },
+      DiskQueueLength:      { avg: 0.0,     min: 0.0,     max: 0.0     },
+      DPCTimePct:           { avg: 0.3121,  min: 0.0,     max: 0.7804  },
+      InterruptTimePct:     { avg: 0.2732,  min: 0.0,     max: 0.5855  },
+      ProcessorTimePct:     { avg: 4.3345,  min: 2.3232,  max: 6.3518  },
+      ContextSwitchesSec:   { avg: 23082.6, min: 15897.6, max: 30496.7 },
+      ProcessorQueueLength: { avg: 0.0,     min: 0.0,     max: 0.0     }
+    },
+
+    // LatencyMon should be run after rebooting to confirm MSI mode reduced nvlddmkm.sys DPC time
+    // Target: totalDPCTimePct < 0.03% (down from 0.105%), maxDPCExecutionUs < 200µs
+    latencymon: null,
+    cpuData: null
+  },
+
+  // ---------------------------------------------------------------------------
   // ADD NEW EXPERIMENTS BELOW THIS LINE
   // ---------------------------------------------------------------------------
   // Example:
