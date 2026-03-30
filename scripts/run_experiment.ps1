@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Lightweight experiment capture (perf counters + registry only, no WPR).
+.DESCRIPTION
+    Captures performance counters and registry snapshot without WPR/xperf traces.
+    Faster than pipeline.ps1 for quick A/B comparisons.
+.EXAMPLE
+    .\run_experiment.ps1 -Label "QUICK_TEST" -Description "Quick idle check" -DurationSec 60
+#>
 #Requires -RunAsAdministrator
 param(
     [Parameter(Mandatory=$true)]
@@ -38,7 +47,7 @@ $outFile   = Join-Path $OutDir "${timestamp}_${Label}.json"
 Write-Host "=== run_experiment.ps1 ==="
 Write-Host "Label:       $Label"
 Write-Host "Description: $Description"
-Write-Host "Duration:    ${DurationSec}s at 1s intervals"
+Write-Host "Duration:    $($DurationSec)s at 1s intervals"
 Write-Host "Output:      $outFile"
 Write-Host ""
 
@@ -49,7 +58,7 @@ Write-Host "Checking system idle state..."
 $quickCpu = (Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 1 -MaxSamples 3).CounterSamples |
     Measure-Object CookedValue -Average
 if ($quickCpu.Average -gt 15) {
-    Write-Warning "CPU usage is $([math]::Round($quickCpu.Average,1))% — consider closing background apps before capturing."
+    Write-Warning ('CPU usage is ' + [math]::Round($quickCpu.Average,1) + '% - consider closing background apps before capturing.')
     Write-Host "Waiting 5s then proceeding..."
     Start-Sleep 5
 }
@@ -57,7 +66,7 @@ if ($quickCpu.Average -gt 15) {
 # ---------------------------------------------------------------------------
 # Performance counter sampling
 # ---------------------------------------------------------------------------
-Write-Host "Sampling performance counters for ${DurationSec}s..."
+Write-Host "Sampling performance counters for $($DurationSec)s..."
 
 $counters = @(
     '\Processor(*)\% Interrupt Time',
@@ -102,7 +111,8 @@ foreach ($key in $data.Keys) {
     $name   = $entry.path.TrimStart('\').Split('\') | Select-Object -Last 1
     $inst   = $entry.instance
     $stats  = Get-Stats $entry.values
-    $mapKey = if ($inst -and $inst -ne '') { "${name}[$inst]" } else { $name }
+    $mapKey = $name
+    if ($inst -and $inst -ne '') { $mapKey = $name + '[' + $inst + ']' }
     $perf[$mapKey] = $stats
 }
 
@@ -121,11 +131,15 @@ foreach ($key in $data.Keys) {
 $cpuData = @()
 $cpuNums = $cpuInterrupt.Keys | Where-Object { $_ -ne '_total' } | Sort-Object { [int]$_ }
 foreach ($cpu in $cpuNums) {
+    $dpc = 0
+    if ($cpuDpc.ContainsKey($cpu)) { $dpc = $cpuDpc[$cpu].avg }
+    $ips = 0
+    if ($cpuIntrPerSec.ContainsKey($cpu)) { $ips = $cpuIntrPerSec[$cpu].avg }
     $cpuData += @{
         cpu          = [int]$cpu
         interruptPct = $cpuInterrupt[$cpu].avg
-        dpcPct       = if ($cpuDpc.ContainsKey($cpu)) { $cpuDpc[$cpu].avg } else { 0 }
-        intrPerSec   = if ($cpuIntrPerSec.ContainsKey($cpu)) { $cpuIntrPerSec[$cpu].avg } else { 0 }
+        dpcPct       = $dpc
+        intrPerSec   = $ips
     }
 }
 
@@ -152,8 +166,10 @@ try {
     $mp = Get-MpPreference -ErrorAction Stop
     $reg['ScanAvgCPULoadFactor']   = $mp.ScanAvgCPULoadFactor
     $reg['EnableLowCpuPriority']   = [string]$mp.EnableLowCpuPriority
-    $reg['ExclusionPathCount']     = if ($mp.ExclusionPath) { $mp.ExclusionPath.Count } else { 0 }
-    $reg['ExclusionProcessCount']  = if ($mp.ExclusionProcess) { $mp.ExclusionProcess.Count } else { 0 }
+    $epCount = 0; if ($mp.ExclusionPath) { $epCount = $mp.ExclusionPath.Count }
+    $reg['ExclusionPathCount']     = $epCount
+    $eprCount = 0; if ($mp.ExclusionProcess) { $eprCount = $mp.ExclusionProcess.Count }
+    $reg['ExclusionProcessCount']  = $eprCount
 } catch { $reg['Defender'] = "error: $($_.Exception.Message)" }
 
 # NVIDIA MSI + PerfLevelSrc
@@ -213,11 +229,15 @@ $result = [ordered]@{
     registry      = $reg
     performance   = $perf
     cpuData       = $cpuData
-    cpuTotal      = @{
-        interruptPct = if ($cpuInterrupt.ContainsKey('_total')) { $cpuInterrupt['_total'].avg } else { $null }
-        dpcPct       = if ($cpuDpc.ContainsKey('_total'))       { $cpuDpc['_total'].avg }       else { $null }
-        intrPerSec   = if ($cpuIntrPerSec.ContainsKey('_total')){ $cpuIntrPerSec['_total'].avg } else { $null }
-    }
+    cpuTotal      = $null
+}
+$totalIntr = $null; if ($cpuInterrupt.ContainsKey('_total')) { $totalIntr = $cpuInterrupt['_total'].avg }
+$totalDpc  = $null; if ($cpuDpc.ContainsKey('_total'))       { $totalDpc  = $cpuDpc['_total'].avg }
+$totalIps  = $null; if ($cpuIntrPerSec.ContainsKey('_total')){ $totalIps  = $cpuIntrPerSec['_total'].avg }
+$result['cpuTotal'] = @{
+    interruptPct = $totalIntr
+    dpcPct       = $totalDpc
+    intrPerSec   = $totalIps
 }
 
 $json = $result | ConvertTo-Json -Depth 8

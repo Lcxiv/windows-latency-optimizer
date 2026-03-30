@@ -1,0 +1,24 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Force CRLF for Windows scripts
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Force LF for web assets
+*.html text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Binary files
+*.etl binary
+*.pdb binary
+*.pml binary
+*.bl binary
+*.csv binary
+*.png binary
+*.jpg binary
+*.gif binary

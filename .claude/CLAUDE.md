@@ -14,7 +14,7 @@ Scientific toolkit for measuring, analyzing, and reducing Windows system latency
 - **Scripts:** PowerShell 5.1 (Windows built-in) — all scripts must be PS 5.1 compatible
 - **Dashboard:** Single self-contained HTML file with Chart.js (CDN), vanilla JS, file:// compatible
 - **Capture Tools:** WPR (built-in), xperf/WPA (Windows ADK), PresentMon (via FrameView)
-- **No package manager** — no npm, no pip, no build step
+- **Minimal tooling** — npx (via Node.js) for dev server only; no npm install, no pip, no build step
 
 ## Key Constraints
 - **PowerShell 5.1 only** — no ternary operators (`? :`), no null-coalescing (`??`), no `-StandardDeviation` on `Measure-Object`, no `if/else` inside `@{}` hashtable literals, no `Join-String`
@@ -85,3 +85,13 @@ Experiments have these fields (all nullable except id/label/date):
 3. Run pipeline with `-SkipWPR -DurationSec 5` for quick smoke tests
 4. Open dashboard in browser to verify chart rendering
 5. Conventional commits: `feat:`, `fix:`, `exp:`, `chore:`, `docs:`
+
+## Recommended Agents
+| Situation | Agent |
+|-----------|-------|
+| Planning experiments | `planner` (Opus) |
+| PowerShell script changes | `code-reviewer` (Sonnet) |
+| Dashboard JS/HTML changes | `typescript-reviewer` (Sonnet) |
+| Security-sensitive registry ops | `security-reviewer` (Sonnet) |
+| Dead code / unused scripts | `refactor-cleaner` (Sonnet) |
+| Build/parse errors | `build-error-resolver` (Sonnet) |

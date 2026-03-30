@@ -1,3 +1,14 @@
+<#
+.SYNOPSIS
+    Restore registry settings from a backup file.
+.DESCRIPTION
+    Reads a backup file containing PowerShell commands and executes them to
+    restore registry state. Uses cmdlet allowlist validation for safety.
+.EXAMPLE
+    .\rollback.ps1 -BackupFile ..\captures\backup_pre_exp03_nagle.txt -WhatIf
+.EXAMPLE
+    .\rollback.ps1 -BackupFile ..\captures\backup_pre_exp03_nagle.txt
+#>
 param(
     [Parameter(Mandatory=$true)]
     [string]$BackupFile,

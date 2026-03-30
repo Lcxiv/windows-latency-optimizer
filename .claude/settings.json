@@ -8,7 +8,23 @@
       "Bash(tail *)",
       "Bash(powershell -ExecutionPolicy Bypass -File *)",
       "Bash(powershell -ExecutionPolicy Bypass -Command *)",
-      "Bash(powershell -Command *)"
+      "Bash(powershell -ExecutionPolicy Bypass -NonInteractive *)",
+      "Bash(powershell -Command *)",
+      "Bash(powershell -NonInteractive *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -NonInteractive -Command \"$f = '${file_path}'; if ($f -match '\\.ps1$') { $e = $null; [System.Management.Automation.Language.Parser]::ParseFile($f, [ref]$null, [ref]$e) | Out-Null; if ($e.Count -gt 0) { Write-Error ('PS parse errors in ' + $f + ': ' + ($e | ForEach-Object { $_.Message }) -join ', '); exit 1 } else { Write-Host ('PS parse OK: ' + $f) } } else { exit 0 }\"",
+            "timeout": 10000
+          }
+        ]
+      }
     ]
   }
 }
