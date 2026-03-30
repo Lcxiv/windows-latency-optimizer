@@ -1,3 +1,4 @@
+#Requires -RunAsAdministrator
 param(
     [Parameter(Mandatory=$true)]
     [string]$Label,

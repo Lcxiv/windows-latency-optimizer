@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "dashboard", "-l", "3847", "--no-clipboard"],
+      "port": 3847
+    }
+  ]
+}

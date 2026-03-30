@@ -1,3 +1,4 @@
+#Requires -RunAsAdministrator
 param([string]$Label = "BASELINE")
 
 $outFile = Join-Path $PSScriptRoot ('..\captures\os_baseline_' + $Label + '.txt')
