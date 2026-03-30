@@ -12,13 +12,13 @@ Scientific toolkit for measuring, analyzing, and reducing Windows system latency
 
 ## Stack
 - **Scripts:** PowerShell 5.1 (Windows built-in) — all scripts must be PS 5.1 compatible
-- **Dashboard:** Single self-contained HTML file with Chart.js (CDN), vanilla JS, file:// compatible
+- **Dashboard:** HTML shell + app.css + app.js with Chart.js (CDN), vanilla JS, file:// compatible
 - **Capture Tools:** WPR (built-in), xperf/WPA (Windows ADK), PresentMon (via FrameView)
 - **Minimal tooling** — npx (via Node.js) for dev server only; no npm install, no pip, no build step
 
 ## Key Constraints
 - **PowerShell 5.1 only** — no ternary operators (`? :`), no null-coalescing (`??`), no `-StandardDeviation` on `Measure-Object`, no `if/else` inside `@{}` hashtable literals, no `Join-String`
-- **Single HTML file** — dashboard must remain one file, file:// compatible (no fetch API, no pushState, hash routing only)
+- **No fetch / no modules** — dashboard must be file:// compatible (no fetch API, no ES modules, no pushState, hash routing only). CSS in app.css, JS in app.js, HTML shell in index.html
 - **Admin required** — most scripts need elevated privileges for registry + perf counters
 - **No hardcoded secrets** — never embed tokens/PATs in scripts or git config
 
@@ -36,7 +36,9 @@ captures/
   backup_pre_*.txt           # Registry backups with embedded rollback commands
   os_baseline_*.txt          # Quick baseline snapshots
 dashboard/
-  index.html                 # MLFlow-like experiment tracker (table/detail/compare views)
+  index.html                 # HTML shell (loads app.css + app.js)
+  app.css                    # Dashboard styles
+  app.js                     # Dashboard logic (table/detail/compare views)
   data/experiments.js        # Hand-curated experiment data (baseline + exp01-07)
   data/experiments_generated.js  # Auto-generated from pipeline JSON
 docs/
