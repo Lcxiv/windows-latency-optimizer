@@ -69,7 +69,8 @@ function Normalize-Performance($perf) {
         $lk = $rawKey.ToLower()
         $mapped = $null
         foreach ($pattern in $fieldMap.Keys) {
-            if ($lk -like "*$pattern*") { $mapped = $fieldMap[$pattern]; break }
+            # Use .Contains() instead of -like to avoid [] wildcard interpretation
+            if ($lk.Contains($pattern)) { $mapped = $fieldMap[$pattern]; break }
         }
         if ($mapped) {
             $v = $perf.$rawKey
