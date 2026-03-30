@@ -56,7 +56,7 @@ Log ('Description: ' + $Description)
 Log ('Duration: ' + $DurationSec + 's | WPR: ' + (-not $SkipWPR) + ' | Profile: ' + $WPRProfile + '.' + $WPRDetail)
 Log ('Output: ' + $outDir)
 
-$cpuAvg = Test-SystemIdle
+Test-SystemIdle | Out-Null
 
 # ── PHASE 2: WPR trace ───────────────────────────────────────────────────────
 $etlFile = Join-Path $outDir 'trace.etl'
@@ -74,7 +74,6 @@ $pmProc = Invoke-PresentMonCapture -GameProcess $GameProcess -OutDir $outDir -Du
 
 $perfResult = Invoke-PerfCounterCapture -DurationSec $DurationSec
 
-$counterData   = $perfResult.counterData
 $cpuData       = $perfResult.cpuData
 $cpuInterrupt  = $perfResult.cpuInterrupt
 $cpuDpc        = $perfResult.cpuDpc

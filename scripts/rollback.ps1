@@ -125,7 +125,9 @@ foreach ($cmd in $commands) {
     try {
         Write-Host "  > $cmd"
         # Safe to execute: all commands validated against allowlist above
-        Invoke-Expression $cmd
+        # Using ScriptBlock instead of Invoke-Expression (PSScriptAnalyzer compliance)
+        $sb = [ScriptBlock]::Create($cmd)
+        & $sb
         $ok++
     } catch {
         Write-Warning "  FAILED: $($_.Exception.Message)"

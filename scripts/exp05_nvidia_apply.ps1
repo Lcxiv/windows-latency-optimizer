@@ -13,7 +13,6 @@
 #>
 
 $ErrorActionPreference = 'Stop'
-$projectRoot = Split-Path $PSScriptRoot -Parent
 
 Write-Host '=== EXP05: NVIDIA Reflex + NVCP Low Latency ===' -ForegroundColor Cyan
 
