@@ -1,0 +1,39 @@
+﻿[20:31:00] [INFO] === Pipeline Start: EXP04_SERVICES_DISABLED ===
+[20:31:00] [INFO] Description: SysMain+DiagTrack+DoSvc disabled, CEIP Consolidator task disabled
+[20:31:00] [INFO] Duration: 120s | WPR: False | Profile: GeneralProfile.Verbose
+[20:31:00] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_203100_EXP04_SERVICES_DISABLED
+[20:31:00] [INFO] Checking system idle state...
+[20:31:04] [PASS] CPU at 2.4% - idle check passed
+[20:31:04] [INFO] 
+[20:31:04] [INFO] === Phase 2: WPR skipped ===
+[20:31:04] [INFO] 
+[20:31:04] [INFO] === Phase 3: Perf counter capture 120s ===
+[20:33:04] [PASS] Perf capture done: 120 samples
+[20:33:04] [INFO] Capturing GPU utilization...
+[20:33:09] [PASS] GPU 3D utilization: 0% avg, 0.03% max
+[20:33:09] [INFO] 
+[20:33:09] [INFO] === Phase 4: Skipped - no WPR trace ===
+[20:33:09] [INFO] 
+[20:33:09] [INFO] === Phase 5: Registry snapshot ===
+[20:33:10] [PASS] Registry snapshot captured
+[20:33:10] [INFO] 
+[20:33:10] [INFO] === Phase 6: Analysis ===
+[20:33:10] [PASS] CPU 0 share: 0%
+[20:33:10] [PASS] Total DPC: 0.0951%
+[20:33:10] [PASS] Total Interrupt: 0.0358%
+[20:33:10] [INFO] 
+[20:33:10] [INFO] === Phase 7: Saving experiment JSON ===
+[20:33:10] [PASS] Saved experiment.json
+[20:33:10] [INFO] 
+[20:33:10] [INFO] === Phase 8: Updating dashboard ===
+[20:33:10] [PASS] Dashboard data regenerated
+[20:33:10] [INFO] 
+[20:33:10] [INFO] ========================================
+[20:33:10] [INFO] === Pipeline Complete ===
+[20:33:10] [INFO] ========================================
+[20:33:10] [INFO] 
+[20:33:10] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_203100_EXP04_SERVICES_DISABLED
+[20:33:10] [INFO]   experiment.json - perf counters + registry + per-CPU
+[20:33:10] [INFO]   analysis.txt    - human-readable report
+[20:33:10] [INFO] 
+[20:33:10] [INFO] Topology: CPU0=0% | Input=0% | GPU/NIC=97.7%

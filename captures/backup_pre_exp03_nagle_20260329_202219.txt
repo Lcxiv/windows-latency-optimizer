@@ -1,0 +1,9 @@
+# EXP03 Backup: Nagle/DelayedACK pre-change state
+# Captured: 2026-03-29 20:22:20
+# NIC: Ethernet | GUID: {F7560D6D-BA65-4151-BD3D-2A1664D3518C}
+# Rollback commands:
+Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{F7560D6D-BA65-4151-BD3D-2A1664D3518C}" -Name TCPNoDelay -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{F7560D6D-BA65-4151-BD3D-2A1664D3518C}" -Name TcpAckFrequency -ErrorAction SilentlyContinue
+
+TCPNoDelay before: 1
+TcpAckFrequency before: 1

@@ -1,0 +1,39 @@
+﻿[19:53:06] [INFO] === Pipeline Start: EXP01_W32PRIORITY_22 ===
+[19:53:07] [INFO] Description: Win32PrioritySeparation=22 (long fixed quanta, 3:1 foreground boost)
+[19:53:07] [INFO] Duration: 120s | WPR: False | Profile: GeneralProfile.Verbose
+[19:53:07] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_195306_EXP01_W32PRIORITY_22
+[19:53:07] [INFO] Checking system idle state...
+[19:53:10] [PASS] CPU at 1.6% - idle check passed
+[19:53:10] [INFO] 
+[19:53:10] [INFO] === Phase 2: WPR skipped ===
+[19:53:10] [INFO] 
+[19:53:10] [INFO] === Phase 3: Perf counter capture 120s ===
+[19:55:10] [PASS] Perf capture done: 120 samples
+[19:55:10] [INFO] Capturing GPU utilization...
+[19:55:15] [PASS] GPU 3D utilization: 0% avg, 0.03% max
+[19:55:15] [INFO] 
+[19:55:15] [INFO] === Phase 4: Skipped - no WPR trace ===
+[19:55:15] [INFO] 
+[19:55:15] [INFO] === Phase 5: Registry snapshot ===
+[19:55:16] [PASS] Registry snapshot captured
+[19:55:16] [INFO] 
+[19:55:16] [INFO] === Phase 6: Analysis ===
+[19:55:16] [PASS] CPU 0 share: 0%
+[19:55:16] [PASS] Total DPC: 0.0927%
+[19:55:16] [PASS] Total Interrupt: 0.0439%
+[19:55:16] [INFO] 
+[19:55:16] [INFO] === Phase 7: Saving experiment JSON ===
+[19:55:16] [PASS] Saved experiment.json
+[19:55:16] [INFO] 
+[19:55:16] [INFO] === Phase 8: Updating dashboard ===
+[19:55:16] [PASS] Dashboard data regenerated
+[19:55:16] [INFO] 
+[19:55:16] [INFO] ========================================
+[19:55:16] [INFO] === Pipeline Complete ===
+[19:55:16] [INFO] ========================================
+[19:55:16] [INFO] 
+[19:55:16] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_195306_EXP01_W32PRIORITY_22
+[19:55:16] [INFO]   experiment.json - perf counters + registry + per-CPU
+[19:55:16] [INFO]   analysis.txt    - human-readable report
+[19:55:16] [INFO] 
+[19:55:16] [INFO] Topology: CPU0=0% | Input=0% | GPU/NIC=92.6%

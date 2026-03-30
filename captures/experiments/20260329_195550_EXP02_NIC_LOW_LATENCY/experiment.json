@@ -1,0 +1,566 @@
+﻿{
+    "schemaVersion":  3,
+    "label":  "EXP02_NIC_LOW_LATENCY",
+    "description":  "I226-V: interrupt moderation off, LSO off, flow control off",
+    "capturedAt":  "2026-03-29T19:57:59",
+    "durationSec":  120,
+    "hostname":  "DESKTOP-V5BN4SC",
+    "wprProfile":  null,
+    "wprEtlFile":  null,
+    "registry":  {
+                     "EnableLowCpuPriority":  "True",
+                     "ExclusionPathCount":  6,
+                     "GamesSchedulingCategory":  "High",
+                     "NetworkThrottlingIndex":  4294967295,
+                     "GamesSFIOPriority":  "High",
+                     "HAGS_HwSchMode":  2,
+                     "GPU_PerfLevelSrc":  null,
+                     "ScanAvgCPULoadFactor":  5,
+                     "InterruptAffinities":  {
+
+                                             },
+                     "ExclusionProcessCount":  5,
+                     "SystemResponsiveness":  0,
+                     "GamesPriority":  6
+                 },
+    "performance":  {
+                        "interrupts/sec[9]":  {
+                                                  "stdev":  82.2949,
+                                                  "min":  85.9557,
+                                                  "max":  533.5074,
+                                                  "avg":  212.1533
+                                              },
+                        "% dpc time[_total]":  {
+                                                   "stdev":  0.1076,
+                                                   "min":  0,
+                                                   "max":  0.488,
+                                                   "avg":  0.0935
+                                               },
+                        "interrupts/sec[12]":  {
+                                                   "stdev":  16.8349,
+                                                   "min":  20.9883,
+                                                   "max":  119.9359,
+                                                   "avg":  34.6311
+                                               },
+                        "% interrupt time[9]":  {
+                                                    "stdev":  0,
+                                                    "min":  0,
+                                                    "max":  0,
+                                                    "avg":  0
+                                                },
+                        "interrupts/sec[8]":  {
+                                                  "stdev":  62.9983,
+                                                  "min":  84.923,
+                                                  "max":  396.7914,
+                                                  "avg":  185.6114
+                                              },
+                        "interrupts/sec[2]":  {
+                                                  "stdev":  67.0523,
+                                                  "min":  53.957,
+                                                  "max":  355.6888,
+                                                  "avg":  143.0419
+                                              },
+                        "% interrupt time[15]":  {
+                                                     "stdev":  0,
+                                                     "min":  0,
+                                                     "max":  0,
+                                                     "avg":  0
+                                                 },
+                        "processor queue length":  {
+                                                       "stdev":  0.0913,
+                                                       "min":  0,
+                                                       "max":  1,
+                                                       "avg":  0.0083
+                                                   },
+                        "% interrupt time[2]":  {
+                                                    "stdev":  0,
+                                                    "min":  0,
+                                                    "max":  0,
+                                                    "avg":  0
+                                                },
+                        "% dpc time[3]":  {
+                                              "stdev":  0,
+                                              "min":  0,
+                                              "max":  0,
+                                              "avg":  0
+                                          },
+                        "% interrupt time[10]":  {
+                                                     "stdev":  0,
+                                                     "min":  0,
+                                                     "max":  0,
+                                                     "avg":  0
+                                                 },
+                        "% interrupt time[6]":  {
+                                                    "stdev":  0.5276,
+                                                    "min":  0,
+                                                    "max":  3.1234,
+                                                    "avg":  0.1691
+                                                },
+                        "% interrupt time[7]":  {
+                                                    "stdev":  0.5724,
+                                                    "min":  0,
+                                                    "max":  1.5617,
+                                                    "avg":  0.2472
+                                                },
+                        "current disk queue length[_total]":  {
+                                                                  "stdev":  0.0913,
+                                                                  "min":  0,
+                                                                  "max":  1,
+                                                                  "avg":  0.0083
+                                                              },
+                        "% dpc time[11]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "pages/sec":  {
+                                          "stdev":  3.253,
+                                          "min":  0,
+                                          "max":  31.9721,
+                                          "avg":  0.433
+                                      },
+                        "% dpc time[10]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "% dpc time[9]":  {
+                                              "stdev":  0,
+                                              "min":  0,
+                                              "max":  0,
+                                              "avg":  0
+                                          },
+                        "% dpc time[2]":  {
+                                              "stdev":  0,
+                                              "min":  0,
+                                              "max":  0,
+                                              "avg":  0
+                                          },
+                        "% interrupt time[4]":  {
+                                                    "stdev":  0.4333,
+                                                    "min":  0,
+                                                    "max":  1.5617,
+                                                    "avg":  0.1301
+                                                },
+                        "interrupts/sec[0]":  {
+                                                  "stdev":  54.7188,
+                                                  "min":  22.9817,
+                                                  "max":  423.7734,
+                                                  "avg":  61.1448
+                                              },
+                        "interrupts/sec[13]":  {
+                                                   "stdev":  14.631,
+                                                   "min":  23.9789,
+                                                   "max":  131.9294,
+                                                   "avg":  35.9384
+                                               },
+                        "available mbytes":  {
+                                                 "stdev":  30.0288,
+                                                 "min":  22039,
+                                                 "max":  22190,
+                                                 "avg":  22134.725
+                                             },
+                        "% interrupt time[0]":  {
+                                                    "stdev":  0,
+                                                    "min":  0,
+                                                    "max":  0,
+                                                    "avg":  0
+                                                },
+                        "% dpc time[0]":  {
+                                              "stdev":  0.1425,
+                                              "min":  0,
+                                              "max":  1.5612,
+                                              "avg":  0.013
+                                          },
+                        "% interrupt time[14]":  {
+                                                     "stdev":  0,
+                                                     "min":  0,
+                                                     "max":  0,
+                                                     "avg":  0
+                                                 },
+                        "% dpc time[15]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "interrupts/sec[15]":  {
+                                                   "stdev":  23.4098,
+                                                   "min":  21.9864,
+                                                   "max":  199.8976,
+                                                   "avg":  37.1295
+                                               },
+                        "% dpc time[14]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "interrupts/sec[5]":  {
+                                                  "stdev":  213.807,
+                                                  "min":  320.8336,
+                                                  "max":  1612.9521,
+                                                  "avg":  812.1406
+                                              },
+                        "% interrupt time[13]":  {
+                                                     "stdev":  0.1426,
+                                                     "min":  0,
+                                                     "max":  1.5617,
+                                                     "avg":  0.013
+                                                 },
+                        "% interrupt time[5]":  {
+                                                    "stdev":  0.391,
+                                                    "min":  0,
+                                                    "max":  1.5613,
+                                                    "avg":  0.1041
+                                                },
+                        "interrupts/sec[4]":  {
+                                                  "stdev":  181.9576,
+                                                  "min":  799.3028,
+                                                  "max":  1697.5606,
+                                                  "avg":  1244.9146
+                                              },
+                        "% interrupt time[8]":  {
+                                                    "stdev":  0.1425,
+                                                    "min":  0,
+                                                    "max":  1.5611,
+                                                    "avg":  0.013
+                                                },
+                        "% interrupt time[3]":  {
+                                                    "stdev":  0,
+                                                    "min":  0,
+                                                    "max":  0,
+                                                    "avg":  0
+                                                },
+                        "interrupts/sec[7]":  {
+                                                  "stdev":  230.9599,
+                                                  "min":  419.5764,
+                                                  "max":  1579.6223,
+                                                  "avg":  939.6037
+                                              },
+                        "% dpc time[13]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "% interrupt time[12]":  {
+                                                     "stdev":  0,
+                                                     "min":  0,
+                                                     "max":  0,
+                                                     "avg":  0
+                                                 },
+                        "% interrupt time[_total]":  {
+                                                         "stdev":  0.0655,
+                                                         "min":  0,
+                                                         "max":  0.2928,
+                                                         "avg":  0.0431
+                                                     },
+                        "interrupts/sec[6]":  {
+                                                  "stdev":  214.1254,
+                                                  "min":  630.657,
+                                                  "max":  1763.0982,
+                                                  "avg":  1062.2693
+                                              },
+                        "% dpc time[12]":  {
+                                               "stdev":  0,
+                                               "min":  0,
+                                               "max":  0,
+                                               "avg":  0
+                                           },
+                        "interrupts/sec[1]":  {
+                                                  "stdev":  28.4122,
+                                                  "min":  26.9788,
+                                                  "max":  207.8888,
+                                                  "avg":  49.894
+                                              },
+                        "avg. disk sec/read[_total]":  {
+                                                           "stdev":  0.0001,
+                                                           "min":  0,
+                                                           "max":  0.0005,
+                                                           "avg":  0
+                                                       },
+                        "% dpc time[6]":  {
+                                              "stdev":  0.8961,
+                                              "min":  0,
+                                              "max":  4.6836,
+                                              "avg":  0.4684
+                                          },
+                        "context switches/sec":  {
+                                                     "stdev":  760.1584,
+                                                     "min":  3229.4261,
+                                                     "max":  6828.3482,
+                                                     "avg":  4262.1035
+                                                 },
+                        "% interrupt time[1]":  {
+                                                    "stdev":  0,
+                                                    "min":  0,
+                                                    "max":  0,
+                                                    "avg":  0
+                                                },
+                        "interrupts/sec[10]":  {
+                                                   "stdev":  30.8583,
+                                                   "min":  26.9785,
+                                                   "max":  244.7372,
+                                                   "avg":  59.6028
+                                               },
+                        "interrupts/sec[_total]":  {
+                                                       "stdev":  492.2906,
+                                                       "min":  4242.4214,
+                                                       "max":  6853.3348,
+                                                       "avg":  5074.5715
+                                                   },
+                        "% dpc time[8]":  {
+                                              "stdev":  0,
+                                              "min":  0,
+                                              "max":  0,
+                                              "avg":  0
+                                          },
+                        "% dpc time[5]":  {
+                                              "stdev":  0.832,
+                                              "min":  0,
+                                              "max":  4.6851,
+                                              "avg":  0.3253
+                                          },
+                        "% dpc time[4]":  {
+                                              "stdev":  0.9043,
+                                              "min":  0,
+                                              "max":  4.6833,
+                                              "avg":  0.4293
+                                          },
+                        "% processor time[_total]":  {
+                                                         "stdev":  1.086,
+                                                         "min":  0,
+                                                         "max":  4.2494,
+                                                         "avg":  1.4224
+                                                     },
+                        "% interrupt time[11]":  {
+                                                     "stdev":  0.1425,
+                                                     "min":  0,
+                                                     "max":  1.5612,
+                                                     "avg":  0.013
+                                                 },
+                        "avg. disk sec/write[_total]":  {
+                                                            "stdev":  0.0001,
+                                                            "min":  0,
+                                                            "max":  0.0005,
+                                                            "avg":  0.0002
+                                                        },
+                        "interrupts/sec[14]":  {
+                                                   "stdev":  8.9724,
+                                                   "min":  19.9824,
+                                                   "max":  79.934,
+                                                   "avg":  28.7271
+                                               },
+                        "page faults/sec":  {
+                                                "stdev":  3454.6029,
+                                                "min":  7708.744,
+                                                "max":  25234.109,
+                                                "avg":  10642.9025
+                                            },
+                        "% dpc time[7]":  {
+                                              "stdev":  0.7664,
+                                              "min":  0,
+                                              "max":  4.6851,
+                                              "avg":  0.2602
+                                          },
+                        "interrupts/sec[3]":  {
+                                                  "stdev":  50.3792,
+                                                  "min":  27.9777,
+                                                  "max":  381.8012,
+                                                  "avg":  74.6495
+                                              },
+                        "% dpc time[1]":  {
+                                              "stdev":  0,
+                                              "min":  0,
+                                              "max":  0,
+                                              "avg":  0
+                                          },
+                        "interrupts/sec[11]":  {
+                                                   "stdev":  103.2755,
+                                                   "min":  31.9687,
+                                                   "max":  444.6559,
+                                                   "avg":  93.1194
+                                               }
+                    },
+    "cpuData":  [
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0.1425,
+                        "dpcPct":  0.013,
+                        "interruptPct":  0,
+                        "intrPerSec":  61.1448,
+                        "cpu":  0
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  49.894,
+                        "cpu":  1
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  143.0419,
+                        "cpu":  2
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  74.6495,
+                        "cpu":  3
+                    },
+                    {
+                        "interruptStdev":  0.4333,
+                        "dpcStdev":  0.9043,
+                        "dpcPct":  0.4293,
+                        "interruptPct":  0.1301,
+                        "intrPerSec":  1244.9146,
+                        "cpu":  4
+                    },
+                    {
+                        "interruptStdev":  0.391,
+                        "dpcStdev":  0.832,
+                        "dpcPct":  0.3253,
+                        "interruptPct":  0.1041,
+                        "intrPerSec":  812.1406,
+                        "cpu":  5
+                    },
+                    {
+                        "interruptStdev":  0.5276,
+                        "dpcStdev":  0.8961,
+                        "dpcPct":  0.4684,
+                        "interruptPct":  0.1691,
+                        "intrPerSec":  1062.2693,
+                        "cpu":  6
+                    },
+                    {
+                        "interruptStdev":  0.5724,
+                        "dpcStdev":  0.7664,
+                        "dpcPct":  0.2602,
+                        "interruptPct":  0.2472,
+                        "intrPerSec":  939.6037,
+                        "cpu":  7
+                    },
+                    {
+                        "interruptStdev":  0.1425,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.013,
+                        "intrPerSec":  185.6114,
+                        "cpu":  8
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  212.1533,
+                        "cpu":  9
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  59.6028,
+                        "cpu":  10
+                    },
+                    {
+                        "interruptStdev":  0.1425,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.013,
+                        "intrPerSec":  93.1194,
+                        "cpu":  11
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  34.6311,
+                        "cpu":  12
+                    },
+                    {
+                        "interruptStdev":  0.1426,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.013,
+                        "intrPerSec":  35.9384,
+                        "cpu":  13
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  28.7271,
+                        "cpu":  14
+                    },
+                    {
+                        "interruptStdev":  0,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0,
+                        "intrPerSec":  37.1295,
+                        "cpu":  15
+                    }
+                ],
+    "cpuTotal":  {
+                     "dpcPct":  0.0935,
+                     "intrPerSec":  5074.5715,
+                     "interruptPct":  0.0431
+                 },
+    "interruptTopology":  {
+                              "cpu47Share":  94.3,
+                              "cpu23Share":  0,
+                              "cpu0Share":  0
+                          },
+    "dpcIsrAnalysis":  null,
+    "analysisFile":  "analysis.txt",
+    "frameTiming":  null,
+    "gpuUtilization":  {
+                           "security":  {
+                                            "avg":  0,
+                                            "max":  0
+                                        },
+                           "3d":  {
+                                      "avg":  0,
+                                      "max":  0.03
+                                  },
+                           "videoencode":  {
+                                               "avg":  0,
+                                               "max":  0
+                                           },
+                           "videodecode":  {
+                                               "avg":  0,
+                                               "max":  0
+                                           },
+                           "vr":  {
+                                      "avg":  0,
+                                      "max":  0
+                                  },
+                           "copy":  {
+                                        "avg":  0,
+                                        "max":  0.01
+                                    },
+                           "ofa_0":  {
+                                         "avg":  0,
+                                         "max":  0
+                                     },
+                           "jpeg_decode_1":  {
+                                                 "avg":  0,
+                                                 "max":  0
+                                             }
+                       },
+    "cswitchAnalysis":  null
+}

@@ -1,0 +1,43 @@
+﻿=== Experiment Analysis: EXP02_NIC_LOW_LATENCY ===
+Description: I226-V: interrupt moderation off, LSO off, flow control off
+Captured: 2026-03-29 19:57:59
+Duration: 120s
+
+--- Interrupt Distribution ---
+CPU 0  preferred:    0%
+CPUs 2-3 input:      0%
+CPUs 4-7 GPU/NIC:    94.3%
+CPUs 8-15 game:      5.7%
+
+--- Targets ---
+[PASS] CPU 0 share <10%: 0%
+[PASS] Total DPC <0.5%: 0.0935%
+[PASS] Total Interrupt <1.0%: 0.0431%
+
+--- Per-CPU ---
+CPU10      0.0000     0.0000         59.6
+CPU11      0.0130     0.0000         93.1
+CPU8       0.0130     0.0000        185.6
+CPU9       0.0000     0.0000        212.2
+CPU14      0.0000     0.0000         28.7
+CPU15      0.0000     0.0000         37.1
+CPU12      0.0000     0.0000         34.6
+CPU13      0.0130     0.0000         35.9
+CPU2       0.0000     0.0000        143.0 <-input
+CPU3       0.0000     0.0000         74.6 <-input
+CPU0       0.0000     0.0130         61.1 <-preferred
+CPU1       0.0000     0.0000         49.9
+CPU6       0.1691     0.4684      1,062.3 <-GPU/NIC
+CPU7       0.2472     0.2602        939.6 <-GPU/NIC
+CPU4       0.1301     0.4293      1,244.9 <-GPU/NIC
+CPU5       0.1041     0.3253        812.1 <-GPU/NIC
+
+--- GPU Utilization ---
+  3d: 0% avg, 0.03% max
+  copy: 0% avg, 0.01% max
+  jpeg_decode_1: 0% avg, 0% max
+  ofa_0: 0% avg, 0% max
+  security: 0% avg, 0% max
+  videodecode: 0% avg, 0% max
+  videoencode: 0% avg, 0% max
+  vr: 0% avg, 0% max

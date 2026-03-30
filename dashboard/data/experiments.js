@@ -23,6 +23,7 @@ window.EXPERIMENTS = [
     registry: {
       SystemResponsiveness: 0,
       NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 38,
       GamesSchedulingCategory: "High",
       GamesPriority: 6,
       GamesSFIOPriority: "High",
@@ -37,41 +38,321 @@ window.EXPERIMENTS = [
     },
 
     performance: {
-      AvailableMemoryMB:    { avg: null, min: null, max: null },
-      PagesSec:             { avg: null, min: null, max: null },
-      DiskSecRead:          { avg: null, min: null, max: null },
-      DiskSecWrite:         { avg: null, min: null, max: null },
-      DiskQueueLength:      { avg: null, min: null, max: null },
-      DPCTimePct:           { avg: 0.1342, min: null, max: null },
-      InterruptTimePct:     { avg: 0.0756, min: null, max: null },
-      ProcessorTimePct:     { avg: null, min: null, max: null },
-      ContextSwitchesSec:   { avg: null, min: null, max: null },
-      ProcessorQueueLength: { avg: null, min: null, max: null }
+      AvailableMemoryMB:    { avg: 22201.8583, min: 22137,       max: 22261 },
+      PagesSec:             { avg: 4.5886,     min: 0,           max: 244.8657 },
+      DiskSecRead:          { avg: 0.0001,     min: 0,           max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0004,     min: 0,           max: 0.0009 },
+      DiskQueueLength:      { avg: 0.0083,     min: 0,           max: 1 },
+      DPCTimePct:           { avg: 0.1342,     min: 0,           max: 0.4876 },
+      InterruptTimePct:     { avg: 0.0756,     min: 0,           max: 0.488 },
+      ProcessorTimePct:     { avg: 1.8786,     min: 0,           max: 6.5397 },
+      ContextSwitchesSec:   { avg: 5232.2777,  min: 3575.1692,   max: 15234.6423 },
+      PageFaultsSec:        { avg: 11262.9116, min: 7608.7477,   max: 24166.6976 },
+      ProcessorQueueLength: { avg: 0,          min: 0,           max: 0 }
     },
 
     latencymon: null,
 
     cpuData: [
-      { cpu: 0,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0130, dpcPct: 0.0390, intrPerSec: 152.9 },
-      { cpu: 1,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0130, intrPerSec: 124.9 },
-      { cpu: 2,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 312.5 },
-      { cpu: 3,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 328.3 },
-      { cpu: 4,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.2602, dpcPct: 0.5204, intrPerSec: 1517.5 },
-      { cpu: 5,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.3643, dpcPct: 0.7026, intrPerSec: 1686.4 },
-      { cpu: 6,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.2212, dpcPct: 0.4163, intrPerSec: 1487.8 },
-      { cpu: 7,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.2342, dpcPct: 0.3513, intrPerSec: 1288.6 },
-      { cpu: 8,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0130, dpcPct: 0.0521, intrPerSec: 360.7 },
-      { cpu: 9,  interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0520, dpcPct: 0.0520, intrPerSec: 502.6 },
-      { cpu: 10, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0130, dpcPct: 0.0000, intrPerSec: 202.2 },
-      { cpu: 11, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0390, dpcPct: 0.0000, intrPerSec: 194.4 },
-      { cpu: 12, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 55.4 },
-      { cpu: 13, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 81.8 },
-      { cpu: 14, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 36.2 },
-      { cpu: 15, interruptCycleS: null, isrHighestUs: null, isrCount: null, dpcHighestUs: null, dpcTotalS: null, dpcCount: null, interruptPct: 0.0000, dpcPct: 0.0000, intrPerSec: 67.9 }
+      { cpu: 0,  interruptPct: 0.013,  dpcPct: 0.039,  intrPerSec: 152.9 },
+      { cpu: 1,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 124.9 },
+      { cpu: 2,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 312.5 },
+      { cpu: 3,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 328.3 },
+      { cpu: 4,  interruptPct: 0.2602, dpcPct: 0.5204, intrPerSec: 1517.5 },
+      { cpu: 5,  interruptPct: 0.3643, dpcPct: 0.7026, intrPerSec: 1686.4 },
+      { cpu: 6,  interruptPct: 0.2212, dpcPct: 0.4163, intrPerSec: 1487.8 },
+      { cpu: 7,  interruptPct: 0.2342, dpcPct: 0.3513, intrPerSec: 1288.6 },
+      { cpu: 8,  interruptPct: 0.013,  dpcPct: 0.0521, intrPerSec: 360.7 },
+      { cpu: 9,  interruptPct: 0.052,  dpcPct: 0.052,  intrPerSec: 502.6 },
+      { cpu: 10, interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 202.2 },
+      { cpu: 11, interruptPct: 0.039,  dpcPct: 0.000,  intrPerSec: 194.4 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 55.4 },
+      { cpu: 13, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 81.8 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 36.2 },
+      { cpu: 15, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 67.9 }
     ],
 
     frameTiming: null,
     gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
     interruptTopology: { cpu0Share: 1.1, cpu23Share: 0, cpu47Share: 89.3 }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXP 01 — Win32PrioritySeparation = 22 (0x16)
+  // Long fixed quanta, 3:1 foreground boost — fewer context switches
+  // Captured: 2026-03-29T19:55:16 | 120s idle
+  // Result: DPC -31%, Interrupt -42%, Context switches -16%
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp01_w32priority_22",
+    name: "Exp 01 — Win32PrioritySeparation=22",
+    shortName: "W32Priority",
+    date: "2026-03-29T19:55:16",
+    description: "Win32PrioritySeparation=22 (0x16): long fixed quanta + 3:1 foreground boost. Fewer context switches, less cache churn on 9800X3D V-cache.",
+    tags: ["scheduler", "priority", "tier1"],
+
+    registry: {
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 22,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      HwSchMode: 2
+    },
+
+    performance: {
+      AvailableMemoryMB:    { avg: 22185.2917, min: 22099,      max: 22229 },
+      PagesSec:             { avg: 0.0416,     min: 0,          max: 0.9993 },
+      DiskSecRead:          { avg: 0,          min: 0,          max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0002,     min: 0,          max: 0.0005 },
+      DiskQueueLength:      { avg: 0,          min: 0,          max: 0 },
+      DPCTimePct:           { avg: 0.0927,     min: 0,          max: 0.3904 },
+      InterruptTimePct:     { avg: 0.0439,     min: 0,          max: 0.3903 },
+      ProcessorTimePct:     { avg: 1.602,      min: 0,          max: 7.5858 },
+      ContextSwitchesSec:   { avg: 4376.1439,  min: 3517.2537,  max: 7058.2619 },
+      PageFaultsSec:        { avg: 10808.0387, min: 7553.7041,  max: 27605.5905 },
+      ProcessorQueueLength: { avg: 0,          min: 0,          max: 0 }
+    },
+
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 64.9 },
+      { cpu: 1,  interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 52.3 },
+      { cpu: 2,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 176.5 },
+      { cpu: 3,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 96.4 },
+      { cpu: 4,  interruptPct: 0.1821, dpcPct: 0.4033, intrPerSec: 1169.4 },
+      { cpu: 5,  interruptPct: 0.1431, dpcPct: 0.2472, intrPerSec: 776.3 },
+      { cpu: 6,  interruptPct: 0.1171, dpcPct: 0.4033, intrPerSec: 1122.0 },
+      { cpu: 7,  interruptPct: 0.2082, dpcPct: 0.3643, intrPerSec: 934.3 },
+      { cpu: 8,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 197.0 },
+      { cpu: 9,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 211.1 },
+      { cpu: 10, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 74.4 },
+      { cpu: 11, interruptPct: 0.013,  dpcPct: 0.013,  intrPerSec: 92.2 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 36.7 },
+      { cpu: 13, interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 40.3 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 32.1 },
+      { cpu: 15, interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 34.4 }
+    ],
+
+    frameTiming: null,
+    gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
+    interruptTopology: { cpu0Share: 0, cpu23Share: 0, cpu47Share: 92.6 }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXP 02 — Intel I226-V Low Latency Profile
+  // Interrupt moderation off, LSO off, flow control off, receive/tx buffers=256
+  // Captured: 2026-03-29T19:57:59 | 120s idle
+  // Result: DPC -30%, Interrupt -43%, consistent with EXP01
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp02_nic_low_latency",
+    name: "Exp 02 — NIC Low Latency Profile",
+    shortName: "NIC LL",
+    date: "2026-03-29T19:57:59",
+    description: "Intel I226-V: interrupt moderation off, Energy Efficient Ethernet off, LSO v2 off, flow control off, receive/tx buffers=256. Each packet triggers immediate interrupt.",
+    tags: ["network", "nic", "interrupt", "tier1"],
+
+    registry: {
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 22,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      HwSchMode: 2,
+      NICInterruptModeration: "Disabled",
+      NICEnergyEfficientEthernet: "Disabled",
+      NICLargeSegmentOffload: "Disabled",
+      NICFlowControl: "Disabled",
+      NICReceiveBuffers: 256,
+      NICTransmitBuffers: 256
+    },
+
+    performance: {
+      AvailableMemoryMB:    { avg: 22134.725,  min: 22039,      max: 22190 },
+      PagesSec:             { avg: 0.433,      min: 0,          max: 31.9721 },
+      DiskSecRead:          { avg: 0,          min: 0,          max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0002,     min: 0,          max: 0.0005 },
+      DiskQueueLength:      { avg: 0.0083,     min: 0,          max: 1 },
+      DPCTimePct:           { avg: 0.0935,     min: 0,          max: 0.488 },
+      InterruptTimePct:     { avg: 0.0431,     min: 0,          max: 0.2928 },
+      ProcessorTimePct:     { avg: 1.4224,     min: 0,          max: 4.2494 },
+      ContextSwitchesSec:   { avg: 4262.1035,  min: 3229.4261,  max: 6828.3482 },
+      PageFaultsSec:        { avg: 10642.9025, min: 7708.744,   max: 25234.109 },
+      ProcessorQueueLength: { avg: 0.0083,     min: 0,          max: 1 }
+    },
+
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 61.1 },
+      { cpu: 1,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 49.9 },
+      { cpu: 2,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 143.0 },
+      { cpu: 3,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 74.6 },
+      { cpu: 4,  interruptPct: 0.1301, dpcPct: 0.4293, intrPerSec: 1244.9 },
+      { cpu: 5,  interruptPct: 0.1041, dpcPct: 0.3253, intrPerSec: 812.1 },
+      { cpu: 6,  interruptPct: 0.1691, dpcPct: 0.4684, intrPerSec: 1062.3 },
+      { cpu: 7,  interruptPct: 0.2472, dpcPct: 0.2602, intrPerSec: 939.6 },
+      { cpu: 8,  interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 185.6 },
+      { cpu: 9,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 212.2 },
+      { cpu: 10, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 59.6 },
+      { cpu: 11, interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 93.1 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 34.6 },
+      { cpu: 13, interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 35.9 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 28.7 },
+      { cpu: 15, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 37.1 }
+    ],
+
+    frameTiming: null,
+    gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
+    interruptTopology: { cpu0Share: 0, cpu23Share: 0, cpu47Share: 94.3 }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXP 03 — Nagle Algorithm + Delayed ACK Disabled
+  // TcpNoDelay=1, TcpAckFrequency=1 on Intel I226-V GUID interface
+  // Captured: 2026-03-29T20:27:58 | 120s idle
+  // Result: DPC -16%, Interrupt -26%. High stdev due to burst TCP activity during capture.
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp03_nagle_disable",
+    name: "Exp 03 — Nagle + Delayed ACK Disabled",
+    shortName: "TcpNoDelay",
+    date: "2026-03-29T20:27:58",
+    description: "TcpNoDelay=1 + TcpAckFrequency=1 on I226-V interface GUID. Nagle batches removed — each small TCP packet sent immediately. Eliminates up to 200ms batching delay for game server comms.",
+    tags: ["network", "tcp", "nagle", "tier1"],
+
+    registry: {
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 22,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      HwSchMode: 2,
+      NICInterruptModeration: "Disabled",
+      TcpNoDelay: 1,
+      TcpAckFrequency: 1
+    },
+
+    performance: {
+      AvailableMemoryMB:    { avg: 21298.2583, min: 21193,      max: 21377 },
+      PagesSec:             { avg: 2.2315,     min: 0,          max: 201.8819 },
+      DiskSecRead:          { avg: 0,          min: 0,          max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0001,     min: 0,          max: 0.0005 },
+      DiskQueueLength:      { avg: 0.0083,     min: 0,          max: 1 },
+      DPCTimePct:           { avg: 0.1122,     min: 0,          max: 0.4878 },
+      InterruptTimePct:     { avg: 0.0561,     min: 0,          max: 0.3904 },
+      ProcessorTimePct:     { avg: 1.8081,     min: 0,          max: 14.813 },
+      ContextSwitchesSec:   { avg: 5533.2658,  min: 3350.6904,  max: 55143.4882 },
+      PageFaultsSec:        { avg: 20952.2235, min: 8259.4346,  max: 376544.0536 },
+      ProcessorQueueLength: { avg: 0,          min: 0,          max: 0 }
+    },
+
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptPct: 0.026,  dpcPct: 0.026,  intrPerSec: 114.4 },
+      { cpu: 1,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 64.2 },
+      { cpu: 2,  interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 229.6 },
+      { cpu: 3,  interruptPct: 0.026,  dpcPct: 0.000,  intrPerSec: 120.7 },
+      { cpu: 4,  interruptPct: 0.1952, dpcPct: 0.4554, intrPerSec: 1471.9 },
+      { cpu: 5,  interruptPct: 0.1821, dpcPct: 0.4554, intrPerSec: 724.0 },
+      { cpu: 6,  interruptPct: 0.2082, dpcPct: 0.5464, intrPerSec: 1280.8 },
+      { cpu: 7,  interruptPct: 0.1821, dpcPct: 0.2862, intrPerSec: 756.9 },
+      { cpu: 8,  interruptPct: 0.039,  dpcPct: 0.000,  intrPerSec: 297.8 },
+      { cpu: 9,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 196.3 },
+      { cpu: 10, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 131.2 },
+      { cpu: 11, interruptPct: 0.026,  dpcPct: 0.013,  intrPerSec: 99.1 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 69.6 },
+      { cpu: 13, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 49.8 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 53.2 },
+      { cpu: 15, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 40.2 }
+    ],
+
+    frameTiming: null,
+    gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
+    interruptTopology: { cpu0Share: 2.9, cpu23Share: 4.3, cpu47Share: 85.5 }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXP 04 — Background Services Disabled
+  // SysMain + DiagTrack + DoSvc stopped/disabled; CEIP Consolidator task disabled
+  // Captured: 2026-03-29T20:33:10 | 120s idle
+  // Result: DPC -29%, Interrupt -53% (best interrupt improvement so far)
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp04_services_disabled",
+    name: "Exp 04 — Background Services Disabled",
+    shortName: "Services Off",
+    date: "2026-03-29T20:33:10",
+    description: "SysMain (prefetch/superfetch), DiagTrack (telemetry), DoSvc (delivery optimization) disabled. CEIP Consolidator scheduled task disabled. Eliminates periodic background DPC/IO spikes.",
+    tags: ["services", "background", "telemetry", "tier1"],
+
+    registry: {
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 22,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      HwSchMode: 2,
+      NICInterruptModeration: "Disabled",
+      TcpNoDelay: 1,
+      TcpAckFrequency: 1,
+      SysMainService: "Disabled",
+      DiagTrackService: "Disabled",
+      DoSvcService: "Disabled"
+    },
+
+    performance: {
+      AvailableMemoryMB:    { avg: 21274.225,  min: 21221,      max: 21326 },
+      PagesSec:             { avg: 0.8989,     min: 0,          max: 49.9315 },
+      DiskSecRead:          { avg: 0,          min: 0,          max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0002,     min: 0,          max: 0.0006 },
+      DiskQueueLength:      { avg: 0,          min: 0,          max: 0 },
+      DPCTimePct:           { avg: 0.0951,     min: 0,          max: 0.3897 },
+      InterruptTimePct:     { avg: 0.0358,     min: 0,          max: 0.2928 },
+      ProcessorTimePct:     { avg: 1.7086,     min: 0,          max: 12.4484 },
+      ContextSwitchesSec:   { avg: 5328.6835,  min: 3351.3538,  max: 55122.0885 },
+      PageFaultsSec:        { avg: 16689.2894, min: 8144.8885,  max: 388252.3616 },
+      ProcessorQueueLength: { avg: 0,          min: 0,          max: 0 }
+    },
+
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptPct: 0.000,  dpcPct: 0.026,  intrPerSec: 100.3 },
+      { cpu: 1,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 60.3 },
+      { cpu: 2,  interruptPct: 0.000,  dpcPct: 0.026,  intrPerSec: 224.4 },
+      { cpu: 3,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 107.4 },
+      { cpu: 4,  interruptPct: 0.1822, dpcPct: 0.3383, intrPerSec: 1489.6 },
+      { cpu: 5,  interruptPct: 0.1041, dpcPct: 0.5074, intrPerSec: 757.9 },
+      { cpu: 6,  interruptPct: 0.1301, dpcPct: 0.4033, intrPerSec: 1166.3 },
+      { cpu: 7,  interruptPct: 0.1431, dpcPct: 0.2212, intrPerSec: 743.5 },
+      { cpu: 8,  interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 297.0 },
+      { cpu: 9,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 195.0 },
+      { cpu: 10, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 114.2 },
+      { cpu: 11, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 112.7 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 58.6 },
+      { cpu: 13, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 49.5 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 48.6 },
+      { cpu: 15, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 43.7 }
+    ],
+
+    frameTiming: null,
+    gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
+    interruptTopology: { cpu0Share: 0, cpu23Share: 0, cpu47Share: 97.7 }
   }
 ];

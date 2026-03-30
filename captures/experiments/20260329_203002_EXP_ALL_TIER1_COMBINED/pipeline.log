@@ -1,0 +1,39 @@
+﻿[20:30:02] [INFO] === Pipeline Start: EXP_ALL_TIER1_COMBINED ===
+[20:30:02] [INFO] Description: All Tier 1: W32Priority=22 + NIC low-latency + Nagle off + SysMain/DiagTrack off + storage PM off
+[20:30:02] [INFO] Duration: 120s | WPR: False | Profile: GeneralProfile.Verbose
+[20:30:02] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_203002_EXP_ALL_TIER1_COMBINED
+[20:30:02] [INFO] Checking system idle state...
+[20:30:05] [PASS] CPU at 1.6% - idle check passed
+[20:30:05] [INFO] 
+[20:30:05] [INFO] === Phase 2: WPR skipped ===
+[20:30:05] [INFO] 
+[20:30:05] [INFO] === Phase 3: Perf counter capture 120s ===
+[20:32:05] [PASS] Perf capture done: 120 samples
+[20:32:05] [INFO] Capturing GPU utilization...
+[20:32:11] [PASS] GPU 3D utilization: 0% avg, 0.03% max
+[20:32:11] [INFO] 
+[20:32:11] [INFO] === Phase 4: Skipped - no WPR trace ===
+[20:32:11] [INFO] 
+[20:32:11] [INFO] === Phase 5: Registry snapshot ===
+[20:32:11] [PASS] Registry snapshot captured
+[20:32:11] [INFO] 
+[20:32:11] [INFO] === Phase 6: Analysis ===
+[20:32:11] [PASS] CPU 0 share: 1.9%
+[20:32:11] [PASS] Total DPC: 0.0984%
+[20:32:11] [PASS] Total Interrupt: 0.0431%
+[20:32:11] [INFO] 
+[20:32:11] [INFO] === Phase 7: Saving experiment JSON ===
+[20:32:11] [PASS] Saved experiment.json
+[20:32:11] [INFO] 
+[20:32:11] [INFO] === Phase 8: Updating dashboard ===
+[20:32:11] [PASS] Dashboard data regenerated
+[20:32:11] [INFO] 
+[20:32:11] [INFO] ========================================
+[20:32:11] [INFO] === Pipeline Complete ===
+[20:32:11] [INFO] ========================================
+[20:32:11] [INFO] 
+[20:32:11] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_203002_EXP_ALL_TIER1_COMBINED
+[20:32:11] [INFO]   experiment.json - perf counters + registry + per-CPU
+[20:32:11] [INFO]   analysis.txt    - human-readable report
+[20:32:11] [INFO] 
+[20:32:11] [INFO] Topology: CPU0=1.9% | Input=0% | GPU/NIC=92.5%
