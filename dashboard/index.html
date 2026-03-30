@@ -714,6 +714,13 @@ function safeNum(v, decimals) {
   return Number(v).toFixed(decimals != null ? decimals : 2);
 }
 
+// Safely get a perf counter avg value, handling both curated and generated field names
+function perfVal(perf, key) {
+  if (!perf) return null;
+  if (perf[key] && perf[key].avg != null) return perf[key].avg;
+  return null;
+}
+
 function getStatus(exp) {
   if (exp.latencymon) return exp.latencymon.result === 'PASS' ? 'PASS' : 'REVIEW';
   return 'N/A';
@@ -1092,22 +1099,31 @@ function renderDetailCards(exp) {
       '<div class="card-badge badge-na">Not yet captured</div></div>');
   }
 
-  // Perf counters
+  // Perf counters (handle both hand-curated and generated field names)
   if (perf) {
     const bp = baseline ? baseline.performance : null;
-    const dpcDelta = !isBaseline && bp && bp.DPCTimePct ? (perf.DPCTimePct.avg - bp.DPCTimePct.avg).toFixed(3) : null;
-    const intDelta = !isBaseline && bp && bp.InterruptTimePct ? (perf.InterruptTimePct.avg - bp.InterruptTimePct.avg).toFixed(3) : null;
+    const dpcAvg = perfVal(perf, 'DPCTimePct');
+    const intAvg = perfVal(perf, 'InterruptTimePct');
+    const cpuAvg = perfVal(perf, 'ProcessorTimePct');
+    const bpDpc = bp ? perfVal(bp, 'DPCTimePct') : null;
+    const bpInt = bp ? perfVal(bp, 'InterruptTimePct') : null;
+    const dpcDelta = !isBaseline && bpDpc != null && dpcAvg != null ? (dpcAvg - bpDpc).toFixed(3) : null;
+    const intDelta = !isBaseline && bpInt != null && intAvg != null ? (intAvg - bpInt).toFixed(3) : null;
 
-    cards.push('<div class="card cyan"><div class="card-label">% DPC Time (avg)</div>' +
-      '<div class="card-value">' + safeNum(perf.DPCTimePct.avg, 3) + '<span class="card-unit">%</span></div>' +
-      '<div class="card-sub">' + (dpcDelta !== null ? 'vs baseline: ' + (dpcDelta >= 0 ? '+' : '') + dpcDelta + '%' : '10s sample') + '</div></div>');
-
-    cards.push('<div class="card blue"><div class="card-label">% Interrupt Time (avg)</div>' +
-      '<div class="card-value">' + safeNum(perf.InterruptTimePct.avg, 3) + '<span class="card-unit">%</span></div>' +
-      '<div class="card-sub">' + (intDelta !== null ? 'vs baseline: ' + (intDelta >= 0 ? '+' : '') + intDelta + '%' : '10s sample') + '</div></div>');
-
-    cards.push('<div class="card purple"><div class="card-label">% CPU Time (avg)</div>' +
-      '<div class="card-value">' + safeNum(perf.ProcessorTimePct.avg, 1) + '<span class="card-unit">%</span></div></div>');
+    if (dpcAvg != null) {
+      cards.push('<div class="card cyan"><div class="card-label">% DPC Time (avg)</div>' +
+        '<div class="card-value">' + safeNum(dpcAvg, 3) + '<span class="card-unit">%</span></div>' +
+        '<div class="card-sub">' + (dpcDelta !== null ? 'vs baseline: ' + (dpcDelta >= 0 ? '+' : '') + dpcDelta + '%' : '10s sample') + '</div></div>');
+    }
+    if (intAvg != null) {
+      cards.push('<div class="card blue"><div class="card-label">% Interrupt Time (avg)</div>' +
+        '<div class="card-value">' + safeNum(intAvg, 3) + '<span class="card-unit">%</span></div>' +
+        '<div class="card-sub">' + (intDelta !== null ? 'vs baseline: ' + (intDelta >= 0 ? '+' : '') + intDelta + '%' : '10s sample') + '</div></div>');
+    }
+    if (cpuAvg != null) {
+      cards.push('<div class="card purple"><div class="card-label">% CPU Time (avg)</div>' +
+        '<div class="card-value">' + safeNum(cpuAvg, 1) + '<span class="card-unit">%</span></div></div>');
+    }
   }
 
   // Frame timing cards
