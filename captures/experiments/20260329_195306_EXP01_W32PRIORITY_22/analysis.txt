@@ -1,0 +1,43 @@
+﻿=== Experiment Analysis: EXP01_W32PRIORITY_22 ===
+Description: Win32PrioritySeparation=22 (long fixed quanta, 3:1 foreground boost)
+Captured: 2026-03-29 19:55:16
+Duration: 120s
+
+--- Interrupt Distribution ---
+CPU 0  preferred:    0%
+CPUs 2-3 input:      0%
+CPUs 4-7 GPU/NIC:    92.6%
+CPUs 8-15 game:      7.4%
+
+--- Targets ---
+[PASS] CPU 0 share <10%: 0%
+[PASS] Total DPC <0.5%: 0.0927%
+[PASS] Total Interrupt <1.0%: 0.0439%
+
+--- Per-CPU ---
+CPU10      0.0000     0.0000         74.4
+CPU11      0.0130     0.0130         92.2
+CPU8       0.0000     0.0000        197.0
+CPU9       0.0000     0.0130        211.1
+CPU14      0.0000     0.0000         32.1
+CPU15      0.0130     0.0000         34.4
+CPU12      0.0000     0.0000         36.7
+CPU13      0.0130     0.0000         40.3
+CPU2       0.0000     0.0130        176.5 <-input
+CPU3       0.0000     0.0130         96.4 <-input
+CPU0       0.0000     0.0130         64.9 <-preferred
+CPU1       0.0130     0.0000         52.3
+CPU6       0.1171     0.4033      1,122.0 <-GPU/NIC
+CPU7       0.2082     0.3643        934.3 <-GPU/NIC
+CPU4       0.1821     0.4033      1,169.4 <-GPU/NIC
+CPU5       0.1431     0.2472        776.3 <-GPU/NIC
+
+--- GPU Utilization ---
+  3d: 0% avg, 0.03% max
+  copy: 0% avg, 0.01% max
+  jpeg_decode_1: 0% avg, 0% max
+  ofa_0: 0% avg, 0% max
+  security: 0% avg, 0% max
+  videodecode: 0% avg, 0% max
+  videoencode: 0% avg, 0% max
+  vr: 0% avg, 0% max

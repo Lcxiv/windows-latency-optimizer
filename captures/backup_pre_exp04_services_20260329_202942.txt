@@ -1,0 +1,9 @@
+# EXP04 Backup: Service states pre-change
+# Captured: 2026-03-29 20:29:42
+# Rollback commands:
+# SysMain: Status=Stopped StartType=Disabled
+Set-Service SysMain -StartupType Disabled
+# DiagTrack: Status=StartPending StartType=Disabled
+Set-Service DiagTrack -StartupType Disabled
+# DoSvc: Status=Stopped StartType=Manual
+Set-Service DoSvc -StartupType Manual

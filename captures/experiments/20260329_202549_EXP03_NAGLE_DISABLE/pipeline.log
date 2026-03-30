@@ -1,0 +1,39 @@
+﻿[20:25:49] [INFO] === Pipeline Start: EXP03_NAGLE_DISABLE ===
+[20:25:49] [INFO] Description: TcpNoDelay=1 TcpAckFrequency=1 on Intel I226-V (Nagle + Delayed ACK disabled)
+[20:25:49] [INFO] Duration: 120s | WPR: False | Profile: GeneralProfile.Verbose
+[20:25:49] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_202549_EXP03_NAGLE_DISABLE
+[20:25:49] [INFO] Checking system idle state...
+[20:25:52] [PASS] CPU at 2.2% - idle check passed
+[20:25:52] [INFO] 
+[20:25:52] [INFO] === Phase 2: WPR skipped ===
+[20:25:52] [INFO] 
+[20:25:52] [INFO] === Phase 3: Perf counter capture 120s ===
+[20:27:53] [PASS] Perf capture done: 120 samples
+[20:27:53] [INFO] Capturing GPU utilization...
+[20:27:58] [PASS] GPU 3D utilization: 0% avg, 0.03% max
+[20:27:58] [INFO] 
+[20:27:58] [INFO] === Phase 4: Skipped - no WPR trace ===
+[20:27:58] [INFO] 
+[20:27:58] [INFO] === Phase 5: Registry snapshot ===
+[20:27:58] [PASS] Registry snapshot captured
+[20:27:58] [INFO] 
+[20:27:58] [INFO] === Phase 6: Analysis ===
+[20:27:58] [PASS] CPU 0 share: 2.9%
+[20:27:58] [PASS] Total DPC: 0.1122%
+[20:27:58] [PASS] Total Interrupt: 0.0561%
+[20:27:58] [INFO] 
+[20:27:58] [INFO] === Phase 7: Saving experiment JSON ===
+[20:27:58] [PASS] Saved experiment.json
+[20:27:58] [INFO] 
+[20:27:58] [INFO] === Phase 8: Updating dashboard ===
+[20:27:59] [PASS] Dashboard data regenerated
+[20:27:59] [INFO] 
+[20:27:59] [INFO] ========================================
+[20:27:59] [INFO] === Pipeline Complete ===
+[20:27:59] [INFO] ========================================
+[20:27:59] [INFO] 
+[20:27:59] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_202549_EXP03_NAGLE_DISABLE
+[20:27:59] [INFO]   experiment.json - perf counters + registry + per-CPU
+[20:27:59] [INFO]   analysis.txt    - human-readable report
+[20:27:59] [INFO] 
+[20:27:59] [INFO] Topology: CPU0=2.9% | Input=4.3% | GPU/NIC=85.5%
