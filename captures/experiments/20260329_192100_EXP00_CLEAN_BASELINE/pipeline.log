@@ -1,0 +1,47 @@
+﻿[19:21:00] [INFO] === Pipeline Start: EXP00_CLEAN_BASELINE ===
+[19:21:00] [INFO] Description: Fresh baseline post-optimization: all fixes active (Defender, NVIDIA MSI, CPU affinity, input isolation)
+[19:21:00] [INFO] Duration: 120s | WPR: True | Profile: GeneralProfile.Verbose
+[19:21:00] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_192100_EXP00_CLEAN_BASELINE
+[19:21:00] [INFO] Checking system idle state...
+[19:21:04] [PASS] CPU at 2.4% - idle check passed
+[19:21:04] [INFO] 
+[19:21:04] [INFO] === Phase 2: Starting WPR trace ===
+[19:21:04] [PASS] WPR recording started
+[19:21:04] [INFO] 
+[19:21:04] [INFO] === Phase 3: Perf counter capture 120s ===
+[19:23:04] [PASS] Perf capture done: 120 samples
+[19:23:04] [INFO] Capturing GPU utilization...
+[19:23:09] [PASS] GPU 3D utilization: 0% avg, 0.03% max
+[19:23:09] [INFO] 
+[19:23:09] [INFO] === Phase 4: Stopping WPR trace ===
+[19:23:11] [PASS] WPR trace saved: trace.etl 315 MB
+[19:23:11] [INFO] Running xperf DPC/ISR analysis...
+[19:23:12] [PASS] xperf DPC/ISR report: 107.7 KB
+[19:23:12] [INFO] Running xperf context switch analysis...
+[19:23:13] [PASS] xperf cswitch report generated
+[19:23:13] [INFO] 
+[19:23:13] [INFO] === Phase 5: Registry snapshot ===
+[19:23:13] [PASS] Registry snapshot captured
+[19:23:13] [INFO] 
+[19:23:13] [INFO] === Phase 6: Analysis ===
+[19:23:13] [PASS] CPU 0 share: 1.1%
+[19:23:13] [PASS] Total DPC: 0.1342%
+[19:23:13] [PASS] Total Interrupt: 0.0756%
+[19:23:13] [INFO] 
+[19:23:13] [INFO] === Phase 7: Saving experiment JSON ===
+[19:23:13] [PASS] Saved experiment.json
+[19:23:13] [INFO] 
+[19:23:13] [INFO] === Phase 8: Updating dashboard ===
+[19:23:13] [PASS] Dashboard data regenerated
+[19:23:13] [INFO] 
+[19:23:13] [INFO] ========================================
+[19:23:13] [INFO] === Pipeline Complete ===
+[19:23:13] [INFO] ========================================
+[19:23:13] [INFO] 
+[19:23:13] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260329_192100_EXP00_CLEAN_BASELINE
+[19:23:13] [INFO]   experiment.json - perf counters + registry + per-CPU
+[19:23:13] [INFO]   trace.etl       - open in WPA for DPC/ISR drill-down
+[19:23:13] [INFO]   dpcisr_report   - xperf DPC/ISR summary
+[19:23:13] [INFO]   analysis.txt    - human-readable report
+[19:23:13] [INFO] 
+[19:23:13] [INFO] Topology: CPU0=1.1% | Input=0% | GPU/NIC=89.3%

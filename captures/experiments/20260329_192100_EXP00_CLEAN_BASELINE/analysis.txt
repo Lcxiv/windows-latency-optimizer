@@ -1,0 +1,47 @@
+﻿=== Experiment Analysis: EXP00_CLEAN_BASELINE ===
+Description: Fresh baseline post-optimization: all fixes active (Defender, NVIDIA MSI, CPU affinity, input isolation)
+Captured: 2026-03-29 19:23:13
+Duration: 120s
+
+--- Interrupt Distribution ---
+CPU 0  preferred:    1.1%
+CPUs 2-3 input:      0%
+CPUs 4-7 GPU/NIC:    89.3%
+CPUs 8-15 game:      9.6%
+
+--- Targets ---
+[PASS] CPU 0 share <10%: 1.1%
+[PASS] Total DPC <0.5%: 0.1342%
+[PASS] Total Interrupt <1.0%: 0.0756%
+
+--- Per-CPU ---
+CPU10      0.0130     0.0000        202.2
+CPU11      0.0390     0.0000        194.4
+CPU8       0.0130     0.0521        360.7
+CPU9       0.0520     0.0520        502.6
+CPU14      0.0000     0.0000         36.2
+CPU15      0.0000     0.0000         67.9
+CPU12      0.0000     0.0000         55.4
+CPU13      0.0000     0.0000         81.8
+CPU2       0.0000     0.0000        312.5 <-input
+CPU3       0.0000     0.0000        328.3 <-input
+CPU0       0.0130     0.0390        152.9 <-preferred
+CPU1       0.0000     0.0130        124.9
+CPU6       0.2212     0.4163      1,487.8 <-GPU/NIC
+CPU7       0.2342     0.3513      1,288.6 <-GPU/NIC
+CPU4       0.2602     0.5204      1,517.5 <-GPU/NIC
+CPU5       0.3643     0.7026      1,686.4 <-GPU/NIC
+
+--- xperf DPC/ISR Analysis ---
+
+--- GPU Utilization ---
+  3d: 0% avg, 0.03% max
+  copy: 0% avg, 0.01% max
+  jpeg_decode_1: 0% avg, 0% max
+  ofa_0: 0% avg, 0% max
+  security: 0% avg, 0% max
+  videodecode: 0% avg, 0% max
+  videoencode: 0% avg, 0% max
+  vr: 0% avg, 0% max
+
+For deeper analysis open trace.etl in WPA
