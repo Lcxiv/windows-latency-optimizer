@@ -354,5 +354,84 @@ window.EXPERIMENTS = [
     frameTiming: null,
     gpuUtilization: { "3D": { avg: 0.0, max: 0.03 } },
     interruptTopology: { cpu0Share: 0, cpu23Share: 0, cpu47Share: 97.7 }
+  },
+
+  // ---------------------------------------------------------------------------
+  // EXP 06 — Storage Power Management Disabled
+  // NVMe idle/latency=0, PCIe ASPM=0, AHCI HIPM/DIPM=0
+  // Captured: 2026-03-30T06:18:12 | 120s
+  // NOTE: Elevated baseline — Claude Code TCP I/O + Defender scanning during capture.
+  // DPC/Interrupt numbers NOT comparable to EXP00-04 (different session load).
+  // Benefit is spike prevention under gaming load, not idle improvement.
+  // ---------------------------------------------------------------------------
+  {
+    id: "exp06_storage_pm",
+    name: "Exp 06 — Storage PM Disabled",
+    shortName: "Storage PM",
+    date: "2026-03-30T06:18:12",
+    description: "NVMe idle timeout=0, NVMe latency tolerance=0, PCIe ASPM=0, AHCI HIPM/DIPM=0. Prevents storage devices from entering power-saving states. NOTE: capture had elevated background activity (Claude Code TCP, Defender) — absolute values not comparable to EXP00-04.",
+    tags: ["storage", "nvme", "pcie", "power", "tier1", "noisy-baseline"],
+
+    registry: {
+      SystemResponsiveness: 0,
+      NetworkThrottlingIndex: 4294967295,
+      Win32PrioritySeparation: 22,
+      GamesSchedulingCategory: "High",
+      GamesPriority: 6,
+      GamesSFIOPriority: "High",
+      ScanAvgCPULoadFactor: 5,
+      EnableLowCpuPriority: true,
+      HwSchMode: 2,
+      NICInterruptModeration: "Disabled",
+      TcpNoDelay: 1,
+      TcpAckFrequency: 1,
+      SysMainService: "Disabled",
+      DiagTrackService: "Disabled",
+      DoSvcService: "Disabled",
+      NVMeIdleTimeout: 0,
+      NVMeLatencyTolerance: 0,
+      PCIeASPM: 0,
+      AHCI_EnableHIPM: 0,
+      AHCI_EnableDIPM: 0
+    },
+
+    performance: {
+      AvailableMemoryMB:    { avg: 26959.2833, min: 26824,       max: 27017 },
+      PagesSec:             { avg: 11.472,     min: 0,           max: 561.4211 },
+      DiskSecRead:          { avg: 0,          min: 0,           max: 0.0005 },
+      DiskSecWrite:         { avg: 0.0001,     min: 0,           max: 0.0005 },
+      DiskQueueLength:      { avg: 0,          min: 0,           max: 0 },
+      DPCTimePct:           { avg: 0.3528,     min: 0,           max: 1.0729 },
+      InterruptTimePct:     { avg: 0.4666,     min: 0,           max: 10.9259 },
+      ProcessorTimePct:     { avg: 4.2444,     min: 1.3431,      max: 10.4854 },
+      ContextSwitchesSec:   { avg: 21117.3154, min: 12865.8903,  max: 38431.3696 },
+      PageFaultsSec:        { avg: 11881.2792, min: 3970.5952,   max: 98633.458 },
+      ProcessorQueueLength: { avg: 0,          min: 0,           max: 0 }
+    },
+
+    latencymon: null,
+
+    cpuData: [
+      { cpu: 0,  interruptPct: 0.013,  dpcPct: 0.000,  intrPerSec: 98.7 },
+      { cpu: 1,  interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 111.7 },
+      { cpu: 2,  interruptPct: 0.065,  dpcPct: 0.000,  intrPerSec: 775.9 },
+      { cpu: 3,  interruptPct: 0.000,  dpcPct: 0.013,  intrPerSec: 367.3 },
+      { cpu: 4,  interruptPct: 1.7427, dpcPct: 1.4304, intrPerSec: 2497.7 },
+      { cpu: 5,  interruptPct: 1.7297, dpcPct: 1.4825, intrPerSec: 2071.6 },
+      { cpu: 6,  interruptPct: 2.0548, dpcPct: 1.3656, intrPerSec: 2809.8 },
+      { cpu: 7,  interruptPct: 1.5476, dpcPct: 1.3265, intrPerSec: 2087.4 },
+      { cpu: 8,  interruptPct: 0.1301, dpcPct: 0.026,  intrPerSec: 1596.5 },
+      { cpu: 9,  interruptPct: 0.078,  dpcPct: 0.000,  intrPerSec: 944.1 },
+      { cpu: 10, interruptPct: 0.104,  dpcPct: 0.000,  intrPerSec: 388.4 },
+      { cpu: 11, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 80.2 },
+      { cpu: 12, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 22.4 },
+      { cpu: 13, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 19.8 },
+      { cpu: 14, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 28.8 },
+      { cpu: 15, interruptPct: 0.000,  dpcPct: 0.000,  intrPerSec: 22.6 }
+    ],
+
+    frameTiming: null,
+    gpuUtilization: { "3D": { avg: 0.01, max: 0.72 } },
+    interruptTopology: { cpu0Share: 0.2, cpu23Share: 0.9, cpu47Share: 94.8 }
   }
 ];

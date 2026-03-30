@@ -1,0 +1,31 @@
+# EXP06 Backup: Storage/PCIe Power Management
+# Captured: 2026-03-30 06:12:22
+
+# NVMe Idle Timeout
+Power Scheme GUID: 99999999-9999-9999-9999-999999999999  (Ultimate Performance)
+
+# NVMe Latency Tolerance
+Power Scheme GUID: 99999999-9999-9999-9999-999999999999  (Ultimate Performance)
+
+# PCIe ASPM
+Power Scheme GUID: 99999999-9999-9999-9999-999999999999  (Ultimate Performance)
+  Subgroup GUID: 501a4d13-42af-4429-9fd1-a8218c268e20  (PCI Express)
+    GUID Alias: SUB_PCIEXPRESS
+    Power Setting GUID: ee12f906-d277-404b-b6da-e5fa1a576df5  (Link State Power Management)
+      GUID Alias: ASPM
+      Possible Setting Index: 000
+      Possible Setting Friendly Name: Off
+      Possible Setting Index: 001
+      Possible Setting Friendly Name: Moderate power savings
+      Possible Setting Index: 002
+      Possible Setting Friendly Name: Maximum power savings
+    Current AC Power Setting Index: 0x00000000
+    Current DC Power Setting Index: 0x00000000
+
+
+# AHCI: EnableHIPM= EnableDIPM=
+
+# Rollback: powercfg -setacvalueindex scheme_current SUB_DISK d639518a-e56d-4345-8af2-b9f32fb26109 <orig>
+# Rollback: powercfg -setacvalueindex scheme_current SUB_DISK fc95af4d-40e7-4b6d-835a-56d131dbc80e <orig>
+# Rollback: powercfg -setacvalueindex scheme_current SUB_PCIEXPRESS ee12f906-d277-404b-b6da-e5fa1a576df5 <orig>
+# Rollback: Remove-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device -Name EnableHIPM; Remove-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Services\storahci\Parameters\Device -Name EnableDIPM

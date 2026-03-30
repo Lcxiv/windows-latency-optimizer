@@ -1,0 +1,39 @@
+﻿[06:16:02] [INFO] === Pipeline Start: EXP06_STORAGE_PM_V2 ===
+[06:16:02] [INFO] Description: NVMe idle/latency=0, PCIe ASPM=0, AHCI HIPM/DIPM=0 (re-capture, clean idle)
+[06:16:02] [INFO] Duration: 120s | WPR: False | Profile: GeneralProfile.Verbose
+[06:16:02] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260330_061602_EXP06_STORAGE_PM_V2
+[06:16:02] [INFO] Checking system idle state...
+[06:16:05] [PASS] CPU at 8.9% - idle check passed
+[06:16:05] [INFO] 
+[06:16:05] [INFO] === Phase 2: WPR skipped ===
+[06:16:05] [INFO] 
+[06:16:05] [INFO] === Phase 3: Perf counter capture 120s ===
+[06:18:06] [PASS] Perf capture done: 120 samples
+[06:18:06] [INFO] Capturing GPU utilization...
+[06:18:11] [PASS] GPU 3D utilization: 0.01% avg, 0.72% max
+[06:18:11] [INFO] 
+[06:18:11] [INFO] === Phase 4: Skipped - no WPR trace ===
+[06:18:11] [INFO] 
+[06:18:11] [INFO] === Phase 5: Registry snapshot ===
+[06:18:11] [PASS] Registry snapshot captured
+[06:18:11] [INFO] 
+[06:18:11] [INFO] === Phase 6: Analysis ===
+[06:18:11] [PASS] CPU 0 share: 0.2%
+[06:18:11] [PASS] Total DPC: 0.3528%
+[06:18:11] [PASS] Total Interrupt: 0.4666%
+[06:18:11] [INFO] 
+[06:18:11] [INFO] === Phase 7: Saving experiment JSON ===
+[06:18:12] [PASS] Saved experiment.json
+[06:18:12] [INFO] 
+[06:18:12] [INFO] === Phase 8: Updating dashboard ===
+[06:18:12] [PASS] Dashboard data regenerated
+[06:18:12] [INFO] 
+[06:18:12] [INFO] ========================================
+[06:18:12] [INFO] === Pipeline Complete ===
+[06:18:12] [INFO] ========================================
+[06:18:12] [INFO] 
+[06:18:12] [INFO] Output: C:\Users\L\Desktop\windows-latency-optimizer\captures\experiments\20260330_061602_EXP06_STORAGE_PM_V2
+[06:18:12] [INFO]   experiment.json - perf counters + registry + per-CPU
+[06:18:12] [INFO]   analysis.txt    - human-readable report
+[06:18:12] [INFO] 
+[06:18:12] [INFO] Topology: CPU0=0.2% | Input=0.9% | GPU/NIC=94.8%
