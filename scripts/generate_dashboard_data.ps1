@@ -118,9 +118,9 @@ foreach ($file in $jsonFiles) {
     $perfLines = @()
     foreach ($k in ($perfNorm.Keys | Sort-Object)) {
         $v = $perfNorm[$k]
-        $avg = if ($v.avg -ne $null) { $v.avg } else { 'null' }
-        $min = if ($v.min -ne $null) { $v.min } else { 'null' }
-        $max = if ($v.max -ne $null) { $v.max } else { 'null' }
+        $avg = 'null'; if ($null -ne $v.avg) { $avg = $v.avg }
+        $min = 'null'; if ($null -ne $v.min) { $min = $v.min }
+        $max = 'null'; if ($null -ne $v.max) { $max = $v.max }
         $perfLines += "      $k`: { avg: $avg, min: $min, max: $max }"
     }
 

@@ -108,7 +108,7 @@ function Test-SystemIdle {
             wpr -cancel 2>&1 | Out-Null
             Start-Sleep 2
         }
-    } catch { }
+    } catch { Log ('WPR status check failed: ' + $_.Exception.Message) 'WARN' }
 
     Log 'Checking system idle state...'
     $cpuCheck = (Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 1 -MaxSamples 3).CounterSamples |
