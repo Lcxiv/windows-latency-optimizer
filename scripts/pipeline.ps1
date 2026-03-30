@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    End-to-end experiment capture pipeline.
+.DESCRIPTION
+    Orchestrates: WPR trace, perf counters, GPU utilization, xperf DPC/ISR
+    analysis, registry snapshot, and dashboard data regeneration.
+    Outputs experiment.json + analysis.txt to captures/experiments/.
+.EXAMPLE
+    .\pipeline.ps1 -Label "EXP01_TEST" -Description "Test capture" -DurationSec 120 -SkipWPR
+.EXAMPLE
+    .\pipeline.ps1 -Label "GAMING" -Description "Fortnite session" -DurationSec 300 -GameProcess "FortniteClient-Win64-Shipping"
+#>
 #Requires -RunAsAdministrator
 param(
     [Parameter(Mandatory=$true)]

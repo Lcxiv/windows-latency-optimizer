@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Regenerate experiments_generated.js from captured experiment.json files.
+.DESCRIPTION
+    Scans captures/experiments/ for experiment.json files, normalizes performance
+    data field names, and writes window.EXPERIMENTS_GENERATED array for the dashboard.
+.EXAMPLE
+    .\generate_dashboard_data.ps1
+#>
 param(
     [string]$ExperimentsDir = "$PSScriptRoot\..\captures\experiments",
     [string]$OutFile        = "$PSScriptRoot\..\dashboard\data\experiments_generated.js"

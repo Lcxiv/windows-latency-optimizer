@@ -20,5 +20,14 @@ desktop.ini
 .vscode/
 *.code-workspace
 
+# Temp and log files
+*.tmp
+*.cache
+*.bak
+
+# Node (npx serve only)
+node_modules/
+package-lock.json
+
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv

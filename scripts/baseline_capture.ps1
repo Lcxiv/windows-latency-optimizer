@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+    Quick 10-second baseline capture (perf counters + registry snapshot).
+.DESCRIPTION
+    Lightweight snapshot for quick system state checks. Writes to
+    captures/os_baseline_{Label}.txt.
+.EXAMPLE
+    .\baseline_capture.ps1 -Label "PRE_CHANGE"
+#>
 #Requires -RunAsAdministrator
 param([string]$Label = "BASELINE")
 
