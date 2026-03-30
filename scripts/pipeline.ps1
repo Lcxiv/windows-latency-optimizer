@@ -15,7 +15,10 @@ param(
     [string]$WPRProfile = 'GeneralProfile',
 
     [ValidateSet('Verbose','Light')]
-    [string]$WPRDetail = 'Verbose'
+    [string]$WPRDetail = 'Verbose',
+
+    [string]$GameProcess = '',
+    [switch]$SkipPresentMon
 )
 
 # pipeline.ps1 - End-to-end experiment capture and analysis
@@ -119,6 +122,16 @@ $counters = @(
     '\System\Processor Queue Length'
 )
 
+$presentMonPath = 'C:\Program Files\NVIDIA Corporation\FrameView\bin\PresentMon_x64.exe'
+$frameTimingData = $null
+$pmProc = $null
+if (-not $SkipPresentMon -and $GameProcess -ne '' -and (Test-Path $presentMonPath)) {
+    Log 'Starting PresentMon frame capture...'
+    $pmCsv = Join-Path $outDir 'frames.csv'
+    $pmProc = Start-Process -FilePath $presentMonPath -ArgumentList ('-process_name ' + $GameProcess + ' -output_file ' + $pmCsv + ' -timed ' + $DurationSec + ' -no_top') -PassThru -NoNewWindow -ErrorAction SilentlyContinue
+    if ($pmProc) { Log 'PresentMon started' 'PASS' } else { Log 'PresentMon failed to start' 'WARN' }
+}
+
 $samples = Get-Counter -Counter $counters -SampleInterval 1 -MaxSamples $DurationSec
 
 $counterData = @{}
@@ -143,6 +156,66 @@ function Get-Stats($vals) {
         min   = [math]::Round($m.Minimum, 4)
         max   = [math]::Round($m.Maximum, 4)
         stdev = [math]::Round($sd, 4)
+    }
+}
+
+function Parse-FrameCSV {
+    param([string]$CsvPath)
+    if (-not (Test-Path $CsvPath)) { return $null }
+    $csv = @(Import-Csv $CsvPath)
+    if ($csv.Count -eq 0) { return $null }
+
+    # Find the frame time column (varies by PresentMon version)
+    $ftCol = $null
+    foreach ($col in @('MsBetweenPresents', 'msBetweenPresents', 'ms_between_presents')) {
+        if ($csv[0].PSObject.Properties.Name -contains $col) { $ftCol = $col; break }
+    }
+    if (-not $ftCol) { return $null }
+
+    $frameTimes = @($csv | ForEach-Object { [double]$_.$ftCol } | Where-Object { $_ -gt 0 -and $_ -lt 1000 })
+    if ($frameTimes.Count -eq 0) { return $null }
+
+    $sorted = $frameTimes | Sort-Object
+    $count = $sorted.Count
+
+    $avg = ($sorted | Measure-Object -Average).Average
+    $p50 = $sorted[[math]::Floor($count * 0.50)]
+    $p95 = $sorted[[math]::Floor($count * 0.95)]
+    $p99 = $sorted[[math]::Floor($count * 0.99)]
+    $maxFt = $sorted[-1]
+    $minFt = $sorted[0]
+
+    # FPS
+    $fpsAvg = 1000.0 / $avg
+    $fps1Low = 1000.0 / $p99
+
+    # Dropped frames (if column exists)
+    $dropped = 0
+    foreach ($col in @('Dropped', 'dropped', 'WasBatched')) {
+        if ($csv[0].PSObject.Properties.Name -contains $col) {
+            $dropped = @($csv | Where-Object { $_.$col -eq '1' -or $_.$col -eq 'True' }).Count
+            break
+        }
+    }
+
+    return @{
+        processName  = $GameProcess
+        totalFrames  = $count
+        droppedFrames = $dropped
+        droppedPct   = [math]::Round($dropped / [math]::Max(1, $count) * 100, 2)
+        frameTimeMs  = @{
+            avg  = [math]::Round($avg, 2)
+            p50  = [math]::Round($p50, 2)
+            p95  = [math]::Round($p95, 2)
+            p99  = [math]::Round($p99, 2)
+            max  = [math]::Round($maxFt, 2)
+            min  = [math]::Round($minFt, 2)
+        }
+        fps = @{
+            avg   = [math]::Round($fpsAvg, 1)
+            p1Low = [math]::Round($fps1Low, 1)
+            min   = [math]::Round(1000.0 / $maxFt, 1)
+        }
     }
 }
 
@@ -184,6 +257,54 @@ foreach ($key in $counterData.Keys) {
 }
 
 Log ('Perf capture done: ' + $samples.Count + ' samples') 'PASS'
+
+# Phase 3B: PresentMon frame timing
+if ($pmProc -and -not $pmProc.HasExited) {
+    Log 'Waiting for PresentMon to finish...'
+    $pmProc.WaitForExit(30000) | Out-Null
+}
+if ($pmProc) {
+    $pmCsv = Join-Path $outDir 'frames.csv'
+    $frameTimingData = Parse-FrameCSV $pmCsv
+    if ($frameTimingData) {
+        $ftAvg = $frameTimingData.frameTimeMs.avg
+        $fpsAvg = $frameTimingData.fps.avg
+        Log ('Frame timing: ' + $ftAvg + 'ms avg, ' + $fpsAvg + ' FPS, ' + $frameTimingData.totalFrames + ' frames') 'PASS'
+    } else {
+        Log 'PresentMon CSV parsing failed or no data' 'WARN'
+    }
+}
+
+# Phase 3C: GPU performance counters
+$gpuUtilData = $null
+try {
+    Log 'Capturing GPU utilization...'
+    $gpuSamples = Get-Counter '\GPU Engine(*)\Utilization Percentage' -SampleInterval 1 -MaxSamples 5 -ErrorAction Stop
+    $gpuEngines = @{}
+    foreach ($gs in $gpuSamples) {
+        foreach ($cs in $gs.CounterSamples) {
+            $engMatch = [regex]::Match($cs.InstanceName, 'engtype_(\w+)')
+            if ($engMatch.Success) {
+                $eng = $engMatch.Groups[1].Value
+                if (-not $gpuEngines.ContainsKey($eng)) { $gpuEngines[$eng] = @() }
+                $gpuEngines[$eng] += $cs.CookedValue
+            }
+        }
+    }
+    $gpuUtilData = @{}
+    foreach ($eng in $gpuEngines.Keys) {
+        $vals = $gpuEngines[$eng]
+        $gpuUtilData[$eng] = @{
+            avg = [math]::Round(($vals | Measure-Object -Average).Average, 2)
+            max = [math]::Round(($vals | Measure-Object -Maximum).Maximum, 2)
+        }
+    }
+    if ($gpuUtilData.ContainsKey('3D')) {
+        Log ('GPU 3D utilization: ' + $gpuUtilData['3D'].avg + '% avg, ' + $gpuUtilData['3D'].max + '% max') 'PASS'
+    }
+} catch {
+    Log ('GPU utilization counters not available: ' + $_.Exception.Message) 'WARN'
+}
 
 # PHASE 4: Stop WPR and extract ETL
 $dpcIsrData = $null
@@ -254,6 +375,19 @@ if ($wprStarted) {
                     }
                     if ($isrDrivers.Count -gt 0) {
                         $dpcIsrData['isrDrivers'] = $isrDrivers | Sort-Object MaxUs -Descending | Select-Object -First 10
+                    }
+
+                    # Context switch analysis
+                    Log 'Running xperf context switch analysis...'
+                    $cswitchReport = Join-Path $outDir 'cswitch_report.txt'
+                    try {
+                        & $xperfPath -i $etlFile -o $cswitchReport -a cswitch 2>&1 | Out-Null
+                        if (Test-Path $cswitchReport) {
+                            Log 'xperf cswitch report generated' 'PASS'
+                            $dpcIsrData['cswitchFile'] = 'cswitch_report.txt'
+                        }
+                    } catch {
+                        Log ('xperf cswitch failed: ' + $_.Exception.Message) 'WARN'
                     }
                 } else {
                     Log 'xperf DPC/ISR report not generated' 'WARN'
@@ -410,6 +544,23 @@ if ($dpcIsrData -and $dpcIsrData.hasReport) {
     }
 }
 
+if ($frameTimingData) {
+    $analysis += ''
+    $analysis += '--- Frame Timing ---'
+    $analysis += 'Process: ' + $frameTimingData.processName
+    $analysis += 'Frames: ' + $frameTimingData.totalFrames + ' total, ' + $frameTimingData.droppedFrames + ' dropped'
+    $analysis += 'Frame time: ' + $frameTimingData.frameTimeMs.avg + 'ms avg, ' + $frameTimingData.frameTimeMs.p99 + 'ms p99, ' + $frameTimingData.frameTimeMs.max + 'ms max'
+    $analysis += 'FPS: ' + $frameTimingData.fps.avg + ' avg, ' + $frameTimingData.fps.p1Low + ' 1% low, ' + $frameTimingData.fps.min + ' min'
+}
+
+if ($gpuUtilData) {
+    $analysis += ''
+    $analysis += '--- GPU Utilization ---'
+    foreach ($eng in ($gpuUtilData.Keys | Sort-Object)) {
+        $analysis += ('  ' + $eng + ': ' + $gpuUtilData[$eng].avg + '% avg, ' + $gpuUtilData[$eng].max + '% max')
+    }
+}
+
 if ($wprStarted -and (Test-Path $etlFile)) {
     $analysis += ''
     $analysis += 'For deeper analysis open trace.etl in WPA'
@@ -434,7 +585,7 @@ if ($dpcIsrData) {
 }
 
 $result = [ordered]@{
-    schemaVersion     = 2
+    schemaVersion     = 3
     label             = $Label
     description       = $Description
     capturedAt        = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
@@ -449,6 +600,9 @@ $result = [ordered]@{
     interruptTopology = @{ cpu0Share = $cpu0Share; cpu23Share = $cpu23Share; cpu47Share = $cpu47Share }
     dpcIsrAnalysis    = $dpcIsrJson
     analysisFile      = 'analysis.txt'
+    frameTiming       = $frameTimingData
+    gpuUtilization    = $gpuUtilData
+    cswitchAnalysis   = $null
 }
 
 $jsonFile = Join-Path $outDir 'experiment.json'
@@ -485,5 +639,8 @@ if ($wprStarted -and (Test-Path $etlFile)) {
 Log '  analysis.txt    - human-readable report'
 Log ''
 Log ('Topology: CPU0=' + $cpu0Share + '% | Input=' + $cpu23Share + '% | GPU/NIC=' + $cpu47Share + '%')
+if ($frameTimingData) {
+    Log ('  FPS: ' + $frameTimingData.fps.avg + ' avg, ' + $frameTimingData.fps.p1Low + ' 1% low')
+}
 
 $logLines | Out-File (Join-Path $outDir 'pipeline.log') -Encoding UTF8

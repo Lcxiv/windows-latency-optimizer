@@ -116,6 +116,41 @@ foreach ($file in $jsonFiles) {
 
     $id = "gen_$($raw.capturedAt -replace '[^0-9]','' )_$label"
 
+    # Build frameTiming block (from pipeline v3)
+    $frameTimingJs = 'null'
+    if ($raw.frameTiming) {
+        $ft = $raw.frameTiming
+        $ftm = $ft.frameTimeMs
+        $fps = $ft.fps
+        $frameTimingJs = @"
+{
+      processName: "$($ft.processName)",
+      totalFrames: $($ft.totalFrames),
+      droppedFrames: $($ft.droppedFrames),
+      droppedPct: $($ft.droppedPct),
+      frameTimeMs: { avg: $($ftm.avg), p50: $($ftm.p50), p95: $($ftm.p95), p99: $($ftm.p99), max: $($ftm.max), min: $($ftm.min) },
+      fps: { avg: $($fps.avg), p1Low: $($fps.p1Low), min: $($fps.min) }
+    }
+"@
+    }
+
+    # Build gpuUtilization block
+    $gpuUtilJs = 'null'
+    if ($raw.gpuUtilization) {
+        $gpuLines = @()
+        foreach ($eng in $raw.gpuUtilization.PSObject.Properties) {
+            $gpuLines += "      `"$($eng.Name)`": { avg: $($eng.Value.avg), max: $($eng.Value.max) }"
+        }
+        $gpuUtilJs = "{`n" + ($gpuLines -join ",`n") + "`n    }"
+    }
+
+    # Build interruptTopology block
+    $topoJs = 'null'
+    if ($raw.interruptTopology) {
+        $t = $raw.interruptTopology
+        $topoJs = "{ cpu0Share: $($t.cpu0Share), cpu23Share: $($t.cpu23Share), cpu47Share: $($t.cpu47Share) }"
+    }
+
     $entry = @"
   {
     id: "$id",
@@ -131,7 +166,10 @@ $($perfLines -join ",`n")
     latencymon: null,
     cpuData: [
 $($cpuDataJs -join ",`n")
-    ]
+    ],
+    frameTiming: $frameTimingJs,
+    gpuUtilization: $gpuUtilJs,
+    interruptTopology: $topoJs
   }
 "@
     $entries += $entry
