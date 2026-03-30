@@ -8,6 +8,9 @@ captures/**/events.csv
 captures/**/report.xml
 captures/**/*.NGENPDB/
 
+# Archived experiment data (kept locally, not pushed)
+captures/archive/
+
 # OS artifacts
 Thumbs.db
 desktop.ini
