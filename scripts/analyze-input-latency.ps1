@@ -202,7 +202,7 @@ if (Test-Path $dxgiDumpFile) {
                 $wE = [math]::Min($frameTimes.Count - 1, $i + $halfWin)
                 $win = @($frameTimes[$wS..$wE] | Sort-Object)
                 $med = $win[[math]::Floor($win.Count / 2)]
-                if ($frameTimes[$i] -gt ($med * 2) -and $med -gt 0) {
+                if ($frameTimes[$i] -gt ($med * 2) -and $frameTimes[$i] -lt 50 -and $med -gt 0) {
                     $ftStutters += @{
                         frameIndex  = $i
                         frameTimeMs = [math]::Round($frameTimes[$i], 2)

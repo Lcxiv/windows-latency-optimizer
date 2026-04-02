@@ -66,6 +66,7 @@ if ($Mode -eq 'Deep') {
     $allChecks += Invoke-NetworkChecks
     $allChecks += Invoke-AntiCheatChecks
     $allChecks += Invoke-NvidiaDpcHealthCheck
+    $allChecks += Invoke-LatencyMitigationChecks
 }
 
 # --- Aggregate results ---

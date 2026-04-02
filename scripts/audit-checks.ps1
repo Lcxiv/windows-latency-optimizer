@@ -1042,3 +1042,95 @@ function Invoke-NvidiaDpcHealthCheck {
 
     return $results
 }
+
+# ---------------------------------------------------------------------------
+# Deep Tier: Latency Mitigation Checks (from EXP15 research)
+# ---------------------------------------------------------------------------
+function Invoke-LatencyMitigationChecks {
+    $results = @()
+
+    # --- Check: NVIDIA Power Management ---
+    $nvClasses = @(
+        'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000',
+        'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0001'
+    )
+    $nvPerfFound = $false
+    foreach ($nvKey in $nvClasses) {
+        if (-not (Test-Path $nvKey)) { continue }
+        $desc = (Get-ItemProperty $nvKey -ErrorAction SilentlyContinue).DriverDesc
+        if ($null -eq $desc -or $desc -notmatch 'NVIDIA') { continue }
+        $perfSrc = (Get-ItemProperty $nvKey -ErrorAction SilentlyContinue).PerfLevelSrc
+        $nvPerfFound = $true
+        if ($perfSrc -eq 0x2222) {
+            $results += New-CheckResult -Name 'NVIDIA Power Max Perf' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+                -Status 'PASS' -Current 'PerfLevelSrc = 0x2222' -Expected '0x2222 (Max Performance)'
+        } else {
+            $currentVal = 'Not set'
+            if ($null -ne $perfSrc) { $currentVal = '0x' + $perfSrc.ToString('X') }
+            $results += New-CheckResult -Name 'NVIDIA Power Max Perf' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+                -Status 'WARN' -Current $currentVal -Expected '0x2222 (Max Performance)' `
+                -Message 'RTX 5070 Ti shows 20% bus interface load at idle without max performance. Causes desktop micro-stutter.' `
+                -Fix ('Set-ItemProperty -Path "' + $nvKey + '" -Name PerfLevelSrc -Value 0x2222 -Type DWord') `
+                -FixNote 'Or run exp15_latency_mitigations_apply.ps1. Higher idle power (~10-15W).'
+        }
+        break
+    }
+    if (-not $nvPerfFound) {
+        $results += New-CheckResult -Name 'NVIDIA Power Max Perf' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'SKIP' -Current 'No NVIDIA adapter found' -Expected 'NVIDIA GPU'
+    }
+
+    # --- Check: LwtNetLog Autologger ---
+    $lwtKey = 'HKLM:\SYSTEM\CurrentControlSet\Control\WMI\Autologger\LwtNetLog'
+    $lwtStart = $null
+    if (Test-Path $lwtKey) { $lwtStart = (Get-ItemProperty $lwtKey -ErrorAction SilentlyContinue).Start }
+    if ($null -eq $lwtStart -or $lwtStart -eq 0) {
+        $results += New-CheckResult -Name 'LwtNetLog Disabled' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'PASS' -Current 'Disabled (Start=0)' -Expected 'Disabled'
+    } else {
+        $results += New-CheckResult -Name 'LwtNetLog Disabled' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'WARN' -Current ('Enabled (Start=' + $lwtStart + ')') -Expected 'Disabled (Start=0)' `
+            -Message 'LwtNetLog ETW autologger adds DPC latency (5-15% CPU reduction reported when disabled).' `
+            -Fix ('Set-ItemProperty -Path "' + $lwtKey + '" -Name Start -Value 0 -Type DWord') `
+            -FixNote 'Reboot required. Or run exp15_latency_mitigations_apply.ps1.'
+    }
+
+    # --- Check: DiagTrack Autologger ---
+    $diagKey = 'HKLM:\SYSTEM\CurrentControlSet\Control\WMI\Autologger\Diagtrack-Listener'
+    $diagStart = $null
+    if (Test-Path $diagKey) { $diagStart = (Get-ItemProperty $diagKey -ErrorAction SilentlyContinue).Start }
+    if ($null -eq $diagStart -or $diagStart -eq 0) {
+        $results += New-CheckResult -Name 'DiagTrack Disabled' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'PASS' -Current 'Disabled (Start=0)' -Expected 'Disabled'
+    } else {
+        $results += New-CheckResult -Name 'DiagTrack Disabled' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'WARN' -Current ('Enabled (Start=' + $diagStart + ')') -Expected 'Disabled (Start=0)' `
+            -Message 'DiagTrack telemetry autologger consumes background CPU and respawns constantly.' `
+            -Fix ('Set-ItemProperty -Path "' + $diagKey + '" -Name Start -Value 0 -Type DWord') `
+            -FixNote 'Reboot required. Or run exp15_latency_mitigations_apply.ps1.'
+    }
+
+    # --- Check: Defender Shader Cache Exclusion ---
+    $dxCache  = $env:LOCALAPPDATA + '\NVIDIA\DXCache'
+    $d3dCache = $env:LOCALAPPDATA + '\D3DSCache'
+    $existingPaths = @()
+    try { $existingPaths = @((Get-MpPreference -ErrorAction Stop).ExclusionPath) } catch {}
+    $hasDx  = $existingPaths -contains $dxCache
+    $hasD3d = $existingPaths -contains $d3dCache
+    if ($hasDx -and $hasD3d) {
+        $results += New-CheckResult -Name 'Defender Shader Exclusion' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'PASS' -Current 'DXCache + D3DSCache excluded' -Expected 'Both excluded'
+    } else {
+        $missing = @()
+        if (-not $hasDx)  { $missing += 'NVIDIA DXCache' }
+        if (-not $hasD3d) { $missing += 'D3DSCache' }
+        $missingStr = $missing -join ', '
+        $results += New-CheckResult -Name 'Defender Shader Exclusion' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'WARN' -Current ('Missing: ' + $missingStr) -Expected 'DXCache + D3DSCache excluded' `
+            -Message 'Defender scans shader cache files during gameplay, causing micro-stutter on shader compilation.' `
+            -Fix ('Add-MpPreference -ExclusionPath "' + $dxCache + '"; Add-MpPreference -ExclusionPath "' + $d3dCache + '"') `
+            -FixNote 'Or run exp15_latency_mitigations_apply.ps1.'
+    }
+
+    return $results
+}
