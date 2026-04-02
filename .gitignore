@@ -15,6 +15,7 @@ captures/archive/
 captures/audits/*.json
 captures/audits/*.html
 captures/audits/*.ps1
+captures/audits/history.csv
 
 # OS artifacts
 Thumbs.db
