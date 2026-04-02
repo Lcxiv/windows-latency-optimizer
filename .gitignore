@@ -11,6 +11,11 @@ captures/**/*.NGENPDB/
 # Archived experiment data (kept locally, not pushed)
 captures/archive/
 
+# Audit output (regenerated on each run)
+captures/audits/*.json
+captures/audits/*.html
+captures/audits/*.ps1
+
 # OS artifacts
 Thumbs.db
 desktop.ini
