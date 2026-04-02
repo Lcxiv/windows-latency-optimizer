@@ -66,8 +66,10 @@ function Get-SystemInfo {
     $cpu = Get-WmiObject Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($cpu) { $info.cpu = $cpu.Name.Trim() }
 
-    # GPU
-    $gpu = Get-WmiObject Win32_VideoController -ErrorAction SilentlyContinue | Select-Object -First 1
+    # GPU — prefer dedicated adapter over Basic Display Adapter
+    $gpus = @(Get-WmiObject Win32_VideoController -ErrorAction SilentlyContinue)
+    $gpu  = $gpus | Where-Object { $_.Name -notlike '*Basic*' -and $_.Status -eq 'OK' } | Select-Object -First 1
+    if ($null -eq $gpu) { $gpu = $gpus | Select-Object -First 1 }
     if ($gpu) {
         $info.gpu       = $gpu.Name
         $info.gpuDriver = $gpu.DriverVersion
@@ -480,12 +482,28 @@ function Invoke-NicChecks {
 function Invoke-GpuChecks {
     $results = @()
 
-    # Detect NVIDIA GPU
+    # Detect NVIDIA GPU — match PCI device to display adapter (not USB controller)
     $nvKey = $null
     try {
-        $nvKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction Stop |
-            Where-Object { $_.PSChildName -like 'VEN_10DE*' } | Select-Object -First 1
+        $gpuPnp = Get-WmiObject Win32_VideoController -ErrorAction Stop |
+            Where-Object { $_.PNPDeviceID -like 'PCI\VEN_10DE*' -and $_.Status -eq 'OK' } |
+            Select-Object -First 1
+        if ($null -ne $gpuPnp) {
+            # Extract VEN&DEV portion to match registry key
+            $pnpParts = $gpuPnp.PNPDeviceID.Split('\')
+            $venDev   = $pnpParts[1]  # e.g. VEN_10DE&DEV_2C05&SUBSYS_...
+            $nvKey    = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction Stop |
+                Where-Object { $_.PSChildName -eq $venDev } | Select-Object -First 1
+        }
     } catch {}
+    # Fallback: if WMI didn't find it, try first VEN_10DE PCI entry with a display class
+    if ($null -eq $nvKey) {
+        try {
+            $nvKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction Stop |
+                Where-Object { $_.PSChildName -like 'VEN_10DE*DEV_2*' -or $_.PSChildName -like 'VEN_10DE*DEV_1*' } |
+                Select-Object -First 1
+        } catch {}
+    }
 
     if ($null -eq $nvKey) {
         $nv = New-CheckResult -Name 'GPU (all checks)' -Category 'GPU' -Tier 'Quick' -Severity 'MEDIUM' `
@@ -494,8 +512,12 @@ function Invoke-GpuChecks {
         return $results
     }
 
+    # Get instance sub-key (VEN&DEV key has one child = the instance ID)
+    $nvInstance = Get-ChildItem $nvKey.PSPath -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -eq $nvInstance) { $nvInstance = $nvKey }
+
     # --- Check 17: GPU MSI Mode ---
-    $msiPath = $nvKey.PSPath + '\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
+    $msiPath = $nvInstance.PSPath + '\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
     $msiVal  = $null
     try { $msiVal = (Get-ItemProperty $msiPath -ErrorAction Stop).MSISupported } catch {}
     if ($null -eq $msiVal) {
@@ -514,7 +536,7 @@ function Invoke-GpuChecks {
     }
 
     # --- Check 18: GPU Interrupt Affinity ---
-    $gpuAffPath    = $nvKey.PSPath + '\Device Parameters\Interrupt Management\Affinity Policy'
+    $gpuAffPath    = $nvInstance.PSPath + '\Device Parameters\Interrupt Management\Affinity Policy'
     $gpuAffDetail  = 'Not set (default CPU 0)'
     $gpuAffStatus  = 'WARN'
     try {
