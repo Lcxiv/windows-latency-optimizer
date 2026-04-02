@@ -89,7 +89,7 @@ function Parse-FrameCSV {
         $wEnd   = [math]::Min($frameTimes.Count - 1, $i + $halfWindow)
         $window = @($frameTimes[$wStart..$wEnd] | Sort-Object)
         $median = $window[[math]::Floor($window.Count / 2)]
-        if ($frameTimes[$i] -gt ($median * 2) -and $median -gt 0) {
+        if ($frameTimes[$i] -gt ($median * 2) -and $frameTimes[$i] -lt 50 -and $median -gt 0) {
             $stutters += @{
                 frameIndex  = $i
                 frameTimeMs = [math]::Round($frameTimes[$i], 2)
@@ -361,7 +361,13 @@ function Invoke-ProcMonCapture {
     Log 'Starting ProcMon capture...'
 
     try {
+        # Use gaming config with Duration column if available
+        $pmcFile = Join-Path $PSScriptRoot 'procmon_gaming.pmc'
         $pmArgs = '/AcceptEula /BackingFile "' + $pmlFile + '" /Runtime ' + $DurationSec + ' /Quiet /Minimized'
+        if (Test-Path $pmcFile) {
+            $pmArgs = '/AcceptEula /LoadConfig "' + $pmcFile + '" /BackingFile "' + $pmlFile + '" /Runtime ' + $DurationSec + ' /Quiet /Minimized'
+            Log 'Using procmon_gaming.pmc (Duration column enabled)' 'INFO'
+        }
         Start-Process -FilePath $procmonPath -ArgumentList $pmArgs -NoNewWindow -ErrorAction Stop
         Log ('ProcMon started: ' + $DurationSec + 's capture to ' + $pmlFile) 'PASS'
         return $pmlFile
@@ -532,6 +538,116 @@ function Analyze-ProcMonCSV {
     if ($highDuration.Count -gt 0) {
         $topOp = $highDuration[0]
         Log ('  Slowest op: ' + $topOp.process + ' ' + $topOp.operation + ' ' + $topOp.duration + 'ms') 'INFO'
+    }
+
+    return $result
+}
+
+function Start-DefenderRecording {
+    <#
+    .SYNOPSIS
+        Start a Defender performance recording (New-MpPerformanceRecording).
+        Runs as a background job so it doesn't block the pipeline.
+    .OUTPUTS
+        [hashtable] with job and etlPath, or $null if failed.
+    #>
+    param(
+        [string]$OutDir,
+        [switch]$SkipDefenderRecording
+    )
+
+    if ($SkipDefenderRecording) { return $null }
+
+    # Check if cmdlet exists
+    $cmd = Get-Command New-MpPerformanceRecording -ErrorAction SilentlyContinue
+    if ($null -eq $cmd) {
+        Log 'New-MpPerformanceRecording not available (requires Defender platform 4.18.2108+)' 'INFO'
+        return $null
+    }
+
+    $defEtl = Join-Path $OutDir 'defender_perf.etl'
+    Log 'Starting Defender performance recording...'
+
+    try {
+        # Cancel any existing WPR recording from Defender (uses its own WPR instance)
+        wpr -cancel -instancename MSFT_MpPerformanceRecording 2>&1 | Out-Null
+
+        $job = Start-Job -ScriptBlock {
+            param($etlPath)
+            New-MpPerformanceRecording -RecordTo $etlPath
+        } -ArgumentList $defEtl
+        Log 'Defender recording started (background job)' 'PASS'
+        return @{ job = $job; etlPath = $defEtl }
+    } catch {
+        Log ('Defender recording failed: ' + $_.Exception.Message) 'WARN'
+        return $null
+    }
+}
+
+function Stop-DefenderRecording {
+    <#
+    .SYNOPSIS
+        Stop a Defender performance recording and analyze results.
+    .OUTPUTS
+        [hashtable] with topFiles, topProcesses, topExtensions, or $null.
+    #>
+    param(
+        $RecordingInfo,
+        [string]$OutDir
+    )
+
+    if ($null -eq $RecordingInfo) { return $null }
+
+    Log 'Stopping Defender performance recording...'
+
+    try {
+        # The job is waiting for Enter key — stop it
+        Stop-Job $RecordingInfo.job -ErrorAction SilentlyContinue
+        Remove-Job $RecordingInfo.job -Force -ErrorAction SilentlyContinue
+    } catch {}
+
+    # Wait briefly for ETL to be written
+    Start-Sleep -Seconds 2
+
+    if (-not (Test-Path $RecordingInfo.etlPath)) {
+        Log 'Defender ETL not generated' 'WARN'
+        return $null
+    }
+
+    $etlSize = [math]::Round((Get-Item $RecordingInfo.etlPath).Length / 1MB, 1)
+    Log ('Defender ETL: ' + $etlSize + ' MB') 'PASS'
+
+    # Analyze
+    $result = @{
+        etlFile       = 'defender_perf.etl'
+        etlSizeMB     = $etlSize
+        topFiles      = @()
+        topProcesses  = @()
+        topExtensions = @()
+    }
+
+    try {
+        $report = Get-MpPerformanceReport -Path $RecordingInfo.etlPath -TopFiles 10 -TopProcesses 5 -TopExtensions 5 -ErrorAction Stop
+
+        if ($null -ne $report.TopFiles) {
+            $result.topFiles = @($report.TopFiles | Select-Object -First 10 | ForEach-Object {
+                @{ path = $_.Path; count = $_.Count; totalDurationMs = [math]::Round($_.Duration.TotalMilliseconds, 1) }
+            })
+        }
+        if ($null -ne $report.TopProcesses) {
+            $result.topProcesses = @($report.TopProcesses | Select-Object -First 5 | ForEach-Object {
+                @{ process = $_.Process; count = $_.Count; totalDurationMs = [math]::Round($_.Duration.TotalMilliseconds, 1) }
+            })
+        }
+        if ($null -ne $report.TopExtensions) {
+            $result.topExtensions = @($report.TopExtensions | Select-Object -First 5 | ForEach-Object {
+                @{ extension = $_.Extension; count = $_.Count; totalDurationMs = [math]::Round($_.Duration.TotalMilliseconds, 1) }
+            })
+        }
+
+        Log ('Defender top file scans: ' + $result.topFiles.Count) 'INFO'
+    } catch {
+        Log ('Defender report analysis failed: ' + $_.Exception.Message) 'WARN'
     }
 
     return $result
@@ -1099,7 +1215,8 @@ function Save-ExperimentJson {
         $FrameTimingData,
         $GpuUtilData,
         $NetworkLatencyData,
-        $ProcMonData = $null
+        $ProcMonData = $null,
+        $DefenderData = $null
     )
 
     Log ''
@@ -1138,6 +1255,7 @@ function Save-ExperimentJson {
         networkLatency    = $NetworkLatencyData
         cswitchAnalysis   = $null
         procmonAnalysis   = $ProcMonData
+        defenderAnalysis  = $DefenderData
     }
 
     $jsonFile = Join-Path $OutDir 'experiment.json'
