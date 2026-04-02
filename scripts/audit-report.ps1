@@ -251,7 +251,7 @@ function New-AuditHtmlReport {
     $html += 'function toggleDetail(id){var r=document.getElementById(id);r.classList.toggle("open");}'
     $html += 'function filterRows(status){document.querySelectorAll(".filter-btn").forEach(function(b){b.classList.toggle("active",b.dataset.filter===status)});'
     $html += 'document.querySelectorAll(".check-row").forEach(function(r){var s=r.dataset.status;var show=(status==="all"||s===status);r.style.display=show?"":"none";'
-    $html += 'var next=r.nextElementSibling;if(next&&next.classList.contains("detail-row")){if(!show){next.classList.remove("open")}next.style.display=show?"""none";}});}'
+    $html += 'var next=r.nextElementSibling;if(next&&next.classList.contains("detail-row")){if(!show){next.classList.remove("open")}next.style.display=show?"":"none";}});}'
     $html += 'function copyFix(btn){var t=btn.dataset.fix;var ta=document.createElement("textarea");ta.value=t.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,''\"'');'
     $html += 'document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy"},1500);}'
     $html += '</script>'
