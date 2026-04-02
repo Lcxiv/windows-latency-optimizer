@@ -50,9 +50,9 @@ function New-AuditHtmlReport {
     $cats = @('OS','NIC','GPU','Memory','Peripheral','Network')
     $catHtml = ''
     foreach ($cat in $cats) {
-        $catChecks = $Checks | Where-Object { $_.category -eq $cat }
-        $catPass   = ($catChecks | Where-Object { $_.status -eq 'PASS' }).Count
-        $catTotal  = ($catChecks | Where-Object { $_.status -ne 'SKIP' -and $_.status -ne 'ERROR' }).Count
+        $catChecks = @($Checks | Where-Object { $_.category -eq $cat })
+        $catPass   = @($catChecks | Where-Object { $_.status -eq 'PASS' }).Count
+        $catTotal  = @($catChecks | Where-Object { $_.status -ne 'SKIP' -and $_.status -ne 'ERROR' }).Count
         $catScore  = 0
         if ($catTotal -gt 0) { $catScore = [math]::Round(($catPass / $catTotal) * 100) }
         $catColor  = '#ef4444'
