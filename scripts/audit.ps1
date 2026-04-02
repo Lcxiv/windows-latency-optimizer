@@ -58,11 +58,11 @@ if ($Mode -eq 'Deep') {
 }
 
 # --- Aggregate results ---
-$pass  = ($allChecks | Where-Object { $_.status -eq 'PASS'  }).Count
-$warn  = ($allChecks | Where-Object { $_.status -eq 'WARN'  }).Count
-$fail  = ($allChecks | Where-Object { $_.status -eq 'FAIL'  }).Count
-$skip  = ($allChecks | Where-Object { $_.status -eq 'SKIP'  }).Count
-$errCount = ($allChecks | Where-Object { $_.status -eq 'ERROR' }).Count
+$pass  = @($allChecks | Where-Object { $_.status -eq 'PASS'  }).Count
+$warn  = @($allChecks | Where-Object { $_.status -eq 'WARN'  }).Count
+$fail  = @($allChecks | Where-Object { $_.status -eq 'FAIL'  }).Count
+$skip  = @($allChecks | Where-Object { $_.status -eq 'SKIP'  }).Count
+$errCount = @($allChecks | Where-Object { $_.status -eq 'ERROR' }).Count
 $denom = $allChecks.Count - $skip - $errCount
 $score = 0
 if ($denom -gt 0) { $score = [math]::Round(($pass / $denom) * 100) }
@@ -102,7 +102,7 @@ Write-Host ('HTML:  ' + $htmlPath) -ForegroundColor Green
 
 # --- Fix script ---
 if ($GenerateFix) {
-    $fixItems = $allChecks | Where-Object { ($_.status -eq 'FAIL' -or $_.status -eq 'WARN') -and $_.fix -ne '' -and $null -ne $_.fix }
+    $fixItems = @($allChecks | Where-Object { ($_.status -eq 'FAIL' -or $_.status -eq 'WARN') -and $_.fix -ne '' -and $null -ne $_.fix })
     if ($fixItems.Count -eq 0) {
         Write-Host 'No fixable items found — fix script not generated.' -ForegroundColor Yellow
     } else {
