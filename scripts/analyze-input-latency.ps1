@@ -160,6 +160,116 @@ foreach ($pName in $providers.Keys) {
     }
 }
 
+# --- Stage 2B: DWM frame timing extraction (fallback for PresentMon) ---
+Write-Host ''
+Write-Host '[2B/4] Extracting DWM frame timing from DxgKrnl events...' -ForegroundColor Yellow
+
+$dwmFrameTiming = $null
+$dxgiDumpFile = Join-Path $OutDir 'events_DXGI_Present.txt'
+if (Test-Path $dxgiDumpFile) {
+    # Parse DXGI Present/Start event timestamps from xperf dumper output
+    # Format: "Microsoft-Windows-DXGI/Present/win:Start, TIMESTAMP, process (PID), ..."
+    $timestamps = @()
+    foreach ($line in (Get-Content $dxgiDumpFile)) {
+        if ($line -match 'DXGI/Present/win:Start,\s+(\d+),') {
+            $timestamps += [double]$Matches[1]
+        }
+    }
+    if ($timestamps.Count -gt 10) {
+        # Compute inter-present deltas as frame times (microseconds -> milliseconds)
+        $frameTimes = @()
+        for ($i = 1; $i -lt $timestamps.Count; $i++) {
+            $deltaUs = $timestamps[$i] - $timestamps[$i - 1]
+            $deltaMs = $deltaUs / 1000.0
+            # Filter: 1ms < frame time < 200ms (0.5fps to 1000fps range)
+            if ($deltaMs -gt 1 -and $deltaMs -lt 200) {
+                $frameTimes += $deltaMs
+            }
+        }
+        if ($frameTimes.Count -gt 10) {
+            $sorted = $frameTimes | Sort-Object
+            $ftCount = $sorted.Count
+            $ftAvg   = ($sorted | Measure-Object -Average).Average
+            $ftP50   = $sorted[[math]::Floor($ftCount * 0.50)]
+            $ftP95   = $sorted[[math]::Floor($ftCount * 0.95)]
+            $ftP99   = $sorted[[math]::Floor($ftCount * 0.99)]
+
+            # Stutter detection
+            $ftStutters  = @()
+            $halfWin     = 15
+            for ($i = 0; $i -lt $frameTimes.Count; $i++) {
+                $wS = [math]::Max(0, $i - $halfWin)
+                $wE = [math]::Min($frameTimes.Count - 1, $i + $halfWin)
+                $win = @($frameTimes[$wS..$wE] | Sort-Object)
+                $med = $win[[math]::Floor($win.Count / 2)]
+                if ($frameTimes[$i] -gt ($med * 2) -and $med -gt 0) {
+                    $ftStutters += @{
+                        frameIndex  = $i
+                        frameTimeMs = [math]::Round($frameTimes[$i], 2)
+                        medianMs    = [math]::Round($med, 2)
+                    }
+                }
+            }
+
+            $dwmFrameTiming = @{
+                source        = 'DxgKrnl-Present'
+                totalFrames   = $ftCount
+                stutterCount  = $ftStutters.Count
+                stutters      = $ftStutters
+                frameTimeMs   = @{
+                    avg  = [math]::Round($ftAvg, 2)
+                    p50  = [math]::Round($ftP50, 2)
+                    p95  = [math]::Round($ftP95, 2)
+                    p99  = [math]::Round($ftP99, 2)
+                    max  = [math]::Round($sorted[-1], 2)
+                    min  = [math]::Round($sorted[0], 2)
+                }
+                fps = @{
+                    avg   = [math]::Round(1000.0 / $ftAvg, 1)
+                    p1Low = [math]::Round(1000.0 / $ftP99, 1)
+                }
+            }
+            Write-Host ('  Extracted ' + $ftCount + ' frames from DXGI presents') -ForegroundColor Green
+            Write-Host ('  P50: ' + [math]::Round($ftP50, 1) + 'ms | P95: ' + [math]::Round($ftP95, 1) + 'ms | P99: ' + [math]::Round($ftP99, 1) + 'ms') -ForegroundColor Green
+            Write-Host ('  Stutters: ' + $ftStutters.Count) -ForegroundColor Green
+        } else {
+            Write-Host '  Not enough valid frame deltas (need >10)' -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host '  Not enough timestamps in DXGI dump (need >10)' -ForegroundColor Yellow
+    }
+} else {
+    Write-Host '  DXGI dump file not found — run with InputLatency profile' -ForegroundColor Yellow
+}
+
+$result['frameTiming'] = $dwmFrameTiming
+
+# --- Stage 2C: DPC-to-stutter correlation ---
+if ($null -ne $dwmFrameTiming -and $dwmFrameTiming.stutterCount -gt 0 -and $result.dpcHistogram.Count -gt 0) {
+    Write-Host ''
+    Write-Host '[2C/4] Correlating stutters with DPC drivers...' -ForegroundColor Yellow
+    # Best-effort: blame the driver with the highest max DPC latency
+    # (precise per-event correlation requires WPA-level analysis)
+    $topDpcDriver = ($result.dpcHistogram | Select-Object -First 1)
+    $correlations = @()
+    foreach ($st in $dwmFrameTiming.stutters) {
+        $blamed = 'unknown'
+        $blamedUs = 0
+        if ($null -ne $topDpcDriver) {
+            $blamed = $topDpcDriver.module
+            $blamedUs = $topDpcDriver.maxUs
+        }
+        $correlations += @{
+            frameIndex   = $st.frameIndex
+            frameTimeMs  = $st.frameTimeMs
+            blamedDriver = $blamed
+            dpcMaxUs     = $blamedUs
+        }
+    }
+    $result['stutterCorrelation'] = $correlations
+    Write-Host ('  ' + $correlations.Count + ' stutter(s) correlated (top DPC: ' + $topDpcDriver.module + ' ' + $topDpcDriver.maxUs + 'us)') -ForegroundColor Green
+}
+
 # --- Stage 3: Pipeline stage summary ---
 Write-Host ''
 Write-Host '[3/4] Pipeline stage summary...' -ForegroundColor Yellow
