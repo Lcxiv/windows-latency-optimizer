@@ -258,6 +258,44 @@ function Build-AdvancedTab($PipelineData) {
         }
         $h += '</tbody></table></div>'
     }
+    # ProcMon analysis
+    if ($null -ne $PipelineData.procmonAnalysis) {
+        $pm = $PipelineData.procmonAnalysis
+        $h += '<div class="adv-section"><div class="adv-title">PROCMON ANALYSIS (' + $pm.totalEvents + ' events)</div>'
+        # Top processes
+        if ($null -ne $pm.topProcesses -and $pm.topProcesses.Count -gt 0) {
+            $h += '<table class="adv-table"><thead><tr><th>Process</th><th>Events</th><th>%</th></tr></thead><tbody>'
+            foreach ($tp in $pm.topProcesses) {
+                $h += '<tr><td>' + (Esc $tp.process) + '</td><td class="mono">' + $tp.count + '</td><td class="mono">' + $tp.pct + '</td></tr>'
+            }
+            $h += '</tbody></table>'
+        }
+        # High-duration operations
+        if ($null -ne $pm.highDuration -and $pm.highDuration.Count -gt 0) {
+            $h += '<div style="margin-top:12px"><div class="adv-title">HIGH-DURATION OPERATIONS (&gt;1ms) — Top 20</div>'
+            $h += '<table class="adv-table"><thead><tr><th>Process</th><th>Operation</th><th>Duration (ms)</th><th>Path</th></tr></thead><tbody>'
+            $shown = 0
+            foreach ($op in $pm.highDuration) {
+                if ($shown -ge 20) { break }
+                $shown++
+                $shortPath = $op.path
+                if ($null -ne $shortPath -and $shortPath.Length -gt 60) { $shortPath = $shortPath.Substring(0, 57) + '...' }
+                $durColor = Get-BarColor ([int]($op.duration * 1000))
+                $h += '<tr><td>' + (Esc $op.process) + '</td><td class="mono">' + (Esc $op.operation) + '</td>'
+                $h += '<td class="mono" style="color:' + $durColor + '">' + $op.duration + '</td>'
+                $h += '<td class="mono" style="font-size:10px;color:var(--muted)">' + (Esc $shortPath) + '</td></tr>'
+            }
+            $h += '</tbody></table></div>'
+        }
+        # Defender + anti-cheat
+        if ($pm.defenderCount -gt 0) {
+            $h += '<div style="margin-top:8px;font-size:11px;color:var(--amber)">Defender (MsMpEng.exe): ' + $pm.defenderCount + ' events</div>'
+        }
+        if ($pm.antiCheatCount -gt 0) {
+            $h += '<div style="margin-top:4px;font-size:11px;color:var(--amber)">Anti-cheat: ' + $pm.antiCheatCount + ' events</div>'
+        }
+        $h += '</div>'
+    }
     return $h
 }
 
