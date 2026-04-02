@@ -129,9 +129,46 @@ try {
     }
 } catch {}
 
+# --- Load latest pipeline data for report ---
+$pipelineData = $null
+$expRoot = Join-Path $projectRoot 'captures\experiments'
+if (Test-Path $expRoot) {
+    $expDirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
+    if ($expDirs.Count -gt 0) {
+        $latestJson = Join-Path $expDirs[0].FullName 'experiment.json'
+        if (Test-Path $latestJson) {
+            $expAge = (Get-Date) - (Get-Item $latestJson).LastWriteTime
+            if ($expAge.TotalHours -lt 24) {
+                try {
+                    $expData = Get-Content $latestJson -Raw | ConvertFrom-Json -ErrorAction Stop
+                    $pipelineData = @{
+                        label             = $expData.label
+                        capturedAt        = $expData.capturedAt
+                        dpcIsrAnalysis    = $expData.dpcIsrAnalysis
+                        frameTiming       = $expData.frameTiming
+                        cpuData           = $expData.cpuData
+                        cpuTotal          = $expData.cpuTotal
+                        interruptTopology = $expData.interruptTopology
+                        gpuUtilization    = $expData.gpuUtilization
+                    }
+                    # Also load input latency analysis if present
+                    $inputJson = Join-Path $expDirs[0].FullName 'input_latency_analysis.json'
+                    if (Test-Path $inputJson) {
+                        $inputData = Get-Content $inputJson -Raw | ConvertFrom-Json -ErrorAction Stop
+                        $pipelineData['inputLatency'] = $inputData
+                    }
+                    if (-not $Quiet) { Write-Host ('Pipeline: loaded from ' + $expDirs[0].Name) -ForegroundColor Cyan }
+                } catch {
+                    if (-not $Quiet) { Write-Host ('Pipeline: failed to load — ' + $_.Exception.Message) -ForegroundColor Yellow }
+                }
+            }
+        }
+    }
+}
+
 # --- Write HTML ---
 $htmlPath = Join-Path $OutDir ('audit_' + $timestamp + '.html')
-$html = New-AuditHtmlReport -Summary $summary -Checks $allChecks -SystemInfo $sysInfo -AuditedAt $auditedAt -Mode $Mode -History $historyData
+$html = New-AuditHtmlReport -Summary $summary -Checks $allChecks -SystemInfo $sysInfo -AuditedAt $auditedAt -Mode $Mode -History $historyData -PipelineData $pipelineData
 $html | Out-File -FilePath $htmlPath -Encoding UTF8
 if (-not $Quiet) { Write-Host ('HTML:  ' + $htmlPath) -ForegroundColor Green }
 
