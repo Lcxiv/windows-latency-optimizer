@@ -321,6 +321,222 @@ function Find-ForegroundGame {
     return $null
 }
 
+function Invoke-ProcMonCapture {
+    <#
+    .SYNOPSIS
+        Start ProcMon automated capture (non-blocking). Returns backing file path or $null.
+    .DESCRIPTION
+        Launches Procmon64.exe with /BackingFile, /Runtime, /Quiet, /Minimized.
+        After capture completes, converts PML to CSV for analysis.
+    #>
+    param(
+        [string]$OutDir,
+        [int]$DurationSec,
+        [switch]$SkipProcMon
+    )
+
+    if ($SkipProcMon) { return $null }
+
+    $procmonPath = 'C:\Users\L\Desktop\ProcessMonitor\Procmon64.exe'
+    if (-not (Test-Path $procmonPath)) {
+        # Try common alternative locations
+        $altPaths = @(
+            'C:\Tools\Procmon64.exe',
+            'C:\SysinternalsSuite\Procmon64.exe'
+        )
+        foreach ($alt in $altPaths) {
+            if (Test-Path $alt) { $procmonPath = $alt; break }
+        }
+        if (-not (Test-Path $procmonPath)) {
+            Log 'Procmon64.exe not found — skipping ProcMon capture' 'INFO'
+            return $null
+        }
+    }
+
+    # Terminate any existing ProcMon instance
+    & $procmonPath /AcceptEula /Terminate 2>&1 | Out-Null
+    Start-Sleep -Seconds 1
+
+    $pmlFile = Join-Path $OutDir 'procmon_capture.pml'
+    Log 'Starting ProcMon capture...'
+
+    try {
+        $pmArgs = '/AcceptEula /BackingFile "' + $pmlFile + '" /Runtime ' + $DurationSec + ' /Quiet /Minimized'
+        Start-Process -FilePath $procmonPath -ArgumentList $pmArgs -NoNewWindow -ErrorAction Stop
+        Log ('ProcMon started: ' + $DurationSec + 's capture to ' + $pmlFile) 'PASS'
+        return $pmlFile
+    } catch {
+        Log ('ProcMon failed to start: ' + $_.Exception.Message) 'WARN'
+        return $null
+    }
+}
+
+function Convert-ProcMonToCSV {
+    <#
+    .SYNOPSIS
+        Convert ProcMon PML file to CSV after capture completes.
+    .OUTPUTS
+        [string] CSV file path, or $null if conversion failed.
+    #>
+    param(
+        [string]$PmlFile,
+        [string]$OutDir
+    )
+
+    if (-not (Test-Path $PmlFile)) { return $null }
+
+    $procmonPath = 'C:\Users\L\Desktop\ProcessMonitor\Procmon64.exe'
+    if (-not (Test-Path $procmonPath)) { return $null }
+
+    $csvFile = Join-Path $OutDir 'procmon_capture.csv'
+    Log 'Converting ProcMon PML to CSV...'
+
+    try {
+        & $procmonPath /AcceptEula /OpenLog $PmlFile /SaveAs $csvFile /SaveApplyFilter 2>&1 | Out-Null
+        # ProcMon opens a GUI briefly during conversion — wait for it to close
+        $waited = 0
+        while ($waited -lt 30) {
+            Start-Sleep -Seconds 2
+            $waited += 2
+            if (Test-Path $csvFile) {
+                $csvSize = (Get-Item $csvFile).Length
+                if ($csvSize -gt 100) {
+                    # Wait a bit more for file to finish writing
+                    Start-Sleep -Seconds 2
+                    break
+                }
+            }
+        }
+        # Terminate ProcMon GUI
+        & $procmonPath /Terminate 2>&1 | Out-Null
+
+        if (Test-Path $csvFile) {
+            $csvSizeMB = [math]::Round((Get-Item $csvFile).Length / 1MB, 1)
+            Log ('ProcMon CSV: ' + $csvSizeMB + ' MB') 'PASS'
+            return $csvFile
+        } else {
+            Log 'ProcMon CSV conversion failed' 'WARN'
+            return $null
+        }
+    } catch {
+        Log ('ProcMon conversion error: ' + $_.Exception.Message) 'WARN'
+        return $null
+    }
+}
+
+function Analyze-ProcMonCSV {
+    <#
+    .SYNOPSIS
+        Analyze ProcMon CSV for latency-relevant activity.
+    .DESCRIPTION
+        Extracts: top processes by event count, high-duration operations (>1ms),
+        file I/O hotspots, registry access patterns, and Defender/anti-cheat activity.
+    .OUTPUTS
+        [hashtable] with topProcesses, highDuration, defenderActivity, antiCheatActivity, ioHotspots
+    #>
+    param(
+        [string]$CsvPath
+    )
+
+    if (-not (Test-Path $CsvPath)) { return $null }
+
+    Log 'Analyzing ProcMon CSV...'
+    $csv = @(Import-Csv $CsvPath -ErrorAction SilentlyContinue)
+    if ($csv.Count -eq 0) { Log 'ProcMon CSV empty' 'WARN'; return $null }
+
+    $total = $csv.Count
+    Log ('  Total events: ' + $total) 'INFO'
+
+    # Top processes by event count
+    $topProcs = @($csv | Group-Object 'Process Name' |
+        Sort-Object Count -Descending |
+        Select-Object -First 15 |
+        ForEach-Object {
+            @{
+                process = $_.Name
+                count   = $_.Count
+                pct     = [math]::Round($_.Count / $total * 100, 1)
+            }
+        })
+
+    # High-duration operations (>1ms = potential stall)
+    $highDuration = @()
+    foreach ($row in $csv) {
+        $durStr = $row.Duration
+        if ($null -eq $durStr -or $durStr -eq '') { continue }
+        $dur = 0
+        try { $dur = [double]$durStr } catch { continue }
+        if ($dur -gt 0.001) {
+            $highDuration += @{
+                time      = $row.'Time of Day'
+                process   = $row.'Process Name'
+                pid       = $row.PID
+                operation = $row.Operation
+                path      = $row.Path
+                duration  = [math]::Round($dur * 1000, 2)
+                result    = $row.Result
+            }
+        }
+    }
+    $highDuration = @($highDuration | Sort-Object { $_.duration } -Descending | Select-Object -First 50)
+    Log ('  High-duration ops (>1ms): ' + $highDuration.Count) 'INFO'
+
+    # Defender activity
+    $defenderEvents = @($csv | Where-Object { $_.'Process Name' -eq 'MsMpEng.exe' })
+    $defenderOps = @()
+    if ($defenderEvents.Count -gt 0) {
+        $defenderOps = @($defenderEvents | Group-Object Operation |
+            Sort-Object Count -Descending |
+            Select-Object -First 5 |
+            ForEach-Object { @{ operation = $_.Name; count = $_.Count } })
+    }
+
+    # Anti-cheat activity
+    $acPatterns  = @('EasyAntiCheat', 'BEService', 'vgc', 'vgk', 'EAC')
+    $acEvents    = @($csv | Where-Object {
+        $pname = $_.'Process Name'
+        $match = $false
+        foreach ($pat in $acPatterns) { if ($pname -like ('*' + $pat + '*')) { $match = $true; break } }
+        $match
+    })
+    $acSummary = @()
+    if ($acEvents.Count -gt 0) {
+        $acSummary = @($acEvents | Group-Object 'Process Name' |
+            Sort-Object Count -Descending |
+            ForEach-Object { @{ process = $_.Name; count = $_.Count } })
+    }
+
+    # I/O hotspot directories
+    $ioHotspots = @($csv | Where-Object { $_.Path -match '\\' -and ($_.Operation -match 'Read|Write|Create') } |
+        ForEach-Object {
+            $parts = $_.Path -split '\\'
+            $dirEnd = [math]::Min(4, $parts.Count)
+            $parts[0..($dirEnd - 1)] -join '\'
+        } |
+        Group-Object |
+        Sort-Object Count -Descending |
+        Select-Object -First 10 |
+        ForEach-Object { @{ directory = $_.Name; count = $_.Count } })
+
+    $result = @{
+        totalEvents     = $total
+        topProcesses    = $topProcs
+        highDuration    = $highDuration
+        defenderCount   = $defenderEvents.Count
+        defenderOps     = $defenderOps
+        antiCheatCount  = $acEvents.Count
+        antiCheatDetail = $acSummary
+        ioHotspots      = $ioHotspots
+    }
+
+    if ($highDuration.Count -gt 0) {
+        $topOp = $highDuration[0]
+        Log ('  Slowest op: ' + $topOp.process + ' ' + $topOp.operation + ' ' + $topOp.duration + 'ms') 'INFO'
+    }
+
+    return $result
+}
+
 function Invoke-PresentMonCapture {
     <#
     .SYNOPSIS
@@ -882,7 +1098,8 @@ function Save-ExperimentJson {
         $DpcIsrData,
         $FrameTimingData,
         $GpuUtilData,
-        $NetworkLatencyData
+        $NetworkLatencyData,
+        $ProcMonData = $null
     )
 
     Log ''
@@ -896,7 +1113,8 @@ function Save-ExperimentJson {
         $src = 'unknown'; if ($DpcIsrData.hasReport) { $src = 'xperf' }
         $dpcD = @(); if ($DpcIsrData.dpcDrivers) { $dpcD = $DpcIsrData.dpcDrivers }
         $isrD = @(); if ($DpcIsrData.isrDrivers) { $isrD = $DpcIsrData.isrDrivers }
-        $dpcIsrJson = @{ source = $src; dpcDrivers = $dpcD; isrDrivers = $isrD }
+        $alerts = @(); if ($DpcIsrData.dpcAlerts) { $alerts = $DpcIsrData.dpcAlerts }
+        $dpcIsrJson = @{ source = $src; dpcDrivers = $dpcD; isrDrivers = $isrD; dpcAlerts = $alerts }
     }
 
     $result = [ordered]@{
@@ -919,6 +1137,7 @@ function Save-ExperimentJson {
         gpuUtilization    = $GpuUtilData
         networkLatency    = $NetworkLatencyData
         cswitchAnalysis   = $null
+        procmonAnalysis   = $ProcMonData
     }
 
     $jsonFile = Join-Path $OutDir 'experiment.json'

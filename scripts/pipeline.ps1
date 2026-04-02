@@ -31,6 +31,7 @@ param(
 
     [string]$GameProcess = '',
     [switch]$SkipPresentMon,
+    [switch]$SkipProcMon,
     [switch]$SkipNetworkLatency
 )
 
@@ -82,6 +83,9 @@ if ($GameProcess -eq '' -and -not $SkipPresentMon) {
 }
 $pmProc = Invoke-PresentMonCapture -GameProcess $GameProcess -OutDir $outDir -DurationSec $DurationSec -SkipPresentMon:$SkipPresentMon
 
+# Start ProcMon capture (runs concurrently with perf counters)
+$procmonPml = Invoke-ProcMonCapture -OutDir $outDir -DurationSec $DurationSec -SkipProcMon:$SkipProcMon
+
 $perfResult = Invoke-PerfCounterCapture -DurationSec $DurationSec
 
 $cpuData       = $perfResult.cpuData
@@ -123,6 +127,27 @@ if ($wprStarted) {
     Log '=== Phase 4: Skipped - no WPR trace ==='
 }
 
+# ── PHASE 4B: ProcMon conversion + analysis ──────────────────────────────────
+$procmonData = $null
+if ($null -ne $procmonPml) {
+    Log ''
+    Log '=== Phase 4B: ProcMon analysis ==='
+    # Wait for ProcMon to finish (it auto-terminates after /Runtime seconds)
+    $pmWait = 0
+    while ($pmWait -lt ($DurationSec + 10)) {
+        Start-Sleep -Seconds 2
+        $pmWait += 2
+        if (Test-Path $procmonPml) {
+            $pmRunning = Get-Process -Name 'Procmon64' -ErrorAction SilentlyContinue
+            if ($null -eq $pmRunning) { break }
+        }
+    }
+    $procmonCsv = Convert-ProcMonToCSV -PmlFile $procmonPml -OutDir $outDir
+    if ($null -ne $procmonCsv) {
+        $procmonData = Analyze-ProcMonCSV -CsvPath $procmonCsv
+    }
+}
+
 # ── PHASE 5: Registry snapshot ───────────────────────────────────────────────
 $reg = Get-RegistrySnapshot
 
@@ -150,7 +175,7 @@ Save-ExperimentJson `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
     -Cpu0Share $cpu0Share -Cpu23Share $cpu23Share -Cpu47Share $cpu47Share `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
-    -NetworkLatencyData $networkData
+    -NetworkLatencyData $networkData -ProcMonData $procmonData
 
 # ── PHASE 8: Dashboard update ────────────────────────────────────────────────
 Update-DashboardData -ScriptRoot $scriptRoot -SkipDashboardUpdate:$SkipDashboardUpdate
