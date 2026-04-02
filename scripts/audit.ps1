@@ -64,6 +64,8 @@ if ($Mode -eq 'Deep') {
     $allChecks += Invoke-MemoryChecks
     $allChecks += Invoke-PeripheralChecks
     $allChecks += Invoke-NetworkChecks
+    $allChecks += Invoke-AntiCheatChecks
+    $allChecks += Invoke-NvidiaDpcHealthCheck
 }
 
 # --- Aggregate results ---

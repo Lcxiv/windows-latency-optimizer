@@ -137,8 +137,20 @@ function Start-WprCapture {
     Log ''
     Log '=== Phase 2: Starting WPR trace ==='
     try {
-        $wprArgs = @('-start', ($WPRProfile + '.' + $WPRDetail), '-filemode')
-        if ($WPRProfile -ne 'CPU') {
+        # Support custom .wprp profiles: InputLatency -> scripts/input-latency.wprp
+        $profileArg = $WPRProfile + '.' + $WPRDetail
+        if ($WPRProfile -eq 'InputLatency') {
+            $wprpPath = Join-Path $PSScriptRoot 'input-latency.wprp'
+            if (Test-Path $wprpPath) {
+                $profileArg = $wprpPath + '!InputLatency.Verbose.File'
+                Log ('Using custom WPR profile: ' + $wprpPath) 'INFO'
+            } else {
+                Log ('Custom .wprp not found: ' + $wprpPath + ' — falling back to GeneralProfile') 'WARN'
+                $profileArg = 'GeneralProfile.' + $WPRDetail
+            }
+        }
+        $wprArgs = @('-start', $profileArg, '-filemode')
+        if ($WPRProfile -ne 'CPU' -and $WPRProfile -ne 'InputLatency') {
             $wprArgs += @('-start', ('CPU.' + $WPRDetail))
         }
         $wprResult = & wpr @wprArgs 2>&1
@@ -320,7 +332,8 @@ function Stop-WprAndAnalyze {
     param(
         [string]$EtlFile,
         [string]$OutDir,
-        [string]$Description
+        [string]$Description,
+        [string]$WPRProfile = ''
     )
 
     $dpcIsrData = $null

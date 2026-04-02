@@ -271,7 +271,7 @@ function Invoke-OsChecks {
             -Fix '' -FixNote 'Settings -> Apps -> search GameInput -> uninstall older version'
     }
 
-    # --- Check 10: KB5077181 Stutter Bug ---
+    # --- Check 10: KB5077181 Stutter Bug (with multi-game FSO scan) ---
     $build = 0
     try { $build = [int](Get-WmiObject Win32_OperatingSystem -ErrorAction Stop).BuildNumber } catch {}
     if ($build -eq 26200) {
@@ -279,12 +279,56 @@ function Invoke-OsChecks {
         $kbList = ''
         if ($kbs) { $kbList = ($kbs | ForEach-Object { $_.HotFixID }) -join ', ' }
         if ($kbList -ne '') {
-            $results += New-CheckResult -Name 'KB5077181 Stutter Bug' -Category 'OS' -Tier 'Quick' -Severity 'MEDIUM' `
-                -Status 'WARN' -Current ('Installed: ' + $kbList) -Expected 'FSO disabled as mitigation' `
-                -Message 'KB5077181 introduced rhythmic gaming stutter on Build 26200 via FSO/DWM scheduling change.' `
-                -Source 'https://www.notebookcheck.net/Reddit-erupts-over-KB5077181-New-update-triggers-rhythmic-gaming-stutter.1228602.0.html' `
-                -Fix 'reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /v "C:\Program Files\Epic Games\Fortnite\FortniteGame\Binaries\Win64\FortniteClient-Win64-Shipping.exe" /t REG_SZ /d DISABLEDXMAXIMIZEDWINDOWEDMODE /f' `
-                -FixNote 'Disables FSO for Fortnite as mitigation. No reboot required.'
+            # Scan for game executables missing FSO mitigation
+            $gameDirs = @(
+                'C:\Program Files\Epic Games',
+                'C:\Program Files (x86)\Steam\steamapps\common',
+                'D:\SteamLibrary\steamapps\common',
+                'C:\Program Files\Riot Games'
+            )
+            $gameExes = @(
+                'FortniteClient-Win64-Shipping.exe', 'FPSAimTrainer.exe', 'cs2.exe',
+                'VALORANT-Win64-Shipping.exe', 'r5apex.exe', 'OverwatchOW.exe',
+                'RocketLeague.exe', 'PUBG-Win64-Shipping.exe'
+            )
+            $foundGames  = @()
+            $missingFso  = @()
+            $layersKey   = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers'
+            $layerProps  = $null
+            if (Test-Path $layersKey) { $layerProps = Get-ItemProperty $layersKey -ErrorAction SilentlyContinue }
+
+            foreach ($dir in $gameDirs) {
+                if (-not (Test-Path $dir)) { continue }
+                foreach ($exe in $gameExes) {
+                    $f = @(Get-ChildItem $dir -Filter $exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+                    if ($f.Count -gt 0) {
+                        $foundGames += $f[0].FullName
+                        $hasFso = $false
+                        if ($null -ne $layerProps) {
+                            $val = $layerProps.($f[0].FullName)
+                            if ($val -eq 'DISABLEDXMAXIMIZEDWINDOWEDMODE') { $hasFso = $true }
+                        }
+                        if (-not $hasFso) { $missingFso += $f[0].FullName }
+                    }
+                }
+            }
+
+            $fsoStatus = $foundGames.Count.ToString() + ' games found, ' + $missingFso.Count + ' missing FSO disable'
+            if ($missingFso.Count -eq 0 -and $foundGames.Count -gt 0) {
+                $results += New-CheckResult -Name 'KB5077181 Stutter Bug' -Category 'OS' -Tier 'Quick' -Severity 'MEDIUM' `
+                    -Status 'PASS' -Current ('Installed: ' + $kbList + ' | FSO mitigated for all ' + $foundGames.Count + ' games') -Expected 'FSO disabled for all games'
+            } else {
+                $fixCmd = '.\scripts\exp13_fso_mitigation_apply.ps1'
+                $fixNote = 'Run exp13_fso_mitigation_apply.ps1 to apply FSO disable to all detected games. No reboot required.'
+                if ($missingFso.Count -gt 0) {
+                    $fixNote = 'Missing FSO: ' + ($missingFso -join ', ') + '. Run exp13_fso_mitigation_apply.ps1'
+                }
+                $results += New-CheckResult -Name 'KB5077181 Stutter Bug' -Category 'OS' -Tier 'Quick' -Severity 'MEDIUM' `
+                    -Status 'WARN' -Current ('Installed: ' + $kbList + ' | ' + $fsoStatus) -Expected 'FSO disabled for all games' `
+                    -Message 'KB5077181 introduced rhythmic gaming stutter on Build 26200 via FSO/DWM scheduling change.' `
+                    -Source 'https://www.notebookcheck.net/Reddit-erupts-over-KB5077181-New-update-triggers-rhythmic-gaming-stutter.1228602.0.html' `
+                    -Fix $fixCmd -FixNote $fixNote
+            }
         } else {
             $results += New-CheckResult -Name 'KB5077181 Stutter Bug' -Category 'OS' -Tier 'Quick' -Severity 'MEDIUM' `
                 -Status 'PASS' -Current 'KB5077181/KB5079473 not installed' -Expected 'Not installed or FSO disabled'
@@ -901,6 +945,99 @@ function Invoke-NetworkChecks {
         $results += New-CheckResult -Name 'Network Latency Probe' -Category 'Network' -Tier 'Deep' -Severity 'INFO' `
             -Status 'FAIL' -Current $probeSummary -Expected 'p99 < 50ms' `
             -Message 'Very high p99 latency. Likely bufferbloat or ISP congestion. Run a bufferbloat test at waveform.com/tools/bufferbloat'
+    }
+
+    return $results
+}
+
+# ---------------------------------------------------------------------------
+# Deep Tier: Anti-Cheat Driver Detection
+# ---------------------------------------------------------------------------
+function Invoke-AntiCheatChecks {
+    $results = @()
+
+    $acDrivers = @(
+        @{ Name = 'EasyAntiCheat';  ServiceName = 'EasyAntiCheat' },
+        @{ Name = 'EAC EOS';        ServiceName = 'EasyAntiCheat_EOSSys' },
+        @{ Name = 'BattlEye';       ServiceName = 'BEService' },
+        @{ Name = 'Vanguard';       ServiceName = 'vgk' },
+        @{ Name = 'Vanguard (vgc)'; ServiceName = 'vgc' }
+    )
+
+    $detected = @()
+    foreach ($ac in $acDrivers) {
+        $svc = Get-Service -Name $ac.ServiceName -ErrorAction SilentlyContinue
+        if ($null -ne $svc) {
+            $detected += ($ac.Name + ' (' + $svc.Status + ')')
+        }
+    }
+
+    # Check fltmc for minifilter instances
+    $fltOutput = ''
+    try { $fltOutput = (fltmc instances 2>&1) -join ' ' } catch {}
+    if ($fltOutput -match 'EasyAntiCheat' -and $detected.Count -eq 0) {
+        $detected += 'EasyAntiCheat (minifilter active)'
+    }
+
+    if ($detected.Count -eq 0) {
+        $results += New-CheckResult -Name 'Anti-Cheat Drivers' -Category 'OS' -Tier 'Deep' -Severity 'INFO' `
+            -Status 'PASS' -Current 'No anti-cheat kernel drivers detected' -Expected 'None or known drivers'
+    } else {
+        $detectedStr = $detected -join ', '
+        $results += New-CheckResult -Name 'Anti-Cheat Drivers' -Category 'OS' -Tier 'Deep' -Severity 'INFO' `
+            -Status 'WARN' -Current $detectedStr -Expected 'Awareness only' `
+            -Message 'Anti-cheat drivers operate at kernel level. EAC uses PASSIVE_LEVEL callbacks (not visible in DPC/ISR but adds CPU overhead). Vanguard loads at boot.' `
+            -Fix '' -FixNote 'Not fixable — informational. Use WPR InputLatency profile to measure actual CPU impact during gameplay.'
+    }
+
+    return $results
+}
+
+# ---------------------------------------------------------------------------
+# Deep Tier: NVIDIA DPC Health (from last experiment)
+# ---------------------------------------------------------------------------
+function Invoke-NvidiaDpcHealthCheck {
+    $results = @()
+
+    $expRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'captures\experiments'
+    if (-not (Test-Path $expRoot)) { return $results }
+
+    $dirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
+    if ($dirs.Count -eq 0) { return $results }
+
+    $lastExpDir = $dirs[0].FullName
+    $expJson    = Join-Path $lastExpDir 'experiment.json'
+    if (-not (Test-Path $expJson)) { return $results }
+
+    $expData = $null
+    try { $expData = Get-Content $expJson -Raw | ConvertFrom-Json -ErrorAction Stop } catch { return $results }
+
+    # Check for DPC alerts
+    $nvAlerts = @()
+    if ($expData.dpcIsrAnalysis -and $expData.dpcIsrAnalysis.dpcAlerts) {
+        $nvAlerts = @($expData.dpcIsrAnalysis.dpcAlerts | Where-Object { $_.driver -eq 'nvlddmkm.sys' })
+    }
+
+    # Check for nvlddmkm in dpcDrivers
+    $nvDpc = $null
+    if ($expData.dpcIsrAnalysis -and $expData.dpcIsrAnalysis.dpcDrivers) {
+        $nvDpc = $expData.dpcIsrAnalysis.dpcDrivers | Where-Object { $_.Module -eq 'nvlddmkm.sys' } | Select-Object -First 1
+    }
+
+    if ($nvAlerts.Count -gt 0) {
+        $alertMsg = $nvAlerts[0].message
+        $results += New-CheckResult -Name 'NVIDIA DPC Health' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'WARN' -Current $alertMsg -Expected 'No DPC spikes >500us' `
+            -Message 'High nvlddmkm.sys DPC latency causes frame hitches and audio crackling. Consider driver rollback, disabling NVIDIA HD Audio, or pinning GPU to P0 state.' `
+            -Fix '' -FixNote 'Try clean driver install via DDU. Check BIOS for C-state settings.'
+    } elseif ($null -ne $nvDpc) {
+        $nvDetail = 'nvlddmkm.sys: ' + $nvDpc.Count + ' DPCs, max ' + $nvDpc.MaxUs + 'us (from ' + $dirs[0].Name + ')'
+        $results += New-CheckResult -Name 'NVIDIA DPC Health' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'PASS' -Current $nvDetail -Expected 'Max DPC < 500us'
+    } else {
+        $results += New-CheckResult -Name 'NVIDIA DPC Health' -Category 'GPU' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'SKIP' -Current 'No DPC data in last experiment' -Expected 'Run pipeline.ps1 first' `
+            -Message 'Run pipeline.ps1 to capture DPC/ISR data for this check.'
     }
 
     return $results
