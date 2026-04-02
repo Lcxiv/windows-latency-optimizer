@@ -142,7 +142,7 @@ function Start-WprCapture {
         if ($WPRProfile -eq 'InputLatency') {
             $wprpPath = Join-Path $PSScriptRoot 'input-latency.wprp'
             if (Test-Path $wprpPath) {
-                $profileArg = $wprpPath + '!InputLatency.Verbose.File'
+                $profileArg = $wprpPath + '!InputLatency.Verbose'
                 Log ('Using custom WPR profile: ' + $wprpPath) 'INFO'
             } else {
                 Log ('Custom .wprp not found: ' + $wprpPath + ' — falling back to GeneralProfile') 'WARN'
