@@ -353,43 +353,84 @@ function Stop-WprAndAnalyze {
                     Log ('xperf DPC/ISR report: ' + $reportSize + ' KB') 'PASS'
                     $dpcIsrData = @{ hasReport = $true; reportFile = 'dpcisr_report.txt' }
 
-                    # Parse DPC summary
-                    $dpcDrivers = @()
-                    $inDpc = $false
+                    # Parse per-module DPC histograms
+                    # Format: "Total = N for module X.sys" followed by bucket lines
+                    # Bucket: "Elapsed Time, > N usecs AND <= M usecs, count, or pct%"
+                    $dpcDrivers    = @()
+                    $currentModule = ''
+                    $currentTotal  = 0
+                    $currentMaxUs  = 0
+                    $highLatCount  = 0
+
                     foreach ($rline in (Get-Content $dpcIsrReport)) {
-                        if ($rline -match 'DPC Module Summary') { $inDpc = $true; continue }
-                        if ($rline -match 'ISR Module Summary' -and $inDpc) { $inDpc = $false; continue }
-                        if ($rline.Trim() -eq '' -and $inDpc -and $dpcDrivers.Count -gt 0) { $inDpc = $false; continue }
-                        if ($inDpc -and $rline -match '(\S+\.sys)\s+(\d+)\s+[\d.]+\s+[\d.]+\s+([\d.]+)') {
-                            $dpcDrivers += @{
-                                Module = $Matches[1]
-                                Count  = [int]$Matches[2]
-                                MaxUs  = [double]$Matches[3]
+                        if ($rline -match 'Total = (\d+) for module (\S+)') {
+                            # Save previous module
+                            if ($currentModule -ne '' -and $currentTotal -gt 0) {
+                                $dpcDrivers += @{
+                                    Module       = $currentModule
+                                    Count        = $currentTotal
+                                    MaxUs        = $currentMaxUs
+                                    HighLatCount = $highLatCount
+                                }
+                            }
+                            $currentModule = $Matches[2]
+                            $currentTotal  = [int]$Matches[1]
+                            $currentMaxUs  = 0
+                            $highLatCount  = 0
+                        }
+                        if ($rline -match 'Elapsed Time.*<=\s+(\d+) usecs,\s+(\d+),') {
+                            $bucket = [int]$Matches[1]
+                            $count  = [int]$Matches[2]
+                            if ($count -gt 0 -and $bucket -gt $currentMaxUs) {
+                                $currentMaxUs = $bucket
+                            }
+                            if ($bucket -ge 512 -and $count -gt 0) {
+                                $highLatCount += $count
                             }
                         }
                     }
+                    # Save last module
+                    if ($currentModule -ne '' -and $currentTotal -gt 0) {
+                        $dpcDrivers += @{
+                            Module       = $currentModule
+                            Count        = $currentTotal
+                            MaxUs        = $currentMaxUs
+                            HighLatCount = $highLatCount
+                        }
+                    }
+
                     if ($dpcDrivers.Count -gt 0) {
                         $dpcIsrData['dpcDrivers'] = $dpcDrivers | Sort-Object MaxUs -Descending | Select-Object -First 10
-                        $topD = $dpcDrivers[0]
+                        $topD = ($dpcDrivers | Sort-Object MaxUs -Descending)[0]
                         Log ('Top DPC: ' + $topD.Module + ' max ' + $topD.MaxUs + 'us, ' + $topD.Count + ' calls') 'INFO'
                     }
 
-                    # Parse ISR summary
-                    $isrDrivers = @()
-                    $inIsr = $false
-                    foreach ($rline in (Get-Content $dpcIsrReport)) {
-                        if ($rline -match 'ISR Module Summary') { $inIsr = $true; continue }
-                        if ($rline.Trim() -eq '' -and $inIsr -and $isrDrivers.Count -gt 0) { $inIsr = $false; continue }
-                        if ($inIsr -and $rline -match '(\S+\.sys)\s+(\d+)\s+[\d.]+\s+[\d.]+\s+([\d.]+)') {
-                            $isrDrivers += @{
-                                Module = $Matches[1]
-                                Count  = [int]$Matches[2]
-                                MaxUs  = [double]$Matches[3]
+                    # DPC alerts: flag high-latency drivers
+                    $dpcAlerts = @()
+                    foreach ($d in $dpcDrivers) {
+                        if ($d.Module -eq 'nvlddmkm.sys' -and $d.HighLatCount -gt 0) {
+                            $dpcAlerts += @{
+                                driver   = 'nvlddmkm.sys'
+                                severity = 'HIGH'
+                                message  = 'NVIDIA driver DPC spikes >500us (' + $d.HighLatCount + ' occurrences, max bucket ' + $d.MaxUs + 'us)'
+                                maxUs    = $d.MaxUs
+                                count    = $d.HighLatCount
                             }
+                            Log ('ALERT: nvlddmkm.sys ' + $d.HighLatCount + ' DPC calls >500us') 'WARN'
+                        }
+                        if ($d.Module -match 'EasyAntiCheat|BEService|vgk\.sys') {
+                            $dpcAlerts += @{
+                                driver   = $d.Module
+                                severity = 'INFO'
+                                message  = 'Anti-cheat driver in DPC trace: ' + $d.Module + ' (' + $d.Count + ' DPCs, max ' + $d.MaxUs + 'us)'
+                                maxUs    = $d.MaxUs
+                                count    = $d.Count
+                            }
+                            Log ('Anti-cheat DPC: ' + $d.Module + ' count=' + $d.Count) 'INFO'
                         }
                     }
-                    if ($isrDrivers.Count -gt 0) {
-                        $dpcIsrData['isrDrivers'] = $isrDrivers | Sort-Object MaxUs -Descending | Select-Object -First 10
+                    if ($dpcAlerts.Count -gt 0) {
+                        $dpcIsrData['dpcAlerts'] = $dpcAlerts
                     }
 
                     # Context switch analysis
@@ -509,6 +550,7 @@ function New-ExperimentAnalysis {
         $DpcIsrData,
         $FrameTimingData,
         $GpuUtilData,
+        $NetworkLatencyData,
         [bool]$WprStarted,
         [string]$EtlFile
     )
@@ -604,6 +646,19 @@ function New-ExperimentAnalysis {
         }
     }
 
+    if ($NetworkLatencyData) {
+        $analysis += ''
+        $analysis += '--- Network Latency ---'
+        foreach ($host_ in ($NetworkLatencyData.Keys | Sort-Object)) {
+            $h = $NetworkLatencyData[$host_]
+            if ($null -ne $h.avg) {
+                $analysis += ('  ' + $host_ + ': ' + $h.avg + 'ms avg, ' + $h.p99 + 'ms p99, jitter=' + $h.jitter + 'ms, loss=' + $h.packetLoss + '%')
+            } else {
+                $analysis += ('  ' + $host_ + ': FAILED (' + $h.error + ')')
+            }
+        }
+    }
+
     if ($WprStarted -and (Test-Path $EtlFile)) {
         $analysis += ''
         $analysis += 'For deeper analysis open trace.etl in WPA'
@@ -615,6 +670,112 @@ function New-ExperimentAnalysis {
         cpu23Share    = $cpu23Share
         cpu47Share    = $cpu47Share
     }
+}
+
+function Invoke-NetworkLatencyCapture {
+    <#
+    .SYNOPSIS
+        Ping multiple targets and compute latency statistics.
+    .OUTPUTS
+        Hashtable with per-target stats: avg, min, max, p50, p95, p99, stdev, jitter, packetLoss
+    #>
+    param(
+        [string[]]$Targets = @(
+            'ping-naw.ds.on.epicgames.com',
+            'ping-nac.ds.on.epicgames.com',
+            'ping-nae.ds.on.epicgames.com',
+            '1.1.1.1'
+        ),
+        [int]$PingSamples = 60,
+        [switch]$SkipNetworkLatency
+    )
+
+    if ($SkipNetworkLatency) {
+        Log ''
+        Log '=== Phase 3D: Network latency skipped ==='
+        return $null
+    }
+
+    Log ''
+    Log '=== Phase 3D: Network latency capture ==='
+    Log ('Targets: ' + ($Targets -join ', '))
+    Log ('Samples: ' + $PingSamples + ' per target')
+
+    $result = @{}
+
+    foreach ($target in $Targets) {
+        Log ('  Pinging ' + $target + '...')
+        $times = @()
+        $sent = 0
+        $received = 0
+
+        try {
+            $replies = @(Test-Connection $target -Count $PingSamples -ErrorAction SilentlyContinue)
+            $sent = $PingSamples
+            foreach ($r in $replies) {
+                if ($null -ne $r.ResponseTime) {
+                    $times += [double]$r.ResponseTime
+                    $received++
+                }
+            }
+        } catch {
+            Log ('  FAIL: ' + $_.Exception.Message) 'WARN'
+            $result[$target] = @{
+                avg = $null; min = $null; max = $null
+                p50 = $null; p95 = $null; p99 = $null
+                stdev = $null; jitter = $null
+                packetLoss = 100; error = $_.Exception.Message
+            }
+            continue
+        }
+
+        if ($times.Count -eq 0) {
+            $result[$target] = @{
+                avg = $null; min = $null; max = $null
+                p50 = $null; p95 = $null; p99 = $null
+                stdev = $null; jitter = $null
+                packetLoss = 100; error = 'No replies'
+            }
+            continue
+        }
+
+        $sorted = @($times | Sort-Object)
+        $count = $sorted.Count
+
+        # Percentile helper (nearest-rank)
+        $p50Idx = [math]::Min([math]::Ceiling($count * 0.50) - 1, $count - 1)
+        $p95Idx = [math]::Min([math]::Ceiling($count * 0.95) - 1, $count - 1)
+        $p99Idx = [math]::Min([math]::Ceiling($count * 0.99) - 1, $count - 1)
+
+        $stats = Get-Stats $times
+        $loss = [math]::Round((($sent - $received) / [math]::Max(1, $sent)) * 100, 2)
+
+        # Jitter: average of absolute differences between consecutive pings
+        $jitterSum = 0
+        for ($i = 1; $i -lt $times.Count; $i++) {
+            $jitterSum += [math]::Abs($times[$i] - $times[$i - 1])
+        }
+        $jitterVal = 0
+        if ($times.Count -gt 1) {
+            $jitterVal = [math]::Round($jitterSum / ($times.Count - 1), 2)
+        }
+
+        $result[$target] = @{
+            avg        = $stats.avg
+            min        = $stats.min
+            max        = $stats.max
+            p50        = [math]::Round($sorted[$p50Idx], 2)
+            p95        = [math]::Round($sorted[$p95Idx], 2)
+            p99        = [math]::Round($sorted[$p99Idx], 2)
+            stdev      = $stats.stdev
+            jitter     = $jitterVal
+            packetLoss = $loss
+        }
+
+        Log ('    avg=' + $stats.avg + 'ms  p99=' + [math]::Round($sorted[$p99Idx], 2) + 'ms  jitter=' + $jitterVal + 'ms  loss=' + $loss + '%') 'PASS'
+    }
+
+    return $result
 }
 
 function Save-ExperimentJson {
@@ -645,7 +806,8 @@ function Save-ExperimentJson {
         [double]$Cpu47Share,
         $DpcIsrData,
         $FrameTimingData,
-        $GpuUtilData
+        $GpuUtilData,
+        $NetworkLatencyData
     )
 
     Log ''
@@ -680,6 +842,7 @@ function Save-ExperimentJson {
         analysisFile      = 'analysis.txt'
         frameTiming       = $FrameTimingData
         gpuUtilization    = $GpuUtilData
+        networkLatency    = $NetworkLatencyData
         cswitchAnalysis   = $null
     }
 

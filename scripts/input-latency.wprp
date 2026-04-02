@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WindowsPerformanceRecorder Version="1.0" Author="windows-latency-optimizer">
+  <Profiles>
+
+    <!-- System Collector: DPC/ISR/CSwitch kernel events -->
+    <SystemCollector Id="SC_InputLatency" Name="InputLatencySystemCollector">
+      <BufferSize Value="1024"/>
+      <Buffers Value="256"/>
+    </SystemCollector>
+
+    <!-- Event Collector: User-mode ETW providers -->
+    <EventCollector Id="EC_InputLatency" Name="InputLatencyEventCollector">
+      <BufferSize Value="512"/>
+      <Buffers Value="128"/>
+    </EventCollector>
+
+    <!-- System Provider: DPC + ISR + Context Switch + ReadyThread -->
+    <SystemProvider Id="SP_InputLatency">
+      <Keywords>
+        <Keyword Value="ProcessThread"/>
+        <Keyword Value="Loader"/>
+        <Keyword Value="DPC"/>
+        <Keyword Value="Interrupt"/>
+        <Keyword Value="CSwitch"/>
+        <Keyword Value="ReadyThread"/>
+      </Keywords>
+      <Stacks>
+        <Stack Value="DpcExecute"/>
+        <Stack Value="CSwitch"/>
+        <Stack Value="ReadyThread"/>
+      </Stacks>
+    </SystemProvider>
+
+    <!-- ETW Providers for the input-to-display pipeline -->
+    <EventProvider Id="EP_Win32k" Name="8C416C79-D49B-4F01-A467-E56D3AA8234C" NonPagedMemory="true" Level="5"/>
+    <EventProvider Id="EP_DwmCore" Name="9E9BBA3C-2E38-40CB-99F4-9E8281425164" Level="5"/>
+    <EventProvider Id="EP_DxgKrnl" Name="802EC45A-1E99-4B83-9920-87C98277BA9D" NonPagedMemory="true" Level="5"/>
+    <EventProvider Id="EP_DXGI" Name="CA11C036-0102-4A2D-A6AD-F03CFED5D3C9" Level="5"/>
+    <EventProvider Id="EP_D3D11" Name="DB6F6DDB-AC77-4E88-8253-819DF9BBF140" Level="5"/>
+    <EventProvider Id="EP_D3D12" Name="5D8087DD-3A9B-4F56-90DF-49196CDC4F11" Level="5"/>
+    <EventProvider Id="EP_HIDCLASS" Name="6465DA78-E7A0-4F39-B084-8F53C7C30DC6" Level="5"/>
+    <EventProvider Id="EP_USBHUB3" Name="AC52AD17-CC01-4F85-8DF5-4DCE4333C99B" Level="4"/>
+
+    <!-- Verbose File Profile -->
+    <Profile Id="InputLatency.Verbose.File" LoggingMode="File"
+             Name="InputLatency" DetailLevel="Verbose"
+             Description="Full input-to-display latency tracing (file mode)">
+      <Collectors>
+        <SystemCollectorId Value="SC_InputLatency">
+          <SystemProviderId Value="SP_InputLatency"/>
+        </SystemCollectorId>
+        <EventCollectorId Value="EC_InputLatency">
+          <EventProviders>
+            <EventProviderId Value="EP_Win32k"/>
+            <EventProviderId Value="EP_DwmCore"/>
+            <EventProviderId Value="EP_DxgKrnl"/>
+            <EventProviderId Value="EP_DXGI"/>
+            <EventProviderId Value="EP_D3D11"/>
+            <EventProviderId Value="EP_D3D12"/>
+            <EventProviderId Value="EP_HIDCLASS"/>
+            <EventProviderId Value="EP_USBHUB3"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+    <!-- Verbose Memory Profile -->
+    <Profile Id="InputLatency.Verbose.Memory" LoggingMode="Memory"
+             Name="InputLatency" DetailLevel="Verbose"
+             Description="Full input-to-display latency tracing (memory mode)">
+      <Collectors>
+        <SystemCollectorId Value="SC_InputLatency">
+          <SystemProviderId Value="SP_InputLatency"/>
+        </SystemCollectorId>
+        <EventCollectorId Value="EC_InputLatency">
+          <EventProviders>
+            <EventProviderId Value="EP_Win32k"/>
+            <EventProviderId Value="EP_DwmCore"/>
+            <EventProviderId Value="EP_DxgKrnl"/>
+            <EventProviderId Value="EP_DXGI"/>
+            <EventProviderId Value="EP_D3D11"/>
+            <EventProviderId Value="EP_D3D12"/>
+            <EventProviderId Value="EP_HIDCLASS"/>
+            <EventProviderId Value="EP_USBHUB3"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+  </Profiles>
+</WindowsPerformanceRecorder>
