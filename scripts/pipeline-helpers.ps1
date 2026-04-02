@@ -73,18 +73,47 @@ function Parse-FrameCSV {
         }
     }
 
+    # Variance (coefficient of variation)
+    $sumSqDiff = 0
+    foreach ($ft in $frameTimes) { $sumSqDiff += ($ft - $avg) * ($ft - $avg) }
+    $stdev = [math]::Sqrt($sumSqDiff / [math]::Max(1, $count))
+    $cv = 0
+    if ($avg -gt 0) { $cv = [math]::Round($stdev / $avg * 100, 1) }
+
+    # Stutter detection: frame time > 2× rolling median (window=30)
+    $stutters    = @()
+    $windowSize  = 30
+    $halfWindow  = [math]::Floor($windowSize / 2)
+    for ($i = 0; $i -lt $frameTimes.Count; $i++) {
+        $wStart = [math]::Max(0, $i - $halfWindow)
+        $wEnd   = [math]::Min($frameTimes.Count - 1, $i + $halfWindow)
+        $window = @($frameTimes[$wStart..$wEnd] | Sort-Object)
+        $median = $window[[math]::Floor($window.Count / 2)]
+        if ($frameTimes[$i] -gt ($median * 2) -and $median -gt 0) {
+            $stutters += @{
+                frameIndex  = $i
+                frameTimeMs = [math]::Round($frameTimes[$i], 2)
+                medianMs    = [math]::Round($median, 2)
+            }
+        }
+    }
+
     return @{
-        processName  = $GameProcess
-        totalFrames  = $count
+        processName   = $GameProcess
+        totalFrames   = $count
         droppedFrames = $dropped
-        droppedPct   = [math]::Round($dropped / [math]::Max(1, $count) * 100, 2)
-        frameTimeMs  = @{
-            avg  = [math]::Round($avg, 2)
-            p50  = [math]::Round($p50, 2)
-            p95  = [math]::Round($p95, 2)
-            p99  = [math]::Round($p99, 2)
-            max  = [math]::Round($maxFt, 2)
-            min  = [math]::Round($minFt, 2)
+        droppedPct    = [math]::Round($dropped / [math]::Max(1, $count) * 100, 2)
+        stutterCount  = $stutters.Count
+        stutters      = $stutters
+        frameTimeMs   = @{
+            avg    = [math]::Round($avg, 2)
+            p50    = [math]::Round($p50, 2)
+            p95    = [math]::Round($p95, 2)
+            p99    = [math]::Round($p99, 2)
+            max    = [math]::Round($maxFt, 2)
+            min    = [math]::Round($minFt, 2)
+            stdev  = [math]::Round($stdev, 2)
+            cv     = $cv
         }
         fps = @{
             avg   = [math]::Round($fpsAvg, 1)
@@ -257,6 +286,39 @@ function Invoke-PerfCounterCapture {
         perf         = $perf
         samples      = $samples
     }
+}
+
+function Find-ForegroundGame {
+    <#
+    .SYNOPSIS
+        Detect a running game process by name or memory footprint.
+    .OUTPUTS
+        [string] Process name, or $null if no game found.
+    #>
+    $knownGames = @(
+        'FortniteClient-Win64-Shipping', 'FPSAimTrainer', 'cs2',
+        'VALORANT-Win64-Shipping', 'r5apex', 'OverwatchOW',
+        'RocketLeague', 'PUBG-Win64-Shipping', 'destiny2', 'cod',
+        'GTA5', 'eldenring', 'Overwatch', 'VALORANT', 'Warzone'
+    )
+    foreach ($name in $knownGames) {
+        $proc = Get-Process -Name $name -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -ne $proc) {
+            Log ('Game detected: ' + $proc.ProcessName + ' (PID ' + $proc.Id + ', ' + [math]::Round($proc.WorkingSet64 / 1MB) + ' MB)') 'PASS'
+            return $proc.ProcessName
+        }
+    }
+    # Fallback: process using >500MB with game-like name
+    $heavy = Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.WorkingSet64 -gt 500MB } |
+        Where-Object { $_.ProcessName -match 'game|shipping|client|unreal|unity' } |
+        Sort-Object WorkingSet64 -Descending |
+        Select-Object -First 1
+    if ($null -ne $heavy) {
+        Log ('Possible game: ' + $heavy.ProcessName + ' (' + [math]::Round($heavy.WorkingSet64 / 1MB) + ' MB)') 'INFO'
+        return $heavy.ProcessName
+    }
+    return $null
 }
 
 function Invoke-PresentMonCapture {

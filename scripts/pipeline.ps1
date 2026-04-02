@@ -71,6 +71,15 @@ if (-not $SkipWPR) {
 }
 
 # ── PHASE 3: Perf counters + PresentMon (started before blocking capture) ────
+# Auto-detect game if not specified
+if ($GameProcess -eq '' -and -not $SkipPresentMon) {
+    $detectedGame = Find-ForegroundGame
+    if ($null -ne $detectedGame) {
+        $GameProcess = $detectedGame
+    } else {
+        Log 'No game detected — PresentMon skipped (DWM fallback available from ETL)' 'INFO'
+    }
+}
 $pmProc = Invoke-PresentMonCapture -GameProcess $GameProcess -OutDir $outDir -DurationSec $DurationSec -SkipPresentMon:$SkipPresentMon
 
 $perfResult = Invoke-PerfCounterCapture -DurationSec $DurationSec
