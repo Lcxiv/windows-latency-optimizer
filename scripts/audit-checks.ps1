@@ -218,6 +218,11 @@ function Invoke-OsChecks {
     $powerOutput = powercfg /getactivescheme 2>&1 | Out-String
     $isHP        = $powerOutput -match '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'  # High Performance
     $isUP        = $powerOutput -match 'e9a42b02-d5df-448d-aa00-03f14749eb61'  # Ultimate Performance
+    # Fallback: custom schemes get unique GUIDs — match by name
+    if (-not $isHP -and -not $isUP) {
+        $isHP = $powerOutput -match 'High Performance'
+        $isUP = $powerOutput -match 'Ultimate Performance'
+    }
     if ($isHP -or $isUP) {
         $schemeName = 'High Performance'
         if ($isUP) { $schemeName = 'Ultimate Performance' }
