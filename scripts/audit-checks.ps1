@@ -177,13 +177,13 @@ function Invoke-OsChecks {
     # --- Check 5: MMCSS NetworkThrottlingIndex ---
     $ntIdx = $null
     try { $ntIdx = (Get-ItemProperty $mmcssKey -ErrorAction Stop).NetworkThrottlingIndex } catch {}
-    $ntExpected = [uint32]0xFFFFFFFF
+    $ntExpected = 4294967295
     if ($null -eq $ntIdx) {
         $results += New-CheckResult -Name 'MMCSS NetworkThrottling' -Category 'OS' -Tier 'Quick' -Severity 'HIGH' `
             -Status 'WARN' -Current 'Not set (throttled)' -Expected '0xFFFFFFFF (disabled)' `
             -Message 'Default network throttling limits packet rate during multimedia playback.' `
             -Fix 'Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name NetworkThrottlingIndex -Value 0xFFFFFFFF -Type DWord'
-    } elseif ([uint32]$ntIdx -eq $ntExpected) {
+    } elseif ($ntIdx -eq $ntExpected -or $ntIdx -eq -1) {
         $results += New-CheckResult -Name 'MMCSS NetworkThrottling' -Category 'OS' -Tier 'Quick' -Severity 'HIGH' `
             -Status 'PASS' -Current '0xFFFFFFFF' -Expected '0xFFFFFFFF'
     } else {

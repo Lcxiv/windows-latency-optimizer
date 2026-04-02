@@ -62,8 +62,8 @@ $pass  = ($allChecks | Where-Object { $_.status -eq 'PASS'  }).Count
 $warn  = ($allChecks | Where-Object { $_.status -eq 'WARN'  }).Count
 $fail  = ($allChecks | Where-Object { $_.status -eq 'FAIL'  }).Count
 $skip  = ($allChecks | Where-Object { $_.status -eq 'SKIP'  }).Count
-$error = ($allChecks | Where-Object { $_.status -eq 'ERROR' }).Count
-$denom = $allChecks.Count - $skip - $error
+$errCount = ($allChecks | Where-Object { $_.status -eq 'ERROR' }).Count
+$denom = $allChecks.Count - $skip - $errCount
 $score = 0
 if ($denom -gt 0) { $score = [math]::Round(($pass / $denom) * 100) }
 
@@ -73,7 +73,7 @@ $summary = [ordered]@{
     warn  = $warn
     fail  = $fail
     skip  = $skip
-    error = $error
+    error = $errCount
     score = $score
 }
 
