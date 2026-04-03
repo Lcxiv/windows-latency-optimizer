@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicotsx/tauri-v2-schema/main/tauri-conf.json",
+  "productName": "LatencyGuard",
+  "version": "0.1.0",
+  "identifier": "com.latencyguard.app",
+  "build": {
+    "frontendDist": "../src",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "LatencyGuard",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}

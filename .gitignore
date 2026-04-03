@@ -31,9 +31,16 @@ desktop.ini
 *.cache
 *.bak
 
-# Node (npx serve only)
+# Node
 node_modules/
 package-lock.json
+
+# Tauri / Rust build
+latencyguard/src-tauri/target/
+latencyguard/node_modules/
+
+# Brainstorm sessions
+.superpowers/
 
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv
