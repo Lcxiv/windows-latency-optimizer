@@ -10,6 +10,9 @@ fn main() {
             commands::get_system_info,
             commands::run_audit,
             commands::apply_fix,
+            commands::get_pipeline_data,
+            commands::get_experiments,
+            commands::get_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running LatencyGuard");
