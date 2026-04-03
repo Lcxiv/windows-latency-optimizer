@@ -4,6 +4,7 @@
 const state = {
   mode: 'simple',
   auditData: null,
+  pipelineData: null,
   systemInfo: null,
   scanning: false,
 };
@@ -166,13 +167,41 @@ function renderScanning() {
     '</div>';
 }
 
-function renderExpert(container) {
-  container.innerHTML = '<div class="expert-placeholder">' +
-    '<div style="font-size:36px;opacity:0.3;margin-bottom:12px">&#128200;</div>' +
-    '<div style="font-size:16px;font-weight:600;margin-bottom:8px">Expert Mode</div>' +
-    '<div style="color:var(--muted)">Diagnostics, Live Monitor, History, and Advanced tabs coming in Phase 2</div>' +
-    '</div>';
+async function renderExpert(container) {
+  // Tab bar + content containers
+  let html = '<div class="expert-tabs">';
+  html += '<button class="expert-tab active" data-tab="diagnostics" onclick="switchExpertTab(\'diagnostics\')">Diagnostics</button>';
+  html += '<button class="expert-tab" data-tab="history" onclick="switchExpertTab(\'history\')">History</button>';
+  html += '<button class="expert-tab" data-tab="advanced" onclick="switchExpertTab(\'advanced\')">Advanced</button>';
+  html += '<button class="expert-tab" data-tab="live" onclick="switchExpertTab(\'live\')">Live Monitor</button>';
+  html += '</div>';
+  html += '<div id="tab-diagnostics" class="tab-pane active"></div>';
+  html += '<div id="tab-history" class="tab-pane"></div>';
+  html += '<div id="tab-advanced" class="tab-pane"></div>';
+  html += '<div id="tab-live" class="tab-pane"><div class="expert-placeholder"><div style="font-size:36px;opacity:0.3;margin-bottom:12px">&#128308;</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">Live Monitor</div><div style="color:var(--muted)">Real-time streaming during gameplay — coming in Phase 3</div></div></div>';
+  container.innerHTML = html;
+
+  // Load pipeline data
+  if (!state.pipelineData) {
+    try { state.pipelineData = await invoke('get_pipeline_data'); } catch (e) { console.error(e); }
+  }
+
+  // Render diagnostics tab (default)
+  renderDiagnostics(document.getElementById('tab-diagnostics'), state.auditData, state.pipelineData);
 }
+
+window.switchExpertTab = function(tab) {
+  document.querySelectorAll('.expert-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+
+  // Lazy-load tab content
+  const pane = document.getElementById('tab-' + tab);
+  if (tab === 'history' && pane.innerHTML === '') {
+    renderHistory(pane);
+  } else if (tab === 'advanced' && pane.innerHTML === '') {
+    renderAdvanced(pane, state.pipelineData);
+  }
+};
 
 // --- Actions ---
 async function runScan() {

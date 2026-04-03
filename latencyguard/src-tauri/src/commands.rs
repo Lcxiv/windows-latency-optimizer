@@ -124,3 +124,122 @@ pub async fn apply_fix(command: String) -> Result<bool, String> {
 
     Ok(output.status.success())
 }
+
+/// Helper to read a JSON file, stripping BOM
+fn read_json_file(path: &std::path::Path) -> Result<serde_json::Value, String> {
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| format!("Cannot read {}: {}", path.display(), e))?;
+    let clean = content.strip_prefix('\u{feff}').unwrap_or(&content);
+    serde_json::from_str(clean)
+        .map_err(|e| format!("Failed to parse {}: {}", path.display(), e))
+}
+
+#[tauri::command]
+pub async fn get_pipeline_data() -> Result<serde_json::Value, String> {
+    let scripts = scripts_dir();
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let exp_dir = project.join("captures").join("experiments");
+
+    if !exp_dir.exists() {
+        return Ok(serde_json::Value::Null);
+    }
+
+    // Find latest experiment directory
+    let mut dirs: Vec<_> = std::fs::read_dir(&exp_dir)
+        .map_err(|e| format!("Cannot read experiments: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+
+    dirs.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+
+    let latest = match dirs.first() {
+        Some(d) => d,
+        None => return Ok(serde_json::Value::Null),
+    };
+
+    let exp_json = latest.path().join("experiment.json");
+    if !exp_json.exists() {
+        return Ok(serde_json::Value::Null);
+    }
+
+    let mut result = read_json_file(&exp_json)?;
+
+    // Merge input latency analysis if present
+    let input_json = latest.path().join("input_latency_analysis.json");
+    if input_json.exists() {
+        if let Ok(input_data) = read_json_file(&input_json) {
+            result["inputLatency"] = input_data;
+        }
+    }
+
+    Ok(result)
+}
+
+#[tauri::command]
+pub async fn get_experiments() -> Result<Vec<serde_json::Value>, String> {
+    let scripts = scripts_dir();
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let exp_dir = project.join("captures").join("experiments");
+
+    if !exp_dir.exists() {
+        return Ok(vec![]);
+    }
+
+    let mut experiments = vec![];
+
+    let mut dirs: Vec<_> = std::fs::read_dir(&exp_dir)
+        .map_err(|e| format!("Cannot read experiments: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+
+    dirs.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+
+    for dir in dirs.iter().take(50) {
+        let json_path = dir.path().join("experiment.json");
+        if json_path.exists() {
+            if let Ok(data) = read_json_file(&json_path) {
+                experiments.push(data);
+            }
+        }
+    }
+
+    Ok(experiments)
+}
+
+#[tauri::command]
+pub async fn get_history() -> Result<Vec<serde_json::Value>, String> {
+    let scripts = scripts_dir();
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let history_path = project.join("captures").join("audits").join("history.csv");
+
+    if !history_path.exists() {
+        return Ok(vec![]);
+    }
+
+    let content = std::fs::read_to_string(&history_path)
+        .map_err(|e| format!("Cannot read history.csv: {}", e))?;
+    let clean = content.strip_prefix('\u{feff}').unwrap_or(&content);
+
+    let mut entries = vec![];
+    let mut lines = clean.lines();
+    let _header = lines.next(); // skip header
+
+    for line in lines {
+        let parts: Vec<&str> = line.split(',').collect();
+        if parts.len() >= 7 {
+            entries.push(serde_json::json!({
+                "timestamp": parts[0],
+                "mode": parts[1],
+                "score": parts[2].parse::<i32>().unwrap_or(0),
+                "pass": parts[3].parse::<i32>().unwrap_or(0),
+                "warn": parts[4].parse::<i32>().unwrap_or(0),
+                "fail": parts[5].parse::<i32>().unwrap_or(0),
+                "skip": parts[6].parse::<i32>().unwrap_or(0),
+            }));
+        }
+    }
+
+    Ok(entries)
+}
