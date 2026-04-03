@@ -243,6 +243,87 @@ main {
 .empty-state-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
 .empty-state-desc { font-size: 13px; margin-bottom: 24px; }
 
+/* Category sections */
+.cat-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cat-header:hover { background: rgba(59,130,246,.04); }
+.cat-icon { font-size: 16px; }
+.cat-label { font-size: 14px; font-weight: 600; flex: 1; }
+.cat-count { font-size: 11px; color: var(--muted); }
+.cat-badge {
+  font-size: 10px; font-weight: 600;
+  padding: 2px 10px; border-radius: 10px;
+}
+.cat-chevron { font-size: 12px; color: var(--muted); transition: transform 0.15s; }
+
+.cat-body { border-top: 1px solid var(--border); }
+
+/* Setting rows */
+.setting-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(30,58,95,.2);
+  font-size: 12px;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-status { padding-top: 4px; }
+.setting-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.setting-info { flex: 1; min-width: 0; }
+.setting-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.setting-values { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
+.setting-arrow { color: var(--blue); font-size: 12px; }
+.setting-expected b { color: var(--green); }
+.setting-why { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+.setting-action { min-width: 70px; text-align: right; padding-top: 2px; }
+.setting-apply {
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.setting-apply:hover { opacity: 0.9; }
+.setting-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+.setting-apply.done {
+  background: rgba(16,185,129,.15);
+  color: var(--green);
+  cursor: default;
+}
+.setting-info-btn {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.setting-info-btn:hover { border-color: var(--blue); color: var(--text); }
+.setting-pass-badge {
+  color: var(--green);
+  font-size: 14px;
+}
+
 /* Expert placeholder */
 .expert-placeholder {
   text-align: center;

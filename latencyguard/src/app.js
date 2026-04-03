@@ -66,6 +66,16 @@ function render() {
   }
 }
 
+// --- Category mapping ---
+const CATEGORIES = {
+  'OS':         { label: 'Windows',     icon: '&#9881;',   color: 'var(--blue)' },
+  'NIC':        { label: 'Networking',  icon: '&#127760;', color: 'var(--cyan)' },
+  'GPU':        { label: 'GPU',         icon: '&#127918;', color: 'var(--purple)' },
+  'Memory':     { label: 'Memory',      icon: '&#128190;', color: 'var(--amber)' },
+  'Peripheral': { label: 'Peripherals', icon: '&#128433;', color: 'var(--green)' },
+  'Network':    { label: 'Network',     icon: '&#128225;', color: 'var(--cyan)' },
+};
+
 // --- Simple Mode ---
 function renderSimple(container) {
   if (state.scanning) {
@@ -82,13 +92,9 @@ function renderSimple(container) {
   const scoreColor = summary.score >= 80 ? 'var(--green)' : summary.score >= 50 ? 'var(--amber)' : 'var(--red)';
 
   // Score ring
-  const circum = 439.82; // 2 * PI * 70
+  const circum = 439.82;
   const dashLen = (circum * summary.score / 100).toFixed(1);
   const dashGap = (circum - dashLen).toFixed(1);
-
-  // Issues (non-PASS)
-  const issues = checks.filter(c => c.status !== 'PASS' && c.status !== 'SKIP');
-  const passed = checks.filter(c => c.status === 'PASS');
 
   let html = '<div class="simple-center">';
 
@@ -108,36 +114,72 @@ function renderSimple(container) {
   if (summary.warn > 0) html += '<span class="pill pill-warn">' + summary.warn + ' suggestion' + (summary.warn > 1 ? 's' : '') + '</span>';
   if (summary.fail > 0) html += '<span class="pill pill-fail">' + summary.fail + ' issue' + (summary.fail > 1 ? 's' : '') + '</span>';
   html += '</div>';
+  html += '</div>';
 
-  // Issues
-  if (issues.length > 0) {
-    html += '<div class="issue-card">';
-    html += '<div class="issue-card-title">Suggestions</div>';
-    issues.forEach((c, i) => {
-      const icon = c.status === 'FAIL' ? '&#10007;' : '&#9888;';
-      const iconColor = c.status === 'FAIL' ? 'var(--red)' : 'var(--amber)';
+  // Group checks by category
+  const groups = {};
+  checks.forEach((c, i) => {
+    const cat = c.category || 'Other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push({ ...c, _index: i });
+  });
+
+  // Render each category
+  const catOrder = ['OS', 'GPU', 'NIC', 'Network', 'Memory', 'Peripheral'];
+  catOrder.forEach(cat => {
+    const items = groups[cat];
+    if (!items || items.length === 0) return;
+    const catInfo = CATEGORIES[cat] || { label: cat, icon: '&#9670;', color: 'var(--muted)' };
+    const passCount = items.filter(c => c.status === 'PASS').length;
+    const totalCount = items.length;
+    const allPass = passCount === totalCount;
+
+    html += '<div class="cat-section">';
+    html += '<div class="cat-header" onclick="toggleCat(\'' + cat + '\')">';
+    html += '<span class="cat-icon" style="color:' + catInfo.color + '">' + catInfo.icon + '</span>';
+    html += '<span class="cat-label">' + catInfo.label + '</span>';
+    html += '<span class="cat-count">' + passCount + '/' + totalCount + '</span>';
+    html += '<span class="cat-badge" style="background:' + (allPass ? 'rgba(16,185,129,.15);color:var(--green)' : 'rgba(245,158,11,.15);color:var(--amber)') + '">' + (allPass ? 'All good' : (totalCount - passCount) + ' to fix') + '</span>';
+    html += '<span class="cat-chevron" id="chev-' + cat + '">&#9662;</span>';
+    html += '</div>';
+
+    html += '<div class="cat-body" id="cat-' + cat + '" style="' + (allPass ? 'display:none' : '') + '">';
+    items.forEach(c => {
+      const isPassing = c.status === 'PASS';
+      const statusColor = isPassing ? 'var(--green)' : c.status === 'FAIL' ? 'var(--red)' : 'var(--amber)';
       const hasFix = c.fix && c.fix !== '';
-      html += '<div class="issue-row" id="issue-' + i + '">';
-      html += '<span class="issue-icon" style="color:' + iconColor + '">' + icon + '</span>';
-      html += '<div class="issue-text">';
-      html += '<div class="issue-name">' + escHtml(c.name) + '</div>';
-      html += '<div class="issue-desc">' + escHtml(c.message || c.current) + '</div>';
-      html += '</div>';
-      if (hasFix) {
-        html += '<button class="issue-btn" onclick="applyFix(' + i + ')">Apply</button>';
-      } else if (c.fixNote) {
-        html += '<button class="issue-btn" onclick="alert(\'' + escHtml(c.fixNote).replace(/'/g, "\\'") + '\')">How to fix</button>';
+
+      html += '<div class="setting-row">';
+      html += '<div class="setting-status"><span class="setting-dot" style="background:' + statusColor + '"></span></div>';
+      html += '<div class="setting-info">';
+      html += '<div class="setting-name">' + escHtml(c.name) + '</div>';
+      html += '<div class="setting-values">';
+      html += '<span class="setting-current">Current: <b>' + escHtml(truncate(c.current, 50)) + '</b></span>';
+      if (c.expected && !isPassing) {
+        html += '<span class="setting-arrow">&#8594;</span>';
+        html += '<span class="setting-expected">Recommended: <b style="color:var(--green)">' + escHtml(truncate(c.expected, 50)) + '</b></span>';
       }
       html += '</div>';
+      if (c.message && !isPassing) {
+        html += '<div class="setting-why">' + escHtml(c.message) + '</div>';
+      }
+      html += '</div>';
+
+      // Action button
+      if (isPassing) {
+        html += '<div class="setting-action"><span class="setting-pass-badge">&#10003;</span></div>';
+      } else if (hasFix) {
+        html += '<div class="setting-action"><button class="setting-apply" id="fix-' + c._index + '" onclick="applyFixByIndex(' + c._index + ')">Apply</button></div>';
+      } else if (c.fixNote) {
+        html += '<div class="setting-action"><button class="setting-info-btn" onclick="showFixNote(' + c._index + ')">Info</button></div>';
+      } else {
+        html += '<div class="setting-action"></div>';
+      }
+
+      html += '</div>';
     });
-    html += '</div>';
-  } else {
-    html += '<div class="issue-card" style="border-color:rgba(16,185,129,.3);text-align:center;padding:24px">';
-    html += '<span style="font-size:24px;color:var(--green)">&#10003;</span>';
-    html += '<div style="font-size:14px;font-weight:600;margin-top:8px">All checks passing</div>';
-    html += '<div style="font-size:12px;color:var(--muted);margin-top:4px">Your system is optimized for low-latency gaming</div>';
-    html += '</div>';
-  }
+    html += '</div></div>';
+  });
 
   // Actions
   html += '<div class="action-bar">';
@@ -145,9 +187,51 @@ function renderSimple(container) {
   html += '<button class="btn-secondary" onclick="setMode(\'expert\')">Expert Mode &#8594;</button>';
   html += '</div>';
 
-  html += '</div>';
   container.innerHTML = html;
 }
+
+function truncate(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.substring(0, max - 3) + '...' : str;
+}
+
+window.toggleCat = function(cat) {
+  const body = document.getElementById('cat-' + cat);
+  const chev = document.getElementById('chev-' + cat);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (chev) chev.innerHTML = open ? '&#9662;' : '&#9652;';
+};
+
+window.applyFixByIndex = async function(index) {
+  const checks = (state.auditData && state.auditData.checks) ? state.auditData.checks : [];
+  const check = checks[index];
+  if (!check || !check.fix) return;
+
+  const btn = document.getElementById('fix-' + index);
+  if (btn) { btn.textContent = 'Applying...'; btn.disabled = true; }
+
+  try {
+    const ok = await invoke('apply_fix', { command: check.fix });
+    if (ok && btn) {
+      btn.textContent = '✓ Done';
+      btn.classList.add('done');
+    } else if (btn) {
+      btn.textContent = 'Failed';
+      setTimeout(() => { btn.textContent = 'Retry'; btn.disabled = false; }, 2000);
+    }
+  } catch (e) {
+    if (btn) { btn.textContent = 'Error'; }
+    console.error('Fix failed:', e);
+  }
+};
+
+window.showFixNote = function(index) {
+  const checks = (state.auditData && state.auditData.checks) ? state.auditData.checks : [];
+  const check = checks[index];
+  if (check && check.fixNote) alert(check.fixNote);
+};
 
 function renderEmpty() {
   return '<div class="empty-state">' +
