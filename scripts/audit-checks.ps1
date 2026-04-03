@@ -668,16 +668,41 @@ function Invoke-PeripheralChecks {
     $results = @()
 
     # --- Check 21: Mouse Polling Rate Risk ---
+    # Known Razer PIDs for model detection
+    $razerMice = @{
+        '00C1' = 'Viper V3 Pro (Wireless)'; '00C0' = 'Viper V3 Pro (Wired)'
+        '00B6' = 'Viper V3 HyperSpeed';     '00AA' = 'Basilisk V3 Pro'
+        '008A' = 'Viper Ultimate';           '007A' = 'Viper'
+        '0078' = 'DeathAdder V2';            '0084' = 'DeathAdder V2 Pro'
+        '009C' = 'DeathAdder V3';            '00B2' = 'DeathAdder V3 Pro'
+        '0098' = 'Basilisk V3';              '00A5' = 'Cobra Pro'
+    }
     $knownMouseVIDs = @('VID_1532', 'VID_046D', 'VID_1038', 'VID_093A', 'VID_258A')
-    $mouseFound     = $false
-    $mouseDesc      = ''
+    $mouseFound  = $false
+    $mouseDesc   = ''
+    $mouseBrand  = ''
+    $mouseModel  = ''
     try {
         $hidDevices = Get-WmiObject Win32_PnPEntity -Filter "Service='HidUsb' OR Service='mouhid'" -ErrorAction Stop
         foreach ($dev in $hidDevices) {
+            if ($dev.DeviceID -like '*VID_1532*') {
+                $mouseFound = $true
+                $mouseBrand = 'Razer'
+                $mouseDesc  = $dev.Description
+                if ($dev.DeviceID -match 'PID_([0-9A-F]+)') {
+                    $mousePid = $Matches[1]
+                    if ($razerMice.ContainsKey($mousePid)) { $mouseModel = 'Razer ' + $razerMice[$mousePid] }
+                    else { $mouseModel = 'Razer Mouse (PID ' + $mousePid + ')' }
+                }
+                break
+            }
             foreach ($vid in $knownMouseVIDs) {
                 if ($dev.DeviceID -like ('*' + $vid + '*')) {
                     $mouseFound = $true
                     $mouseDesc  = $dev.Description
+                    if ($vid -eq 'VID_046D') { $mouseBrand = 'Logitech' }
+                    elseif ($vid -eq 'VID_1038') { $mouseBrand = 'SteelSeries' }
+                    else { $mouseBrand = 'Gaming mouse' }
                     break
                 }
             }
@@ -689,20 +714,46 @@ function Invoke-PeripheralChecks {
         $results += New-CheckResult -Name 'Mouse Polling Rate' -Category 'Peripheral' -Tier 'Deep' -Severity 'HIGH' `
             -Status 'SKIP' -Current 'No known gaming mouse VID detected' -Expected 'Razer/Logitech/SteelSeries/etc.'
     } else {
-        # Check if companion software is running
+        $displayName = $mouseModel
+        if ($displayName -eq '') { $displayName = $mouseBrand + ' ' + $mouseDesc }
+
+        # Check if companion software is installed or running
         $companionProcs = @('RazerCentralService','Razer Synapse','LGHUB','SteelSeriesEngine','GHub','iCUE','GHUB')
-        $running        = $false
+        $running = $false
         foreach ($proc in $companionProcs) {
             if (Get-Process -Name $proc -ErrorAction SilentlyContinue) { $running = $true; break }
         }
-        if ($running) {
+
+        # Also check if Synapse/GHUB is installed (even if not running — polling saved to firmware)
+        $companionInstalled = $false
+        $installedApps = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
+        $installedApps += Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
+        foreach ($app in $installedApps) {
+            if ($app.DisplayName -like '*Razer*Synapse*' -or $app.DisplayName -like '*Logitech*G*HUB*' -or $app.DisplayName -like '*SteelSeries*') {
+                $companionInstalled = $true
+                break
+            }
+        }
+
+        if ($running -or $companionInstalled) {
+            $status = 'configured'
+            if ($running) { $status = 'running' }
             $results += New-CheckResult -Name 'Mouse Polling Rate' -Category 'Peripheral' -Tier 'Deep' -Severity 'HIGH' `
-                -Status 'PASS' -Current ($mouseDesc + ' + companion software running') -Expected 'Companion software running'
+                -Status 'PASS' -Current ($displayName + ' — companion software ' + $status) -Expected 'Polling rate configured'
         } else {
+            $fixCmd = '.\scripts\fix_razer_polling.ps1'
+            $fixNote = 'Downloads Razer Synapse, set polling to 1000Hz+, save to onboard memory, then uninstall Synapse.'
+            if ($mouseBrand -eq 'Logitech') {
+                $fixCmd = ''
+                $fixNote = 'Install Logitech G Hub from https://www.logitechg.com/en-us/innovation/g-hub.html, set 1000Hz, save to onboard.'
+            } elseif ($mouseBrand -eq 'SteelSeries') {
+                $fixCmd = ''
+                $fixNote = 'Install SteelSeries GG from https://steelseries.com/gg, set 1000Hz, save to onboard.'
+            }
             $results += New-CheckResult -Name 'Mouse Polling Rate' -Category 'Peripheral' -Tier 'Deep' -Severity 'HIGH' `
-                -Status 'WARN' -Current ($mouseDesc + ' — no companion software detected') -Expected 'Companion software running for polling config' `
-                -Message 'Without companion software, most gaming mice default to 125Hz (8ms update interval vs 1ms at 1000Hz). Razer mice without Synapse default to 125Hz.' `
-                -Fix '' -FixNote 'Install companion software, set polling to 1000Hz, save to onboard memory, then uninstall if desired.'
+                -Status 'WARN' -Current ($displayName + ' — no companion software') -Expected 'Polling rate set to 1000Hz+' `
+                -Message ('Without companion software, ' + $mouseBrand + ' mice default to 125Hz (8ms input delay vs 1ms at 1000Hz).') `
+                -Fix $fixCmd -FixNote $fixNote
         }
     }
 
