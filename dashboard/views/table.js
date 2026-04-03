@@ -41,6 +41,7 @@ function renderTableView() {
     { key: 'fps', label: 'FPS' },
     { key: 'frametime', label: 'Frame Time p99' },
     { key: 'cpu', label: 'CPU%' },
+    { key: 'ping', label: 'Ping' },
     { key: 'status', label: 'Status' },
   ];
 
@@ -69,6 +70,7 @@ function renderTableView() {
     tableHtml += '<td>' + (ft ? safeNum(ft.fps.avg, 1) : '--') + '</td>';
     tableHtml += '<td>' + (ft ? safeNum(ft.frameTimeMs.p99, 2) + ' ms' : '--') + '</td>';
     tableHtml += '<td>' + (perf && perf.ProcessorTimePct ? safeNum(perf.ProcessorTimePct.avg, 1) + '%' : '--') + '</td>';
+    tableHtml += '<td>' + getBestPing(exp) + '</td>';
     tableHtml += '<td><span class="status-badge status-' + status.toLowerCase().replace('/', '') + '">' + status + '</span></td>';
     tableHtml += '</tr>';
   });
@@ -110,6 +112,7 @@ function sortExperiments(exps) {
       case 'fps': va = a.frameTiming ? a.frameTiming.fps.avg : -1; vb = b.frameTiming ? b.frameTiming.fps.avg : -1; break;
       case 'frametime': va = a.frameTiming ? a.frameTiming.frameTimeMs.p99 : -1; vb = b.frameTiming ? b.frameTiming.frameTimeMs.p99 : -1; break;
       case 'cpu': va = a.performance && a.performance.ProcessorTimePct ? a.performance.ProcessorTimePct.avg : -1; vb = b.performance && b.performance.ProcessorTimePct ? b.performance.ProcessorTimePct.avg : -1; break;
+      case 'ping': va = getBestPingValue(a); vb = getBestPingValue(b); break;
       case 'status': va = getStatus(a); vb = getStatus(b); break;
       default: va = a.date || ''; vb = b.date || '';
     }
@@ -212,4 +215,22 @@ function renderTimelineChart(exps) {
       }
     })
   });
+}
+
+// Network latency helpers
+function getBestPingValue(exp) {
+  if (!exp.networkLatency) return -1;
+  var best = Infinity;
+  var keys = Object.keys(exp.networkLatency);
+  for (var i = 0; i < keys.length; i++) {
+    var v = exp.networkLatency[keys[i]];
+    if (v && v.avg != null && v.avg < best) best = v.avg;
+  }
+  return best === Infinity ? -1 : best;
+}
+
+function getBestPing(exp) {
+  var val = getBestPingValue(exp);
+  if (val < 0) return '--';
+  return safeNum(val, 1) + ' ms';
 }
