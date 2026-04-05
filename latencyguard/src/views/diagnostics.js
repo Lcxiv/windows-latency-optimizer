@@ -128,7 +128,7 @@ function renderDiagnostics(container, auditData, pipelineData) {
 }
 
 function healthRow(label, val, color) {
-  return '<div class="health-row"><span class="health-dot" style="background:' + color + '"></span>' +
+  return '<div class="health-row"><span class="health-dot" style="background:' + color + '" aria-hidden="true"></span>' +
     '<span class="health-label">' + label + '</span><span class="health-val" style="color:' + color + '">' + val + '</span></div>';
 }
 
@@ -171,7 +171,11 @@ function renderChecklist(checks, summary) {
 
 // Filter + toggle
 window.filterChecks = function(status) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === status));
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    const isActive = b.dataset.filter === status;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-pressed', isActive);
+  });
   document.querySelectorAll('.check-row').forEach(r => {
     const show = status === 'all' || r.dataset.status === status;
     r.style.display = show ? '' : 'none';
