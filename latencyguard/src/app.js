@@ -48,10 +48,18 @@ function renderSysChips() {
 // --- Mode toggle ---
 function setMode(mode) {
   state.mode = mode;
-  document.querySelectorAll('.mode-toggle span').forEach(s => {
-    s.classList.toggle('active', s.dataset.mode === mode);
+  document.querySelectorAll('.mode-toggle button').forEach(b => {
+    const isActive = b.dataset.mode === mode;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive);
   });
+  announce('Switched to ' + mode + ' mode');
   render();
+}
+
+function announce(msg) {
+  const el = document.getElementById('a11y-announce');
+  if (el) { el.textContent = ''; setTimeout(() => { el.textContent = msg; }, 50); }
 }
 // Expose to onclick
 window.setMode = setMode;
@@ -100,12 +108,12 @@ function renderSimple(container) {
 
   // Score ring
   html += '<div class="score-ring-wrap">';
-  html += '<svg width="160" height="160" viewBox="0 0 160 160">';
+  html += '<svg width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Health score: ' + summary.score + ' out of 100">';
   html += '<circle class="track" cx="80" cy="80" r="70"/>';
   html += '<circle class="bar" cx="80" cy="80" r="70" stroke="' + scoreColor + '" stroke-dasharray="' + dashLen + ' ' + dashGap + '"/>';
   html += '</svg>';
-  html += '<div class="score-num" style="color:' + scoreColor + '">' + summary.score + '</div>';
-  html += '<div class="score-label">Health Score</div>';
+  html += '<div class="score-num" style="color:' + scoreColor + '" aria-hidden="true">' + summary.score + '</div>';
+  html += '<div class="score-label" aria-hidden="true">Health Score</div>';
   html += '</div>';
 
   // Pills
@@ -135,13 +143,13 @@ function renderSimple(container) {
     const allPass = passCount === totalCount;
 
     html += '<div class="cat-section">';
-    html += '<div class="cat-header" onclick="toggleCat(\'' + cat + '\')">';
-    html += '<span class="cat-icon" style="color:' + catInfo.color + '">' + catInfo.icon + '</span>';
+    html += '<button class="cat-header" aria-expanded="' + (!allPass) + '" onclick="toggleCat(\'' + cat + '\')">';
+    html += '<span class="cat-icon" style="color:' + catInfo.color + '" aria-hidden="true">' + catInfo.icon + '</span>';
     html += '<span class="cat-label">' + catInfo.label + '</span>';
     html += '<span class="cat-count">' + passCount + '/' + totalCount + '</span>';
     html += '<span class="cat-badge" style="background:' + (allPass ? 'rgba(16,185,129,.15);color:var(--green)' : 'rgba(245,158,11,.15);color:var(--amber)') + '">' + (allPass ? 'All good' : (totalCount - passCount) + ' to fix') + '</span>';
-    html += '<span class="cat-chevron" id="chev-' + cat + '">&#9662;</span>';
-    html += '</div>';
+    html += '<span class="cat-chevron" id="chev-' + cat + '" aria-hidden="true">&#9662;</span>';
+    html += '</button>';
 
     html += '<div class="cat-body" id="cat-' + cat + '" style="' + (allPass ? 'display:none' : '') + '">';
     items.forEach(c => {
@@ -150,7 +158,8 @@ function renderSimple(container) {
       const hasFix = c.fix && c.fix !== '';
 
       html += '<div class="setting-row">';
-      html += '<div class="setting-status"><span class="setting-dot" style="background:' + statusColor + '"></span></div>';
+      const statusText = isPassing ? 'Pass' : c.status === 'FAIL' ? 'Fail' : 'Warning';
+      html += '<div class="setting-status"><span class="setting-dot" style="background:' + statusColor + '" aria-hidden="true"></span><span class="sr-only">' + statusText + '</span></div>';
       html += '<div class="setting-info">';
       html += '<div class="setting-name">' + escHtml(c.name) + '</div>';
       html += '<div class="setting-values">';
@@ -198,16 +207,19 @@ function truncate(str, max) {
 window.toggleCat = function(cat) {
   const body = document.getElementById('cat-' + cat);
   const chev = document.getElementById('chev-' + cat);
+  const btn = body ? body.previousElementSibling : null;
   if (!body) return;
   const open = body.style.display !== 'none';
   body.style.display = open ? 'none' : 'block';
   if (chev) chev.innerHTML = open ? '&#9662;' : '&#9652;';
+  if (btn) btn.setAttribute('aria-expanded', !open);
 };
 
 window.applyFixByIndex = async function(index) {
   const checks = (state.auditData && state.auditData.checks) ? state.auditData.checks : [];
   const check = checks[index];
   if (!check || !check.fix) return;
+  if (!confirm('Apply fix: ' + check.name + '?\n\nThis will modify a system setting.')) return;
 
   const btn = document.getElementById('fix-' + index);
   if (btn) { btn.textContent = 'Applying...'; btn.disabled = true; }
@@ -247,13 +259,13 @@ function renderScanning() {
     '<div style="font-size:48px;opacity:0.3;margin-bottom:16px">&#9881;</div>' +
     '<div style="font-size:18px;font-weight:600">Scanning your system...</div>' +
     '<div class="scanning-text">Checking 37 latency settings across OS, GPU, NIC, and more</div>' +
-    '<div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>' +
+    '<div class="progress-bar" role="progressbar" aria-label="Scanning system"><div class="progress-fill" style="width:60%"></div></div>' +
     '</div>';
 }
 
 async function renderExpert(container) {
   // Tab bar + content containers
-  let html = '<div class="expert-tabs">';
+  let html = '<div class="expert-tabs" role="tablist" aria-label="Expert mode views">';
   html += '<button class="expert-tab active" data-tab="diagnostics" onclick="switchExpertTab(\'diagnostics\')">Diagnostics</button>';
   html += '<button class="expert-tab" data-tab="history" onclick="switchExpertTab(\'history\')">History</button>';
   html += '<button class="expert-tab" data-tab="advanced" onclick="switchExpertTab(\'advanced\')">Advanced</button>';
@@ -275,7 +287,11 @@ async function renderExpert(container) {
 }
 
 window.switchExpertTab = function(tab) {
-  document.querySelectorAll('.expert-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.expert-tab').forEach(b => {
+    const isActive = b.dataset.tab === tab;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive);
+  });
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
 
   // Lazy-load tab content
@@ -296,6 +312,10 @@ async function runScan() {
     state.auditData = await invoke('run_audit', { mode: 'Deep' });
     state.scanning = false;
     render();
+    if (state.auditData && state.auditData.summary) {
+      const s = state.auditData.summary;
+      announce('Scan complete. Score: ' + s.score + ' percent. ' + s.pass + ' passed, ' + s.warn + ' warnings, ' + s.fail + ' failures.');
+    }
   } catch (e) {
     state.scanning = false;
     state.auditData = null;
