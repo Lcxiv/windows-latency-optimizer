@@ -1223,5 +1223,86 @@ function Invoke-LatencyMitigationChecks {
             -Message 'Run pipeline.ps1 to capture bufferbloat data (idle vs loaded RTT test).'
     }
 
+    # --- Check: Platform Clock (HPET) ---
+    # If useplatformclock is forced to Yes, Windows uses legacy HPET instead of TSC,
+    # adding ~1ms timer resolution overhead.
+    $platformClockChecked = $false
+    try {
+        $bcdOutput = & bcdedit /enum '{current}' 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $platformClockChecked = $true
+            $upcLine = $bcdOutput | Where-Object { $_ -match 'useplatformclock' }
+            if ($null -ne $upcLine) {
+                $upcValue = ($upcLine -replace '.*\s+(Yes|No)\s*$', '$1').Trim()
+                if ($upcValue -eq 'Yes') {
+                    $results += New-CheckResult -Name 'Platform Clock (HPET)' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+                        -Status 'FAIL' -Current 'useplatformclock = Yes' -Expected 'Not set (TSC default)' `
+                        -Message 'Legacy HPET forced on. Adds ~1ms timer latency vs TSC. Games see higher input lag.' `
+                        -Fix 'bcdedit /deletevalue useplatformclock' `
+                        -FixNote 'Reboot required. Lets Windows use TSC instead of legacy HPET.'
+                } else {
+                    $results += New-CheckResult -Name 'Platform Clock (HPET)' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+                        -Status 'PASS' -Current 'useplatformclock = No' -Expected 'Not set (TSC default)' `
+                        -Message 'Platform clock explicitly disabled. TSC is active.'
+                }
+            } else {
+                $results += New-CheckResult -Name 'Platform Clock (HPET)' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+                    -Status 'PASS' -Current 'Not set (TSC default)' -Expected 'Not set (TSC default)' `
+                    -Message 'Windows using default TSC timer. Optimal for low latency.'
+            }
+        }
+    } catch {}
+    if (-not $platformClockChecked) {
+        $results += New-CheckResult -Name 'Platform Clock (HPET)' -Category 'OS' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'ERROR' -Current 'bcdedit failed (run as admin)' -Expected 'Not set (TSC default)' `
+            -Message 'Cannot read boot configuration. Run audit as Administrator.'
+    }
+
+    # --- Check: GPU ReBAR (Resizable BAR) ---
+    # ReBAR lets the CPU access full GPU VRAM directly instead of a 256MB window.
+    # ~3-5% FPS uplift in most games when enabled.
+    $rebarChecked = $false
+    $nvSmiPath = Join-Path $env:ProgramFiles 'NVIDIA Corporation\NVSMI\nvidia-smi.exe'
+    if (-not (Test-Path $nvSmiPath)) {
+        # Try PATH fallback
+        $nvSmiCmd = Get-Command 'nvidia-smi' -ErrorAction SilentlyContinue
+        if ($null -ne $nvSmiCmd) { $nvSmiPath = $nvSmiCmd.Source }
+    }
+    if (Test-Path $nvSmiPath) {
+        try {
+            # bar1.total not available via --query-gpu, parse -q output instead
+            $smiOutput = & $nvSmiPath -q 2>&1
+            $vramRaw = & $nvSmiPath --query-gpu=memory.total --format=csv,noheader,nounits 2>&1
+            $bar1Line = $smiOutput | Select-String 'BAR1 Memory Usage' -Context 0,1
+            $bar1MB = 0
+            if ($null -ne $bar1Line) {
+                $totalLine = $bar1Line.Context.PostContext[0]
+                if ($totalLine -match '(\d+)\s*MiB') { $bar1MB = [int]$Matches[1] }
+            }
+            $vramMB = [int]($vramRaw.ToString().Trim())
+            if ($bar1MB -gt 0 -and $vramMB -gt 0) {
+                $rebarChecked = $true
+                if ($bar1MB -ge $vramMB) {
+                    $barDetail = 'BAR1 = ' + $bar1MB + ' MB (VRAM = ' + $vramMB + ' MB)'
+                    $results += New-CheckResult -Name 'GPU ReBAR (Resizable BAR)' -Category 'GPU' -Tier 'Deep' -Severity 'MEDIUM' `
+                        -Status 'PASS' -Current $barDetail -Expected 'BAR1 >= VRAM (full access)' `
+                        -Message 'ReBAR enabled. CPU can access full GPU VRAM directly.'
+                } else {
+                    $barDetail = 'BAR1 = ' + $bar1MB + ' MB (VRAM = ' + $vramMB + ' MB)'
+                    $results += New-CheckResult -Name 'GPU ReBAR (Resizable BAR)' -Category 'GPU' -Tier 'Deep' -Severity 'MEDIUM' `
+                        -Status 'WARN' -Current $barDetail -Expected 'BAR1 >= VRAM (full access)' `
+                        -Message 'ReBAR not enabled. CPU limited to 256MB VRAM window. ~3-5% FPS loss in most games.' `
+                        -Fix '' `
+                        -FixNote 'Enable in BIOS: AMD CBS > NBIO > BAR Support > Enable. Also requires IOMMU enabled.'
+                }
+            }
+        } catch {}
+    }
+    if (-not $rebarChecked) {
+        $results += New-CheckResult -Name 'GPU ReBAR (Resizable BAR)' -Category 'GPU' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'SKIP' -Current 'nvidia-smi not found' -Expected 'BAR1 >= VRAM (full access)' `
+            -Message 'Install NVIDIA drivers with nvidia-smi to check ReBAR status.'
+    }
+
     return $results
 }
