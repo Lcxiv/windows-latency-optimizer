@@ -1183,6 +1183,30 @@ function Invoke-LatencyMitigationChecks {
             -FixNote 'Or run exp15_latency_mitigations_apply.ps1.'
     }
 
+    # --- Check: Defender Gaming Exclusion ---
+    # Verify Fortnite / Epic Games paths and processes are excluded from Defender.
+    # EXP18 showed 186K Defender I/O ops during 2min Fortnite gameplay.
+    $epicPath = 'C:\Program Files\Epic Games'
+    $fnProcess = 'FortniteClient-Win64-Shipping.exe'
+    $existingProcesses = @()
+    try { $existingProcesses = @((Get-MpPreference -ErrorAction Stop).ExclusionProcess) } catch {}
+    $hasEpicPath = $existingPaths -contains $epicPath
+    $hasFnProc  = $existingProcesses -contains $fnProcess
+    if ($hasEpicPath -and $hasFnProc) {
+        $results += New-CheckResult -Name 'Defender Gaming Exclusion' -Category 'OS' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'PASS' -Current 'Epic Games path + Fortnite process excluded' -Expected 'Game dirs + processes excluded'
+    } else {
+        $gameMissing = @()
+        if (-not $hasEpicPath) { $gameMissing += 'Epic Games path' }
+        if (-not $hasFnProc)   { $gameMissing += 'Fortnite process' }
+        $gameMissingStr = $gameMissing -join ', '
+        $results += New-CheckResult -Name 'Defender Gaming Exclusion' -Category 'OS' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'WARN' -Current ('Missing: ' + $gameMissingStr) -Expected 'Game dirs + processes excluded' `
+            -Message 'Defender scans game files on every asset load, causing input lag during build-switching.' `
+            -Fix '' `
+            -FixNote 'Run exp19_defender_gaming_exclusions.ps1 to add all gaming exclusions.'
+    }
+
     # --- Check: Bufferbloat (read from pipeline data) ---
     $expRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'captures\experiments'
     $bloatChecked = $false
