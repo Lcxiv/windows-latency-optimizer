@@ -34,6 +34,7 @@ param(
     [switch]$SkipProcMon,
     [switch]$SkipDefenderRecording,
     [switch]$SkipPktMon,
+    [switch]$SkipBufferbloat,
     [switch]$SkipNetworkLatency
 )
 
@@ -122,6 +123,12 @@ $gpuUtilData = Invoke-GpuCapture
 # ── PHASE 3D: Network latency ───────────────────────────────────────────────
 $networkData = Invoke-NetworkLatencyCapture -SkipNetworkLatency:$SkipNetworkLatency
 
+# ── PHASE 3E: Bufferbloat test ──────────────────────────────────────────────
+$bufferbloatData = $null
+if (-not $SkipBufferbloat -and -not $SkipNetworkLatency) {
+    $bufferbloatData = Test-Bufferbloat
+}
+
 # ── PHASE 4: Stop WPR + xperf analysis ───────────────────────────────────────
 $dpcIsrData = $null
 if ($wprStarted) {
@@ -191,7 +198,7 @@ Save-ExperimentJson `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
     -Cpu0Share $cpu0Share -Cpu23Share $cpu23Share -Cpu47Share $cpu47Share `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
-    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData
+    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData -BufferbloatData $bufferbloatData
 
 # ── PHASE 8: Dashboard update ────────────────────────────────────────────────
 Update-DashboardData -ScriptRoot $scriptRoot -SkipDashboardUpdate:$SkipDashboardUpdate

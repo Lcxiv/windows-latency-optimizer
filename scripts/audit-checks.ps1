@@ -1183,5 +1183,45 @@ function Invoke-LatencyMitigationChecks {
             -FixNote 'Or run exp15_latency_mitigations_apply.ps1.'
     }
 
+    # --- Check: Bufferbloat (read from pipeline data) ---
+    $expRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'captures\experiments'
+    $bloatChecked = $false
+    if (Test-Path $expRoot) {
+        $expDirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
+        if ($expDirs.Count -gt 0) {
+            $expJson = Join-Path $expDirs[0].FullName 'experiment.json'
+            if (Test-Path $expJson) {
+                try {
+                    $bloatExp = Get-Content $expJson -Raw | ConvertFrom-Json -ErrorAction Stop
+                    if ($null -ne $bloatExp.bufferbloat -and $null -ne $bloatExp.bufferbloat.bloatFactor) {
+                        $bf = $bloatExp.bufferbloat.bloatFactor
+                        $br = $bloatExp.bufferbloat.bloatRating
+                        $bloatChecked = $true
+                        $bloatDetail = 'Bloat: ' + $bf + 'x (' + $br + ') idle=' + $bloatExp.bufferbloat.idleP50 + 'ms loaded=' + $bloatExp.bufferbloat.loadedP50 + 'ms'
+                        if ($bf -lt 2) {
+                            $results += New-CheckResult -Name 'Bufferbloat' -Category 'Network' -Tier 'Deep' -Severity 'HIGH' `
+                                -Status 'PASS' -Current $bloatDetail -Expected 'Bloat factor < 2x'
+                        } elseif ($bf -lt 10) {
+                            $results += New-CheckResult -Name 'Bufferbloat' -Category 'Network' -Tier 'Deep' -Severity 'HIGH' `
+                                -Status 'WARN' -Current $bloatDetail -Expected 'Bloat factor < 2x' `
+                                -Message 'Mild bufferbloat. RTT inflates under load, causing latency spikes during downloads + gaming.' `
+                                -Fix '' -FixNote 'Enable SQM/fq_codel on your router. See bufferbloat.net/projects/'
+                        } else {
+                            $results += New-CheckResult -Name 'Bufferbloat' -Category 'Network' -Tier 'Deep' -Severity 'HIGH' `
+                                -Status 'FAIL' -Current $bloatDetail -Expected 'Bloat factor < 2x' `
+                                -Message 'Severe bufferbloat detected. Connection adds significant latency under load.' `
+                                -Fix '' -FixNote 'Enable SQM/fq_codel on your router or replace router. See bufferbloat.net/projects/'
+                        }
+                    }
+                } catch {}
+            }
+        }
+    }
+    if (-not $bloatChecked) {
+        $results += New-CheckResult -Name 'Bufferbloat' -Category 'Network' -Tier 'Deep' -Severity 'HIGH' `
+            -Status 'SKIP' -Current 'No bufferbloat data' -Expected 'Run pipeline.ps1 first' `
+            -Message 'Run pipeline.ps1 to capture bufferbloat data (idle vs loaded RTT test).'
+    }
+
     return $results
 }

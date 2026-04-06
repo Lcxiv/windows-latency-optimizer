@@ -152,6 +152,9 @@ if (Test-Path $expRoot) {
                         interruptTopology = $expData.interruptTopology
                         gpuUtilization    = $expData.gpuUtilization
                         procmonAnalysis   = $expData.procmonAnalysis
+                        networkLatency    = $expData.networkLatency
+                        bufferbloat       = $expData.bufferbloat
+                        connectionQuality = $expData.connectionQuality
                     }
                     # Also load input latency analysis if present
                     $inputJson = Join-Path $expDirs[0].FullName 'input_latency_analysis.json'
