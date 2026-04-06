@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaming Network Packet Analysis - Deep Research Report</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --warn: #d29922;
+    --danger: #f85149;
+    --code-bg: #0d1117;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 2rem;
+    color: #fff;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h2 .num {
+    background: var(--accent);
+    color: var(--bg);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 {
+    color: var(--accent2);
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  p { margin-bottom: 1rem; }
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--accent2);
+  }
+  pre .comment { color: var(--text-muted); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  .good { color: var(--accent2); font-weight: 600; }
+  .ok { color: var(--warn); font-weight: 600; }
+  .bad { color: var(--danger); font-weight: 600; }
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--surface2);
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.danger { border-left-color: var(--danger); }
+  .callout.success { border-left-color: var(--accent2); }
+  .callout strong { color: #fff; }
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+  .toc h2 { margin-top: 0; font-size: 1.2rem; }
+  .toc ol { padding-left: 1.5rem; }
+  .toc li { margin-bottom: 0.3rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-filter { background: #1f3a5f; color: var(--accent); }
+  .badge-metric { background: #1a3d2a; color: var(--accent2); }
+  .badge-hw { background: #3d2a1a; color: var(--warn); }
+  ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: 0.3rem; }
+  a { color: var(--accent); }
+  .sys-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0;
+  }
+  .sys-info div {
+    background: var(--surface2);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .sys-info strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Gaming Network Packet Analysis</h1>
+<p class="subtitle">Deep Research Report &mdash; What to look for in packet captures and why it matters<br>
+System: Ryzen 9800X3D + RTX 5070 Ti + Intel I226-V 2.5GbE &bull; Windows 11 Build 26200 &bull; April 2026</p>
+
+<div class="sys-info">
+  <div><strong>CPU:</strong> AMD Ryzen 7 9800X3D</div>
+  <div><strong>GPU:</strong> NVIDIA RTX 5070 Ti</div>
+  <div><strong>NIC:</strong> Intel I226-V 2.5GbE</div>
+  <div><strong>OS:</strong> Windows 11 Pro 26200</div>
+  <div><strong>Primary Game:</strong> Fortnite (UE5)</div>
+  <div><strong>Capture Tools:</strong> pktmon / tshark</div>
+</div>
+
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">UDP Game State Packets</a></li>
+    <li><a href="#s2">TCP Retransmissions and Their Gaming Impact</a></li>
+    <li><a href="#s3">Packet Loss Patterns</a></li>
+    <li><a href="#s4">Jitter and Game Smoothness</a></li>
+    <li><a href="#s5">Bufferbloat Detection in Packet Captures</a></li>
+    <li><a href="#s6">Nagle Algorithm Visibility</a></li>
+    <li><a href="#s7">DNS Resolution at Game Launch</a></li>
+    <li><a href="#s8">Intel I226-V Specific Issues</a></li>
+    <li><a href="#s9">ISP Throttling Detection</a></li>
+    <li><a href="#s10">Concrete Thresholds: Good vs Bad</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<div class="section" id="s1">
+<h2><span class="num">1</span> UDP Game State Packets</h2>
+
+<h3>Why UDP, Not TCP</h3>
+<p>Competitive shooters use UDP because it has <strong>no head-of-line blocking</strong>. When a TCP packet is lost, every subsequent packet queues behind the retransmission&mdash;even packets carrying newer, more relevant game state. UDP lets the game engine decide what to do with late or lost data. The UDP header itself is only <strong>8 bytes</strong> versus TCP's typical 32 bytes, reducing per-packet overhead.</p>
+
+<h3>Fortnite's Network Architecture</h3>
+<p>Fortnite is built on Unreal Engine and uses a <strong>client-server authoritative model</strong> running at <strong>30 ticks per second</strong> (30 Hz server update rate). Historically it launched at 8 Hz and was upgraded. The client update rate is approximately <strong>75 updates/second</strong>. Fortnite uses <strong>UDP ports 9000&ndash;9100</strong> for gameplay traffic, with TCP on ports 80, 443, and 5222 for authentication, matchmaking, chat (XMPP), and Epic Online Services.</p>
+
+<h3>Packet Structure (Unreal Engine Internals)</h3>
+<p>Unreal Engine's UDP packets use a custom reliability layer built on top of raw UDP:</p>
+<ul>
+  <li><strong>Packet Header:</strong> Contains a <code>sequence number</code> (monotonically increasing), an <code>ack</code> field (most recent received sequence), and an <code>ack_bits</code> bitfield (32-bit mask encoding which of the last 32 packets were received). This design from <a href="https://gafferongames.com/post/reliable_ordered_messages/">Gaffer on Games</a> means each ack is redundantly sent ~32 times across subsequent packets.</li>
+  <li><strong>Bunches:</strong> Each packet contains one or more "bunches"&mdash;data containers targeted at specific replication channels (actor state, RPC calls, property updates). Bunches can be partial/fragmented across packets.</li>
+  <li><strong>Channels:</strong> Each replicated actor gets its own channel. Position, rotation, velocity, and health are replicated continuously. Critical events (damage, eliminations) use a reliable-ordered sub-channel built atop the unreliable UDP transport.</li>
+</ul>
+
+<h3>Typical Packet Characteristics</h3>
+<table>
+  <tr><th>Property</th><th>Typical Value</th><th>Notes</th></tr>
+  <tr><td>MTU / Max Packet Size</td><td>512&ndash;1024 bytes</td><td>UE defaults to 1024, was lowered to 512 at times to avoid fragmentation</td></tr>
+  <tr><td>Payload (no IP/UDP headers)</td><td>100&ndash;500 bytes typical</td><td>Position updates are small; big state changes are larger</td></tr>
+  <tr><td>Send Rate (client&rarr;server)</td><td>~75 packets/sec</td><td>Player input (movement, aim, actions)</td></tr>
+  <tr><td>Send Rate (server&rarr;client)</td><td>~30 packets/sec</td><td>World state snapshots at tick rate</td></tr>
+  <tr><td>IP Fragmentation</td><td>Avoided by design</td><td>UE keeps packets under 576 bytes when possible (RFC 791 safe)</td></tr>
+</table>
+
+<h3>What Happens When a Packet Is Lost vs Delayed</h3>
+<ul>
+  <li><strong>Lost position update:</strong> The client continues predicting using the last known velocity. When the next packet arrives, the client interpolates to the corrected position. If the prediction was wrong, you see a small "snap" or rubber-band.</li>
+  <li><strong>Lost critical event (damage/elimination):</strong> Sent via reliable-ordered channel. UE's ack_bits detect the miss and retransmit on the next packet. Delay equals one round-trip (~30&ndash;60ms at 15&ndash;30ms ping).</li>
+  <li><strong>Delayed packet:</strong> If a packet arrives with an older sequence number than the most recent, <strong>it is discarded</strong>. Stale state is worse than no state&mdash;the client's prediction from newer data is already more accurate.</li>
+</ul>
+
+<h3>Fortnite's Compensation Techniques</h3>
+<ul>
+  <li><strong>Client-side prediction:</strong> Your own movement is predicted instantly. The server validates and sends corrections. You never feel your own latency for movement.</li>
+  <li><strong>Entity interpolation:</strong> Other players are rendered ~50ms in the past (interpolation buffer of ~2 server ticks). This smooths out jitter but means you always see enemies slightly behind their real position.</li>
+  <li><strong>Server-side rewind:</strong> For hit detection, the server "rewinds" other players to where they were when you fired (accounting for your ping). This is why high-ping players can sometimes get hits that feel unfair to low-ping players.</li>
+</ul>
+
+<div class="callout">
+<strong>tshark filters for Fortnite UDP traffic:</strong>
+<pre>
+<span class="comment"># Capture Fortnite game traffic (UDP 9000-9100)</span>
+tshark -i "Ethernet" -f "udp portrange 9000-9100" -w fortnite_capture.pcapng
+
+<span class="comment"># Analyze packet sizes and timing</span>
+tshark -r fortnite_capture.pcapng -T fields -e frame.time_delta -e udp.length -e ip.src -e ip.dst
+
+<span class="comment"># Show packet size distribution</span>
+tshark -r fortnite_capture.pcapng -q -z io,stat,0,"COUNT(frame)frame.len<=200","COUNT(frame)frame.len>200&&frame.len<=500","COUNT(frame)frame.len>500"
+
+<span class="comment"># pktmon equivalent (Windows native, no install needed)</span>
+pktmon filter add -t UDP -p 9000-9100
+pktmon start --etw -m real-time
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s2">
+<h2><span class="num">2</span> TCP Retransmissions and Their Gaming Impact</h2>
+
+<h3>Where TCP Is Used in Games</h3>
+<p>Even UDP-based games use TCP for <strong>non-realtime traffic</strong>: matchmaking (HTTPS/443), authentication, friend lists, inventory/item shop, voice chat signaling (XMPP/5222), and telemetry. A TCP stall here won't cause rubber-banding, but it can cause:</p>
+<ul>
+  <li>Slow matchmaking queue joins (frozen "Connecting..." screens)</li>
+  <li>Delayed friend list/party updates</li>
+  <li>Chat message delays</li>
+  <li>Failed item purchases or inventory loads</li>
+</ul>
+
+<h3>The Exact Latency Penalty</h3>
+<p>TCP has two retransmission mechanisms, and their latency penalties differ dramatically:</p>
+
+<table>
+  <tr><th>Mechanism</th><th>Trigger</th><th>Latency Added</th><th>Player Experience</th></tr>
+  <tr>
+    <td><strong>Fast Retransmit</strong></td>
+    <td>3 duplicate ACKs received</td>
+    <td>~1 RTT (30&ndash;60ms typical)</td>
+    <td>Brief hiccup, usually unnoticed</td>
+  </tr>
+  <tr>
+    <td><strong>RTO Timeout</strong></td>
+    <td>No ACK received within RTO timer</td>
+    <td><strong>200&ndash;300ms minimum</strong> (Windows min RTO = 300ms, Linux = 200ms)</td>
+    <td>Noticeable freeze/stall</td>
+  </tr>
+  <tr>
+    <td><strong>Double Loss (RTO + backoff)</strong></td>
+    <td>Retransmitted packet also lost</td>
+    <td><strong>600ms&ndash;1200ms</strong> (exponential backoff doubles RTO)</td>
+    <td>Visible hang, potentially disconnected</td>
+  </tr>
+  <tr>
+    <td><strong>Initial SYN loss</strong></td>
+    <td>First connection packet lost</td>
+    <td><strong>3 seconds</strong> (initial RTO per RFC 6298)</td>
+    <td>Game takes forever to "connect"</td>
+  </tr>
+</table>
+
+<div class="callout warn">
+<strong>Why Windows RTO is 300ms, not lower:</strong> Per <a href="https://support.microsoft.com/en-us/topic/how-to-modify-the-tcp-ip-maximum-retransmission-time-out-7ae0982a-4963-fa7e-ee79-ff6d0da73db8">Microsoft KB</a>, Windows TCP has a minimum RTO of 300ms. This is conservative by design. Even on a 10ms-ping LAN connection, a single lost TCP packet costs at minimum 300ms. This is why game engines use UDP for gameplay&mdash;they cannot afford this floor.
+</div>
+
+<h3>Fast Retransmit vs RTO: What to Watch For</h3>
+<p><strong>Fast retransmit</strong> (triggered by 3 duplicate ACKs) recovers in ~1 RTT because the sender infers the loss from out-of-order ACKs. This is the "good" path. <strong>RTO timeout</strong> is the "bad" path&mdash;it means even the duplicate ACKs were lost, so the sender has no signal and must wait for the full timer to expire. After each RTO, the timer <strong>doubles</strong> (exponential backoff), so consecutive losses escalate rapidly: 300ms &rarr; 600ms &rarr; 1200ms &rarr; 2400ms.</p>
+
+<div class="callout">
+<strong>tshark filters for TCP retransmission analysis:</strong>
+<pre>
+<span class="comment"># Show all retransmissions</span>
+tshark -r capture.pcapng -Y "tcp.analysis.retransmission"
+
+<span class="comment"># Show fast retransmissions specifically</span>
+tshark -r capture.pcapng -Y "tcp.analysis.fast_retransmission"
+
+<span class="comment"># Show RTO-based retransmissions (retransmissions that are NOT fast)</span>
+tshark -r capture.pcapng -Y "tcp.analysis.retransmission and !tcp.analysis.fast_retransmission"
+
+<span class="comment"># Count retransmissions per conversation</span>
+tshark -r capture.pcapng -Y "tcp.analysis.retransmission" -z conv,tcp
+
+<span class="comment"># Show duplicate ACKs (precursor to fast retransmit)</span>
+tshark -r capture.pcapng -Y "tcp.analysis.duplicate_ack"
+
+<span class="comment"># Show zero-window events (receiver overwhelmed)</span>
+tshark -r capture.pcapng -Y "tcp.analysis.zero_window"
+
+<span class="comment"># Full TCP conversation statistics including retransmissions</span>
+tshark -r capture.pcapng -q -z tcp,tree
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s3">
+<h2><span class="num">3</span> Packet Loss Patterns</h2>
+
+<h3>Three Types of Loss and Their Signatures</h3>
+
+<table>
+  <tr><th>Type</th><th>Cause</th><th>Capture Signature</th><th>Gaming Impact</th></tr>
+  <tr>
+    <td><strong>Random Loss</strong></td>
+    <td>Bit errors (rare on wired), marginal signal (Wi-Fi), minor congestion</td>
+    <td>Evenly distributed missing sequence numbers. No pattern in timing. Low loss rate (&lt;1%).</td>
+    <td>Occasional micro-stutters. Client prediction handles it well. Least harmful type.</td>
+  </tr>
+  <tr>
+    <td><strong>Burst Loss</strong></td>
+    <td>Buffer overflow, switch/router queue full, Wi-Fi interference burst, NIC driver bug</td>
+    <td>Clusters of consecutive missing sequence numbers. Gap in <code>frame.time_delta</code> followed by burst of arrivals. Multiple packets lost in &lt;100ms window.</td>
+    <td><strong>Most damaging for games.</strong> Multiple state updates lost at once. Client prediction diverges significantly. Causes visible rubber-banding and position snaps.</td>
+  </tr>
+  <tr>
+    <td><strong>Congestion Loss</strong></td>
+    <td>Sustained link saturation (someone streaming/downloading), bufferbloat</td>
+    <td>Gradual RTT increase visible in TCP streams. Increasing <code>frame.time_delta</code> variation. Loss correlates with high throughput periods. TCP window scaling events.</td>
+    <td>Progressive degradation. Starts with increased jitter, escalates to loss. Often periodic (peaks during download bursts).</td>
+  </tr>
+</table>
+
+<h3>Loss Rate Thresholds for Competitive Gaming</h3>
+<table>
+  <tr><th>Loss Rate</th><th>Classification</th><th>Player Experience</th></tr>
+  <tr><td class="good">&lt; 0.1%</td><td class="good">Excellent</td><td>Indistinguishable from zero loss. Tournament-grade.</td></tr>
+  <tr><td class="good">0.1% &ndash; 0.5%</td><td class="good">Good</td><td>Rare micro-corrections. Acceptable for competitive ranked play.</td></tr>
+  <tr><td class="ok">0.5% &ndash; 1%</td><td class="ok">Noticeable</td><td>Occasional hiccups. Hit registration feels inconsistent. You lose some gunfights you should win.</td></tr>
+  <tr><td class="ok">1% &ndash; 2%</td><td class="ok">Problematic</td><td>Regular rubber-banding. Enemies teleport occasionally. Frustrating in build fights.</td></tr>
+  <tr><td class="bad">2% &ndash; 5%</td><td class="bad">Severe</td><td>Frequent position corrections. Building/editing feels unresponsive. Competitive play is compromised.</td></tr>
+  <tr><td class="bad">&gt; 5%</td><td class="bad">Unplayable</td><td>Constant desync. Game may disconnect. Impossible to compete.</td></tr>
+</table>
+
+<div class="callout danger">
+<strong>Critical insight:</strong> Burst loss of 2% is far worse than random loss of 2%. Five consecutive lost packets (a 167ms gap at 30 Hz) forces a much larger prediction correction than five packets lost randomly across 10 seconds. Packet captures can distinguish these patterns by examining the <em>distribution</em> of inter-arrival times, not just the total loss count.
+</div>
+
+<div class="callout">
+<strong>tshark filters for packet loss analysis:</strong>
+<pre>
+<span class="comment"># Export inter-arrival times for UDP game traffic</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -T fields -e frame.number -e frame.time_delta -e udp.length
+
+<span class="comment"># Identify gaps (potential loss) - look for time_delta > 100ms</span>
+<span class="comment"># At 30Hz server rate, expected delta is ~33ms</span>
+<span class="comment"># A delta > 100ms suggests 2+ consecutive lost packets</span>
+
+<span class="comment"># For TCP streams, detect out-of-order (indicates loss/reordering)</span>
+tshark -r capture.pcapng -Y "tcp.analysis.out_of_order"
+
+<span class="comment"># Count retransmissions as a proxy for loss rate</span>
+tshark -r capture.pcapng -q -z io,stat,1,"COUNT(tcp.analysis.retransmission)tcp.analysis.retransmission"
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s4">
+<h2><span class="num">4</span> Jitter and Its Effect on Game Smoothness</h2>
+
+<h3>What Jitter Actually Is</h3>
+<p><strong>Jitter</strong> is the variation in packet inter-arrival times. If a game server sends packets every 33ms (30 Hz), but they arrive at your client with intervals of 20ms, 45ms, 28ms, 50ms, 15ms&mdash;that variation is jitter. It is mathematically defined per RFC 3550 as:</p>
+<pre>
+D(i,j) = (Rj - Ri) - (Sj - Si)
+
+Where:
+  Rj, Ri = receive timestamps of packets j and i
+  Sj, Si = send timestamps of packets j and i
+  D(i,j) = the instantaneous jitter sample
+
+Running mean:  J(i) = J(i-1) + (|D(i,j)| - J(i-1)) / 16
+</pre>
+
+<h3>Why Low Ping + High Jitter Feels Worse Than Higher Ping + Low Jitter</h3>
+<p>Consider two connections:</p>
+<table>
+  <tr><th>Connection</th><th>Average Ping</th><th>Jitter</th><th>Packet Arrival Pattern</th></tr>
+  <tr>
+    <td><strong>A: Low ping, high jitter</strong></td>
+    <td>20ms</td>
+    <td>40ms</td>
+    <td>Arrivals at: 5ms, 55ms, 12ms, 48ms, 8ms, 60ms...</td>
+  </tr>
+  <tr>
+    <td><strong>B: Higher ping, low jitter</strong></td>
+    <td>40ms</td>
+    <td>3ms</td>
+    <td>Arrivals at: 38ms, 41ms, 39ms, 42ms, 40ms, 39ms...</td>
+  </tr>
+</table>
+<p>Connection B feels <strong>dramatically smoother</strong> because:</p>
+<ul>
+  <li>The interpolation buffer can be small (the game knows packets arrive on schedule).</li>
+  <li>Client-side prediction rarely needs correction.</li>
+  <li>Enemy movement appears fluid&mdash;each frame has fresh data arriving predictably.</li>
+</ul>
+<p>Connection A causes:</p>
+<ul>
+  <li>The game must use a <strong>larger interpolation buffer</strong> (~50ms+) to absorb jitter spikes, adding visual delay.</li>
+  <li>Some frames have two updates to process (when a late packet and the next one arrive together), others have none, creating <strong>micro-stuttering</strong>.</li>
+  <li>The 60ms spike is effectively a momentary loss event from the game's perspective.</li>
+</ul>
+
+<h3>Jitter Thresholds</h3>
+<table>
+  <tr><th>Jitter</th><th>Classification</th><th>Effect in Competitive FPS</th></tr>
+  <tr><td class="good">&lt; 5ms</td><td class="good">Excellent</td><td>Imperceptible. Esports/tournament-grade.</td></tr>
+  <tr><td class="good">5&ndash;15ms</td><td class="good">Good</td><td>Smooth gameplay. Acceptable for ranked competitive.</td></tr>
+  <tr><td class="ok">15&ndash;30ms</td><td class="ok">Noticeable</td><td>Occasional micro-stutters. Enemy movement sometimes appears jerky. Hit reg feels slightly off.</td></tr>
+  <tr><td class="bad">30&ndash;50ms</td><td class="bad">Problematic</td><td>Visible stuttering. Build fights feel inconsistent. Edits sometimes fail to register.</td></tr>
+  <tr><td class="bad">&gt; 50ms</td><td class="bad">Severe</td><td>Enemies teleport. Game is essentially unplayable competitively.</td></tr>
+</table>
+
+<div class="callout">
+<strong>tshark jitter measurement:</strong>
+<pre>
+<span class="comment"># Export timestamps for jitter calculation</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100 and ip.src == SERVER_IP" \
+  -T fields -e frame.time_epoch -e frame.time_delta
+
+<span class="comment"># Calculate jitter: compute standard deviation of frame.time_delta values</span>
+<span class="comment"># Expected delta at 30Hz = 0.033s. Jitter = variation around that mean.</span>
+
+<span class="comment"># Quick jitter stats via tshark I/O graph (1-second bins)</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -q -z io,stat,1,"AVG(frame.time_delta)frame.time_delta","MAX(frame.time_delta)frame.time_delta"
+
+<span class="comment"># Identify jitter spikes: packets arriving with > 2x expected interval</span>
+<span class="comment"># At 30Hz, expected ~33ms. Flag anything > 66ms:</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100 and frame.time_delta > 0.066"
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s5">
+<h2><span class="num">5</span> Bufferbloat Detection in Packet Captures</h2>
+
+<h3>What Bufferbloat Is</h3>
+<p>Bufferbloat occurs when oversized buffers in routers, switches, or your ISP's equipment absorb packets instead of dropping them during congestion. The packets eventually arrive&mdash;but <strong>hundreds of milliseconds late</strong>. The result: your ping test shows 5ms when idle, but jumps to 50&ndash;200ms+ when someone on your network is streaming or downloading.</p>
+
+<h3>The Signature in Packet Captures</h3>
+<p>Bufferbloat has a distinctive pattern in pcapng files:</p>
+<ol>
+  <li><strong>Idle baseline:</strong> TCP handshake RTT shows true propagation delay (e.g., 5ms to game server).</li>
+  <li><strong>Under load:</strong> RTT climbs linearly as buffers fill. The delay increases proportionally to the queue depth, not the distance.</li>
+  <li><strong>Steady-state bloat:</strong> RTT plateaus at a high value (the buffer is full). This plateau equals <code>buffer_size_bytes / link_rate_bytes_per_sec</code>.</li>
+  <li><strong>No packet loss during the RTT increase:</strong> This is the key differentiator. With proper queue management (like fq_codel), you'd see some loss but stable latency. With bufferbloat, you see zero loss but massive latency inflation.</li>
+</ol>
+
+<h3>Measuring Severity</h3>
+<table>
+  <tr><th>Idle RTT</th><th>Loaded RTT</th><th>Bloat Factor</th><th>Gaming Impact</th></tr>
+  <tr><td>5ms</td><td>15ms</td><td class="good">3x (minimal)</td><td class="good">Acceptable. Modern AQM or small buffers. +10ms under load is tolerable.</td></tr>
+  <tr><td>5ms</td><td>50ms</td><td class="ok">10x (moderate)</td><td class="ok">Noticeable during concurrent traffic. Your 5ms ping becomes 50ms when someone starts a download.</td></tr>
+  <tr><td>5ms</td><td>200ms</td><td class="bad">40x (severe)</td><td class="bad">Unplayable during any concurrent network use. A YouTube video on another device ruins your game.</td></tr>
+  <tr><td>5ms</td><td>500ms+</td><td class="bad">100x (extreme)</td><td class="bad">Common on DSL/cable with stock router firmware. Game is unplayable whenever any other device is active.</td></tr>
+</table>
+
+<div class="callout warn">
+<strong>The deceptive nature of bufferbloat:</strong> Standard speed tests show great results (full bandwidth utilized). Standard ping tests (idle network) show low latency. The problem only appears under concurrent load&mdash;which is exactly when you're gaming while someone else is using the network.
+</div>
+
+<h3>Detection Method from Packet Timestamps</h3>
+<p>To detect bufferbloat from a pcapng, you measure RTT during idle periods vs. during high-throughput periods:</p>
+
+<div class="callout">
+<strong>tshark approach for bufferbloat detection:</strong>
+<pre>
+<span class="comment"># Step 1: Capture during a bufferbloat test</span>
+<span class="comment"># Start a large download while gaming, capture both streams</span>
+tshark -i "Ethernet" -w bufferbloat_test.pcapng -a duration:60
+
+<span class="comment"># Step 2: Measure TCP RTT via SYN/SYN-ACK handshakes (baseline)</span>
+tshark -r bufferbloat_test.pcapng -Y "tcp.flags.syn==1 and tcp.flags.ack==0" \
+  -T fields -e frame.time_epoch -e ip.dst
+
+<span class="comment"># Step 3: Track RTT over time using TCP ACK analysis</span>
+tshark -r bufferbloat_test.pcapng -Y "tcp.analysis.ack_rtt" \
+  -T fields -e frame.time_epoch -e tcp.analysis.ack_rtt -e ip.dst
+
+<span class="comment"># Step 4: Compare game server RTT during idle vs loaded periods</span>
+<span class="comment"># Look for: RTT values climbing from baseline (e.g., 5ms -> 50ms+)</span>
+<span class="comment"># while throughput on other connections is high</span>
+
+<span class="comment"># Step 5: Use tcp.time_delta for per-stream timing</span>
+tshark -r bufferbloat_test.pcapng -Y "tcp.stream eq N" \
+  -T fields -e frame.time_epoch -e tcp.time_delta
+
+<span class="comment"># Bloat factor = max(ack_rtt) / min(ack_rtt) for same destination</span>
+<span class="comment"># Factor > 5x = bufferbloat present</span>
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s6">
+<h2><span class="num">6</span> Nagle Algorithm Visibility in Packet Captures</h2>
+
+<h3>How Nagle Works</h3>
+<p>Nagle's algorithm (RFC 896) prevents sending small TCP segments when there's outstanding unacknowledged data. The logic: if there's unacked data AND the new data is smaller than MSS (Maximum Segment Size, ~1460 bytes), <strong>buffer it</strong> until either an ACK arrives or enough data accumulates to fill an MSS.</p>
+
+<h3>The Deadly Interaction with Delayed ACK</h3>
+<p>The real problem isn't Nagle alone&mdash;it's Nagle + Delayed ACK. The <strong>Delayed ACK</strong> timer (default 40ms on Linux, 200ms on Windows) causes the receiver to wait before sending an ACK, hoping to piggyback it on a response. Combined with Nagle:</p>
+<ol>
+  <li>Sender sends small packet #1 (e.g., player input, 50 bytes).</li>
+  <li>Sender wants to send packet #2 (another input update, 50 bytes).</li>
+  <li>Nagle says: "Wait, packet #1 isn't ACKed yet, and this is a small packet. Buffer it."</li>
+  <li>Receiver says: "I'll delay my ACK for up to 40ms hoping to piggyback."</li>
+  <li><strong>Result:</strong> Packet #2 is delayed by up to 40ms (Linux) or 200ms (Windows) waiting for the ACK that unlocks it.</li>
+</ol>
+
+<h3>What It Looks Like in a Capture</h3>
+<p>The telltale pattern:</p>
+<ul>
+  <li>Small packet sent (e.g., 50&ndash;200 bytes).</li>
+  <li><strong>Exactly 40ms gap</strong> (Linux) or <strong>200ms gap</strong> (Windows) before the next small packet.</li>
+  <li>The ACK arrives, then the buffered packet is immediately sent.</li>
+  <li>This pattern repeats rhythmically&mdash;send, wait, ACK, send, wait, ACK.</li>
+</ul>
+
+<div class="callout danger">
+<strong>Why this is devastating for games:</strong> Games that use TCP for any real-time-ish traffic (position updates, chat, ability cooldowns) and forget to set <code>TCP_NODELAY</code> get a fixed 40&ndash;200ms penalty on every other small packet. This is additive with network latency. A 20ms connection feels like 60&ndash;220ms.
+</div>
+
+<h3>The Fix: TCP_NODELAY</h3>
+<p>Setting <code>TCP_NODELAY</code> (socket option) disables Nagle entirely. Every <code>send()</code> call flushes immediately regardless of outstanding ACKs. You can verify whether a connection has it enabled:</p>
+
+<div class="callout">
+<strong>tshark detection of Nagle delays:</strong>
+<pre>
+<span class="comment"># Method 1: Find small packets with suspiciously consistent ~40ms gaps</span>
+tshark -r capture.pcapng -Y "tcp.len > 0 and tcp.len < 200" \
+  -T fields -e frame.time_delta -e tcp.len -e tcp.stream
+
+<span class="comment"># Look for frame.time_delta values clustering around 0.040 (40ms)</span>
+<span class="comment"># or 0.200 (200ms on Windows). This is the Nagle+DelayedACK signature.</span>
+
+<span class="comment"># Method 2: Correlate small sends with ACK arrivals</span>
+tshark -r capture.pcapng -Y "tcp.stream eq N" \
+  -T fields -e frame.time_delta -e tcp.len -e tcp.flags.ack -e tcp.ack
+
+<span class="comment"># Method 3: On a live Linux system, check if TCP_NODELAY is set</span>
+<span class="comment"># ss -tin state established | grep nodelay</span>
+
+<span class="comment"># Pattern to look for:</span>
+<span class="comment">#   [small pkt]  delta=0.001  len=87</span>
+<span class="comment">#   [ACK only]   delta=0.040  len=0    &lt;-- delayed ACK after 40ms</span>
+<span class="comment">#   [small pkt]  delta=0.001  len=92   &lt;-- Nagle-buffered packet released</span>
+<span class="comment">#   [ACK only]   delta=0.040  len=0    &lt;-- another delayed ACK</span>
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s7">
+<h2><span class="num">7</span> DNS Resolution at Game Launch</h2>
+
+<h3>Why Games Take 10&ndash;30 Seconds to Connect</h3>
+<p>When you launch Fortnite and click "Play," the client performs a cascade of DNS lookups before you ever reach a game server:</p>
+<ol>
+  <li><strong>Authentication:</strong> <code>account-public-service-prod.ol.epicgames.com</code> (login tokens)</li>
+  <li><strong>Friends/Party:</strong> <code>xmpp-service-prod.ol.epicgames.com</code> (XMPP chat)</li>
+  <li><strong>Matchmaking:</strong> <code>fortnite-matchmaking-public-service-prod11.ol.epicgames.com</code></li>
+  <li><strong>Asset CDN:</strong> <code>cdn1.unrealengine.com</code>, <code>download.epicgames.com</code></li>
+  <li><strong>Telemetry:</strong> <code>tracking.epicgames.com</code>, analytics endpoints</li>
+  <li><strong>Geo-DNS server selection:</strong> Resolves to the nearest regional game server IP</li>
+</ol>
+
+<h3>How DNS Chains Add Latency</h3>
+<p>Each domain may involve a CNAME chain:</p>
+<pre>
+fortnite-matchmaking-prod.ol.epicgames.com
+  &rarr; CNAME: matchmaking.fortnite.aws.epicgames.com
+    &rarr; CNAME: d3abc123.cloudfront.net
+      &rarr; A record: 54.192.x.x
+</pre>
+<p>Each CNAME hop is a sequential DNS query. With 3 hops and a 30ms DNS server, that's <strong>90ms per domain</strong>. Multiply by 5&ndash;8 domains at launch = <strong>450&ndash;720ms best case</strong>. If any lookup times out (default 2&ndash;5 second timeout), the chain stalls.</p>
+
+<h3>Common DNS Problems in Packet Captures</h3>
+<table>
+  <tr><th>Problem</th><th>Capture Signature</th><th>Added Delay</th></tr>
+  <tr><td>Slow recursive resolver</td><td><code>dns.time > 0.1</code> (100ms+)</td><td>100ms&ndash;2s per query</td></tr>
+  <tr><td>DNS timeout + retry</td><td>Query, 2s gap, identical query repeated</td><td>2&ndash;5 seconds</td></tr>
+  <tr><td>CNAME chain (3+ hops)</td><td>Multiple sequential dns queries for same flow</td><td>3x single lookup time</td></tr>
+  <tr><td>NXDOMAIN for old endpoint</td><td><code>dns.flags.rcode == 3</code></td><td>Full timeout + fallback</td></tr>
+  <tr><td>DNS-over-HTTPS fallback</td><td>TLS handshake to 1.1.1.1 or 8.8.8.8 on 443</td><td>200ms+ (TLS overhead)</td></tr>
+</table>
+
+<div class="callout success">
+<strong>Quick wins for DNS:</strong>
+<ul>
+  <li>Use a fast local DNS resolver: Cloudflare (1.1.1.1) or Google (8.8.8.8) typically resolve in &lt;10ms.</li>
+  <li>Pre-warm DNS cache: <code>nslookup fortnite-matchmaking-public-service-prod11.ol.epicgames.com</code> before launching.</li>
+  <li>Disable DNS-over-HTTPS in Windows if your router already provides fast DNS.</li>
+  <li>Set shorter DNS timeout: <code>netsh interface ipv4 set dnsservers "Ethernet" static 1.1.1.1 primary</code></li>
+</ul>
+</div>
+
+<div class="callout">
+<strong>tshark filters for DNS analysis:</strong>
+<pre>
+<span class="comment"># Show all DNS queries and response times</span>
+tshark -r capture.pcapng -Y "dns" \
+  -T fields -e frame.time_epoch -e dns.qry.name -e dns.time -e dns.flags.response
+
+<span class="comment"># Find slow DNS queries (&gt;100ms)</span>
+tshark -r capture.pcapng -Y "dns.time > 0.1" \
+  -T fields -e dns.qry.name -e dns.time
+
+<span class="comment"># Find DNS failures (NXDOMAIN, SERVFAIL)</span>
+tshark -r capture.pcapng -Y "dns.flags.rcode != 0" \
+  -T fields -e dns.qry.name -e dns.flags.rcode
+
+<span class="comment"># DNS query timing statistics</span>
+tshark -r capture.pcapng -q -z dns,tree
+
+<span class="comment"># pktmon equivalent: capture DNS traffic</span>
+pktmon filter add -t UDP -p 53
+pktmon filter add -t TCP -p 53
+pktmon start --etw -p 0 -c 13
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s8">
+<h2><span class="num">8</span> Intel I226-V Specific Network Issues</h2>
+
+<div class="callout danger">
+<strong>Known hardware defect:</strong> The Intel I226-V has a documented design flaw causing random connection drops. Intel has acknowledged and reproduced the issue. This affects your system directly.
+</div>
+
+<h3>Documented I226-V Problems</h3>
+
+<table>
+  <tr><th>Issue</th><th>Symptom</th><th>Packet Capture Signature</th><th>Mitigation</th></tr>
+  <tr>
+    <td><strong>Random disconnects</strong></td>
+    <td>Ethernet drops every 3&ndash;4 hours, reconnects after seconds</td>
+    <td>Complete gap in all traffic (no packets at all for 2&ndash;10 seconds). Link-down event in Windows Event Viewer.</td>
+    <td>Disable EEE. Update to latest Intel driver. Force PCIe Gen 3.</td>
+  </tr>
+  <tr>
+    <td><strong>Packet rate degradation</strong></td>
+    <td>TX/RX rate gradually decreases over hours until driver reinstall</td>
+    <td>Increasing inter-packet gaps over time. Packet count per second drops in <code>io,stat</code> output. Throughput falls from 2.5G to 1G to 100M.</td>
+    <td>Driver reinstall. Disable EEE. Some users report disabling flow control helps.</td>
+  </tr>
+  <tr>
+    <td><strong>EEE wake latency</strong></td>
+    <td>First packet after idle period has extra 10&ndash;30ms latency</td>
+    <td>Occasional <code>frame.time_delta</code> spikes of 10&ndash;30ms on the first packet after a &gt;100ms idle gap. EEE puts the PHY into low-power mode; wake-up takes time.</td>
+    <td><strong>Disable Energy Efficient Ethernet in Device Manager.</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Interrupt Moderation delays</strong></td>
+    <td>Batched packet delivery instead of per-packet interrupts</td>
+    <td>Packets arrive in clusters (burst of 3&ndash;5 at once, then silence). Regular "staircase" pattern in arrival times.</td>
+    <td>Disable Interrupt Moderation in adapter advanced settings.</td>
+  </tr>
+  <tr>
+    <td><strong>Speed negotiation failures</strong></td>
+    <td>Link negotiates at 100Mbps instead of 2.5Gbps</td>
+    <td>Sudden throughput cap visible in <code>io,stat</code>. All packets fit under 100Mbps.</td>
+    <td>Force speed/duplex to 1 Gbps Full Duplex (avoid 2.5G if unstable).</td>
+  </tr>
+</table>
+
+<h3>Recommended I226-V Settings for Gaming</h3>
+<p>In Device Manager &rarr; Network Adapters &rarr; Intel I226-V &rarr; Properties &rarr; Advanced:</p>
+<table>
+  <tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+  <tr><td>Energy Efficient Ethernet</td><td><strong>Disabled</strong></td><td>Eliminates PHY wake latency spikes</td></tr>
+  <tr><td>Interrupt Moderation</td><td><strong>Disabled</strong></td><td>Per-packet delivery instead of batched (lower latency, more CPU)</td></tr>
+  <tr><td>Flow Control</td><td><strong>Disabled</strong></td><td>Prevents buffer-induced pauses. Games use tiny packets that don't need flow control.</td></tr>
+  <tr><td>Receive Buffers</td><td><strong>2048</strong> (max)</td><td>Larger receive ring prevents drops during CPU spikes</td></tr>
+  <tr><td>Transmit Buffers</td><td><strong>2048</strong> (max)</td><td>Larger transmit ring prevents stalls</td></tr>
+  <tr><td>Speed &amp; Duplex</td><td><strong>1.0 Gbps Full Duplex</strong></td><td>2.5G is unstable on I226-V. 1Gbps is more than enough for gaming.</td></tr>
+</table>
+
+<div class="callout">
+<strong>tshark commands to detect I226-V issues:</strong>
+<pre>
+<span class="comment"># Detect connection drops: look for gaps > 2 seconds</span>
+tshark -r capture.pcapng -T fields -e frame.time_delta -e frame.number \
+  | awk -F'\t' '$1 > 2.0 {print "GAP at frame " $2 ": " $1 "s"}'
+
+<span class="comment"># Detect interrupt moderation clustering: packets arriving in bursts</span>
+<span class="comment"># Look for clusters of packets with delta < 0.001s followed by gaps</span>
+tshark -r capture.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -T fields -e frame.time_delta -e frame.number
+
+<span class="comment"># Monitor packet rate over time (should be stable at ~30 pkt/s from server)</span>
+tshark -r capture.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -q -z io,stat,10
+
+<span class="comment"># EEE wake latency: first packet after idle has elevated delta</span>
+<span class="comment"># Look for: delta > 0.010 after a gap > 0.100</span>
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s9">
+<h2><span class="num">9</span> ISP Throttling Detection</h2>
+
+<h3>How ISPs Throttle Gaming Traffic</h3>
+<p>ISPs use several methods to selectively degrade specific traffic types:</p>
+
+<table>
+  <tr><th>Method</th><th>How It Works</th><th>Detection Difficulty</th></tr>
+  <tr>
+    <td><strong>Deep Packet Inspection (DPI)</strong></td>
+    <td>Examines packet payloads to identify application protocols. Can fingerprint game traffic by packet size patterns and port ranges.</td>
+    <td>Hard to detect from packet captures alone (throttling looks like congestion)</td>
+  </tr>
+  <tr>
+    <td><strong>Port-based throttling</strong></td>
+    <td>Deprioritizes or rate-limits traffic on known game ports (e.g., UDP 9000&ndash;9100)</td>
+    <td>Moderate: compare performance on game ports vs. other ports</td>
+  </tr>
+  <tr>
+    <td><strong>Time-of-day throttling</strong></td>
+    <td>Reduced priority during peak hours (6pm&ndash;11pm)</td>
+    <td>Easy: capture at different times and compare</td>
+  </tr>
+  <tr>
+    <td><strong>Volume-based throttling</strong></td>
+    <td>After X GB transferred, all traffic is deprioritized</td>
+    <td>Easy: performance degrades after threshold</td>
+  </tr>
+</table>
+
+<h3>The VPN Test (Gold Standard)</h3>
+<p>The most reliable detection method: run the same game with and without a VPN. A VPN encrypts all traffic, making DPI and port-based throttling impossible. If your connection improves by <strong>&gt;20%</strong> (lower ping, less loss) with a VPN, your ISP is almost certainly throttling gaming traffic. The VPN adds its own overhead (~5&ndash;15ms), so an improvement despite that overhead is strong evidence.</p>
+
+<h3>Packet Capture Indicators of Throttling</h3>
+<ul>
+  <li><strong>Selective loss on game ports:</strong> UDP 9000&ndash;9100 shows 3% loss while TCP 443 (HTTPS) shows 0% loss. This is unnatural&mdash;real congestion affects all traffic equally.</li>
+  <li><strong>Consistent RTT ceiling:</strong> Game server RTT never drops below a fixed floor (e.g., always 60ms+) despite the server being geographically close. Traceroute shows the added latency at a specific hop (ISP's traffic shaper).</li>
+  <li><strong>Traffic shaping saw-tooth:</strong> Throughput ramps up, hits a ceiling, drops to zero for a moment, ramps again. This is a token bucket rate limiter pattern.</li>
+  <li><strong>TTL anomalies:</strong> Some ISPs inject packets with modified TTL values. Compare TTL from your game server across different times&mdash;inconsistency suggests middlebox interference.</li>
+</ul>
+
+<div class="callout">
+<strong>tshark filters for throttling detection:</strong>
+<pre>
+<span class="comment"># Compare loss rates between game traffic and HTTPS</span>
+<span class="comment"># Step 1: Count game packets and look for gaps</span>
+tshark -r capture.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -q -z io,stat,10
+
+<span class="comment"># Step 2: Count HTTPS retransmissions (should be low if ISP isn't throttling HTTPS)</span>
+tshark -r capture.pcapng -Y "tcp.port == 443 and tcp.analysis.retransmission" \
+  -q -z io,stat,10
+
+<span class="comment"># Step 3: Check for TTL inconsistencies (middlebox detection)</span>
+tshark -r capture.pcapng -Y "ip.dst == GAME_SERVER_IP" \
+  -T fields -e frame.time_epoch -e ip.ttl | sort -t$'\t' -k2 -n | uniq -f1 -c
+
+<span class="comment"># Step 4: Compare with VPN capture (encrypted = no throttling)</span>
+<span class="comment"># If game RTT drops by >20% with VPN, throttling is confirmed</span>
+
+<span class="comment"># Step 5: Traceroute to find the throttling hop</span>
+<span class="comment"># tracert -d GAME_SERVER_IP</span>
+<span class="comment"># Look for the hop where latency jumps disproportionately</span>
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section" id="s10">
+<h2><span class="num">10</span> Concrete Thresholds: Good vs Bad</h2>
+
+<h3>Master Reference Table</h3>
+<p>These thresholds are synthesized from esports requirements, network engineering standards, and competitive gaming community consensus (2025&ndash;2026 data):</p>
+
+<table>
+  <tr>
+    <th>Metric</th>
+    <th class="good">Good (Competitive)</th>
+    <th class="ok">Acceptable (Ranked)</th>
+    <th class="bad">Bad (Noticeable Issues)</th>
+    <th class="bad">Critical (Unplayable)</th>
+  </tr>
+  <tr>
+    <td><strong>RTT to Game Server</strong></td>
+    <td class="good">&lt; 20ms</td>
+    <td class="ok">20&ndash;50ms</td>
+    <td class="bad">50&ndash;100ms</td>
+    <td class="bad">&gt; 100ms</td>
+  </tr>
+  <tr>
+    <td><strong>Packet Loss Rate</strong></td>
+    <td class="good">&lt; 0.1%</td>
+    <td class="ok">0.1&ndash;0.5%</td>
+    <td class="bad">0.5&ndash;2%</td>
+    <td class="bad">&gt; 2%</td>
+  </tr>
+  <tr>
+    <td><strong>Jitter</strong></td>
+    <td class="good">&lt; 5ms</td>
+    <td class="ok">5&ndash;15ms</td>
+    <td class="bad">15&ndash;30ms</td>
+    <td class="bad">&gt; 30ms</td>
+  </tr>
+  <tr>
+    <td><strong>DNS Resolution (per query)</strong></td>
+    <td class="good">&lt; 10ms</td>
+    <td class="ok">10&ndash;50ms</td>
+    <td class="bad">50&ndash;200ms</td>
+    <td class="bad">&gt; 200ms</td>
+  </tr>
+  <tr>
+    <td><strong>TCP Retransmission Rate</strong></td>
+    <td class="good">&lt; 0.1%</td>
+    <td class="ok">0.1&ndash;0.5%</td>
+    <td class="bad">0.5&ndash;2%</td>
+    <td class="bad">&gt; 2%</td>
+  </tr>
+  <tr>
+    <td><strong>Bufferbloat Factor</strong></td>
+    <td class="good">&lt; 2x</td>
+    <td class="ok">2x&ndash;5x</td>
+    <td class="bad">5x&ndash;20x</td>
+    <td class="bad">&gt; 20x</td>
+  </tr>
+  <tr>
+    <td><strong>Inter-packet gap variance</strong></td>
+    <td class="good">&lt; 5ms std dev</td>
+    <td class="ok">5&ndash;10ms</td>
+    <td class="bad">10&ndash;25ms</td>
+    <td class="bad">&gt; 25ms</td>
+  </tr>
+</table>
+
+<h3>Fortnite-Specific Expectations</h3>
+<table>
+  <tr><th>Metric</th><th>Expected Value</th><th>How to Measure</th></tr>
+  <tr>
+    <td>Server tick rate</td>
+    <td>30 Hz (33.3ms between updates)</td>
+    <td><code>frame.time_delta</code> on server&rarr;client UDP packets should cluster around 0.033s</td>
+  </tr>
+  <tr>
+    <td>Client send rate</td>
+    <td>~75 Hz (13.3ms between inputs)</td>
+    <td><code>frame.time_delta</code> on client&rarr;server UDP packets should cluster around 0.013s</td>
+  </tr>
+  <tr>
+    <td>Packet size (server&rarr;client)</td>
+    <td>100&ndash;600 bytes typical</td>
+    <td><code>udp.length</code> distribution; larger during fights, smaller when idle</td>
+  </tr>
+  <tr>
+    <td>Packet size (client&rarr;server)</td>
+    <td>50&ndash;200 bytes typical</td>
+    <td>Player input is compact; mostly movement vectors + action flags</td>
+  </tr>
+</table>
+
+<h3>Quick Health Check: One-Command Assessment</h3>
+<div class="callout success">
+<strong>Run this after capturing a Fortnite session:</strong>
+<pre>
+<span class="comment"># Full network health report from a capture</span>
+
+<span class="comment"># 1. Packet rate per second (should be stable ~30 from server)</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100 and ip.src == SERVER_IP" \
+  -q -z io,stat,1
+
+<span class="comment"># 2. Jitter analysis (frame.time_delta stats)</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100 and ip.src == SERVER_IP" \
+  -T fields -e frame.time_delta | sort -n | tail -20
+<span class="comment"># The tail shows your worst jitter spikes</span>
+
+<span class="comment"># 3. TCP retransmissions (for matchmaking/auth traffic)</span>
+tshark -r fortnite.pcapng -Y "tcp.analysis.retransmission" -q -z conv,tcp
+
+<span class="comment"># 4. DNS resolution times</span>
+tshark -r fortnite.pcapng -Y "dns.time > 0.05" \
+  -T fields -e dns.qry.name -e dns.time
+
+<span class="comment"># 5. Packet size distribution</span>
+tshark -r fortnite.pcapng -Y "udp.port >= 9000 and udp.port <= 9100" \
+  -q -z io,stat,0,"MIN(frame.len)frame.len","AVG(frame.len)frame.len","MAX(frame.len)frame.len"
+</pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+<h3 style="color: var(--text-muted);">Sources</h3>
+<ul style="list-style: none; padding-left: 0;">
+  <li><a href="https://gafferongames.com/post/reliable_ordered_messages/">Gaffer on Games - Reliable Ordered Messages</a> (UDP protocol design)</li>
+  <li><a href="https://gafferongames.com/post/reliability_ordering_and_congestion_avoidance_over_udp/">Gaffer on Games - Reliability and Congestion Avoidance over UDP</a></li>
+  <li><a href="https://cyrex.tech/unreal-engine-networking/">Cyrex - Unreal Engine Networking Deep Dive</a> (bunch/channel architecture)</li>
+  <li><a href="https://datatracker.ietf.org/doc/html/rfc6298">RFC 6298 - Computing TCP's Retransmission Timer</a></li>
+  <li><a href="https://support.microsoft.com/en-us/topic/how-to-modify-the-tcp-ip-maximum-retransmission-time-out-7ae0982a-4963-fa7e-ee79-ff6d0da73db8">Microsoft - TCP/IP Maximum Retransmission Time-out</a></li>
+  <li><a href="https://www.extrahop.com/blog/retransmission-timeouts-rtos-application-performance-degradation">ExtraHop - TCP RTO and Application Performance</a></li>
+  <li><a href="https://brooker.co.za/blog/2024/05/09/nagle.html">Marc Brooker - It's always TCP_NODELAY</a></li>
+  <li><a href="https://www.extrahop.com/blog/tcp-nodelay-nagle-quickack-best-practices">ExtraHop - TCP_NODELAY and Nagle Best Practices</a></li>
+  <li><a href="https://optilag.com/how-to-fix-packet-loss-in-gaming-the-ultimate-2026-guide/">OptiLag - Packet Loss Gaming Guide 2026</a></li>
+  <li><a href="https://hone.gg/blog/fix-network-jitter/">Hone - Network Jitter in Gaming</a></li>
+  <li><a href="https://www.exitlag.com/blog/what-is-jitter-2/">ExitLag - Jitter: How To Measure It</a></li>
+  <li><a href="https://web.cs.wpi.edu/~claypool/papers/csgo-net-21/paper.pdf">WPI - Effects of Network Latency on Competitive FPS Players</a> (peer-reviewed)</li>
+  <li><a href="https://queue.acm.org/detail.cfm?id=2209336">ACM Queue - Controlling Queue Delay</a> (bufferbloat/CoDel)</li>
+  <li><a href="https://deepwiki.com/cloudflare/bbperf/5.2-bufferbloat-detection">Cloudflare bbperf - Bufferbloat Detection</a></li>
+  <li><a href="https://cacm.acm.org/practice/passively-measuring-tcp-round-trip-times/">ACM - Passively Measuring TCP Round-Trip Times</a></li>
+  <li><a href="https://community.intel.com/t5/Ethernet-Products/Intel-i226-V-problem-packet-rate-decreases-over-time-until/m-p/1731354">Intel Community - I226-V Packet Rate Degradation</a></li>
+  <li><a href="https://www.intel.com/content/www/us/en/support/articles/000095752/ethernet-products.html">Intel - I226-V Connection Issue (official advisory)</a></li>
+  <li><a href="https://community.intel.com/t5/Ethernet-Products/Intel-Communication-Intel-Ethernet-Controller-I226-Series-Random/td-p/1453177">Intel - I226 Series Random Connection Drops (official communication)</a></li>
+  <li><a href="https://community.intel.com/t5/Ethernet-Products/NIC-settings-for-low-latency-gaming/m-p/1483846">Intel Community - NIC Settings for Low Latency Gaming</a></li>
+  <li><a href="https://djdallmann.github.io/GamingPCSetup/CONTENT/DOCS/NETWORK/">GamingPCSetup - Network Configuration Guide</a></li>
+  <li><a href="https://isc.sans.edu/diary/Debugging+DNS+response+times+with+tshark/32592">SANS ISC - Debugging DNS Response Times with tshark</a></li>
+  <li><a href="https://labex.io/tutorials/wireshark-analyze-packet-loss-in-tshark-548912">LabEx - Analyze Packet Loss in Tshark</a></li>
+  <li><a href="https://wiki.wireshark.org/TCP_Analyze_Sequence_Numbers">Wireshark Wiki - TCP Analyze Sequence Numbers</a></li>
+  <li><a href="https://tolzon.com/en/articles/gaming-ping-optimization-guide/">Tolzon - Gaming Ping Optimization Guide 2025</a></li>
+  <li><a href="https://www.internetproviders.ai/resources/understanding-bandwidth-throttling/">InternetProviders.ai - Understanding Bandwidth Throttling 2026</a></li>
+  <li><a href="https://portforward.com/fortnite/">PortForward - Fortnite Network Ports</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/windows-server/networking/technologies/pktmon/pktmon">Microsoft Learn - Packet Monitor (pktmon)</a></li>
+</ul>
+</div>
+
+</body>
+</html>
