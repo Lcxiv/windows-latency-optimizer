@@ -11,6 +11,12 @@ captures/**/*.NGENPDB/
 # Archived experiment data (kept locally, not pushed)
 captures/archive/
 
+# Audit output (regenerated on each run)
+captures/audits/*.json
+captures/audits/*.html
+captures/audits/*.ps1
+captures/audits/history.csv
+
 # OS artifacts
 Thumbs.db
 desktop.ini
@@ -25,9 +31,24 @@ desktop.ini
 *.cache
 *.bak
 
-# Node (npx serve only)
+# Node
 node_modules/
 package-lock.json
+
+# Tauri / Rust build
+latencyguard/src-tauri/target/
+latencyguard/src-tauri/gen/
+latencyguard/node_modules/
+
+# Brainstorm sessions
+.superpowers/
+
+# Local captures (not tracked — regenerated per machine)
+captures/backup_pre_*.txt
+captures/experiments/
+
+# Local settings
+.claude/settings.local.json
 
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv

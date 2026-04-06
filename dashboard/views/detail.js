@@ -64,6 +64,9 @@ function renderDetailView() {
   // GPU Utilization section (conditional)
   html += '<div id="gpuUtilSection"></div>';
 
+  // Network Latency section (conditional)
+  html += '<div id="networkLatencySection"></div>';
+
   // Performance section
   html += '<div class="section-header"><h2>Performance Metrics</h2><div class="section-line"></div>';
   html += '<div class="section-badge" id="perfBadge">10s capture</div></div>';
@@ -89,6 +92,7 @@ function renderDetailView() {
   renderCPUDpcCount(exp);
   renderFrameTiming(exp);
   renderGPUUtilization(exp);
+  renderNetworkLatency(exp);
   renderPagefaults(exp);
   renderPerfComparison(exp);
   renderRegistryTable(exp);
@@ -167,6 +171,17 @@ function renderDetailCards(exp) {
     cards.push('<div class="card purple"><div class="card-label">GPU 3D%</div>' +
       '<div class="card-value">' + safeNum(exp.gpuUtilization['3D'].avg, 1) + '<span class="card-unit">%</span></div>' +
       '<div class="card-sub">max: ' + safeNum(exp.gpuUtilization['3D'].max, 1) + '%</div></div>');
+  }
+
+  // Network latency card (best ping)
+  if (exp.networkLatency) {
+    var bestPing = getBestPingValue(exp);
+    if (bestPing > 0) {
+      var cls = bestPing < 20 ? 'green' : (bestPing < 50 ? 'amber' : 'red');
+      cards.push('<div class="card ' + cls + '"><div class="card-label">Best Ping</div>' +
+        '<div class="card-value">' + safeNum(bestPing, 1) + '<span class="card-unit">ms</span></div>' +
+        '<div class="card-sub">' + getBestPingTarget(exp) + '</div></div>');
+    }
   }
 
   el.innerHTML = cards.join('');
@@ -625,4 +640,103 @@ function renderRegistryTable(exp) {
 
   html += '</tbody></table></div>';
   section.innerHTML = html;
+}
+
+// ============================================================
+// NETWORK LATENCY
+// ============================================================
+function getBestPingTarget(exp) {
+  if (!exp.networkLatency) return '';
+  var best = Infinity;
+  var target = '';
+  var keys = Object.keys(exp.networkLatency);
+  for (var i = 0; i < keys.length; i++) {
+    var v = exp.networkLatency[keys[i]];
+    if (v && v.avg != null && v.avg < best) { best = v.avg; target = keys[i]; }
+  }
+  return target.replace('ping-', '').replace('.ds.on.epicgames.com', ' (Epic)');
+}
+
+function renderNetworkLatency(exp) {
+  var section = document.getElementById('networkLatencySection');
+  if (!section) return;
+  if (!exp.networkLatency) { section.innerHTML = ''; return; }
+
+  var nl = exp.networkLatency;
+  var keys = Object.keys(nl).sort();
+
+  var html = '<div class="section-header"><h2>Network Latency</h2><div class="section-line"></div>';
+  html += '<div class="section-badge">Ping</div></div>';
+  html += '<div class="charts-grid">';
+
+  // Table
+  html += '<div class="chart-card"><div class="chart-title">Ping Results by Target</div>';
+  html += '<div class="chart-subtitle">60 ICMP samples per target</div>';
+  html += '<table class="reg-table"><thead><tr>';
+  html += '<th>Target</th><th>Avg</th><th>Min</th><th>Max</th><th>p50</th><th>p95</th><th>p99</th><th>Jitter</th><th>Loss</th>';
+  html += '</tr></thead><tbody>';
+
+  keys.forEach(function(host) {
+    var v = nl[host];
+    var label = host.replace('ping-', '').replace('.ds.on.epicgames.com', ' (Epic)');
+    if (v.avg == null) {
+      html += '<tr><td>' + escHtml(label) + '</td><td colspan="8" style="color:var(--muted)">Failed: ' + escHtml(v.error || 'unknown') + '</td></tr>';
+      return;
+    }
+    var cls = v.avg < 20 ? 'color:#22c55e' : (v.avg < 50 ? 'color:#f59e0b' : 'color:#ef4444');
+    html += '<tr>';
+    html += '<td>' + escHtml(label) + '</td>';
+    html += '<td style="' + cls + ';font-weight:600">' + safeNum(v.avg, 1) + ' ms</td>';
+    html += '<td>' + safeNum(v.min, 0) + '</td>';
+    html += '<td>' + safeNum(v.max, 0) + '</td>';
+    html += '<td>' + safeNum(v.p50, 0) + '</td>';
+    html += '<td>' + safeNum(v.p95, 0) + '</td>';
+    html += '<td>' + safeNum(v.p99, 0) + '</td>';
+    html += '<td>' + safeNum(v.jitter, 2) + ' ms</td>';
+    html += '<td>' + safeNum(v.packetLoss, 1) + '%</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // Bar chart
+  html += '<div class="chart-card"><div class="chart-title">Ping Latency Comparison</div>';
+  html += '<div class="chart-subtitle">Average / p99 by target</div>';
+  html += '<div class="chart-wrap" id="pingChartWrap"></div></div>';
+
+  html += '</div>';
+  section.innerHTML = html;
+
+  // Render bar chart
+  var wrap = document.getElementById('pingChartWrap');
+  if (!wrap) return;
+  var canvas = document.createElement('canvas');
+  wrap.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+
+  var labels = keys.map(function(h) { return h.replace('ping-', '').replace('.ds.on.epicgames.com', ''); });
+  var avgData = keys.map(function(h) { return nl[h].avg; });
+  var p99Data = keys.map(function(h) { return nl[h].p99; });
+
+  destroyChart('ping');
+  charts.ping = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Avg (ms)', data: avgData, backgroundColor: COLORS.blueA, borderColor: COLORS.blue, borderWidth: 1 },
+        { label: 'p99 (ms)', data: p99Data, backgroundColor: COLORS.amberA || 'rgba(245,158,11,0.3)', borderColor: COLORS.amber || '#f59e0b', borderWidth: 1 }
+      ]
+    },
+    options: chartOpts({
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#7a8fa8', font: { size: 10 } },
+          grid: { color: 'rgba(30,58,95,0.5)' },
+          title: { display: true, text: 'Latency (ms)', color: '#7a8fa8', font: { size: 10 } }
+        }
+      }
+    })
+  });
 }

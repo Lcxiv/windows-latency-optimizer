@@ -1,0 +1,190 @@
+# iteration_log.yaml — Structured experience buffer
+# Each entry is an episode: state → action → outcome → learning
+
+iterations:
+  - id: scaffold-audit-tool
+    date: 2026-04-02
+    category: feature
+    description: "Scaffold 3-file audit tool (audit.ps1, audit-checks.ps1, audit-report.ps1)"
+    approach: "Plan-first: design spec + implementation plan, then scaffold with PS 5.1 parse validation"
+    outcome: SUCCESS
+    reason: "Clean scaffold, all files parsed. Plan-first approach prevented rework."
+    rule_created: "Always parse-validate PS files after creation with [Parser]::ParseFile()"
+    confidence: 0.95
+
+  - id: ps51-pitfall-error-var
+    date: 2026-04-02
+    category: bugfix
+    description: "$error is a reserved PS variable — caused 'Cannot overwrite variable' crash"
+    approach: "Renamed to $errCount"
+    outcome: SUCCESS
+    reason: "PS 5.1 reserves $error as automatic variable. Also $pid is reserved."
+    rule_created: "Never use $error or $pid as variable names in PS 5.1. Use $errCount, $mousePid etc."
+    confidence: 0.95
+
+  - id: ps51-pitfall-uint32
+    date: 2026-04-02
+    category: bugfix
+    description: "[uint32]0xFFFFFFFF fails — PS interprets hex as signed -1"
+    approach: "Use decimal 4294967295 instead"
+    outcome: SUCCESS
+    reason: "PS 5.1 hex literals are signed. Cast to uint32 fails for values > int32 max."
+    rule_created: "Use decimal for large unsigned values in PS 5.1 (4294967295 not 0xFFFFFFFF)"
+    confidence: 0.95
+
+  - id: ps51-pitfall-where-count
+    date: 2026-04-02
+    category: bugfix
+    description: "Where-Object returning single hashtable — .Count returns key count (11) not 1"
+    approach: "Wrap in @() to force array context"
+    outcome: SUCCESS
+    reason: "Single [ordered]@{} from Where-Object has .Count = number of keys. @() forces array."
+    rule_created: "Always wrap Where-Object in @() when using .Count on potential single-hashtable results"
+    confidence: 0.95
+
+  - id: gpu-detection-wrong-device
+    date: 2026-04-02
+    category: bugfix
+    description: "GPU checks reading NVIDIA USB controller instead of RTX 5070 Ti"
+    approach: "Cross-reference Win32_VideoController with PCI enum, drill into instance sub-key"
+    outcome: SUCCESS
+    reason: "VEN_10DE matches multiple NVIDIA devices. Must filter to display adapter via WMI."
+    rule_created: "For GPU registry access: match Win32_VideoController PNP ID, then drill into instance child key"
+    confidence: 0.9
+
+  - id: wpr-profile-bang-path
+    date: 2026-04-02
+    category: bugfix
+    description: "WPR custom profile failed — wrong bang-path syntax"
+    approach: "Use Name.DetailLevel (not Id) in path!ProfileName syntax, -filemode selects File variant"
+    outcome: SUCCESS
+    reason: "WPR -start syntax: path.wprp!Name.DetailLevel. The .File/.Memory is selected by -filemode flag."
+    rule_created: "WPR custom profiles: path.wprp!Name.DetailLevel — never include LoggingMode in the bang path"
+    confidence: 0.9
+
+  - id: dpc-parser-broken
+    date: 2026-04-02
+    category: bugfix
+    description: "DPC/ISR parser in pipeline-helpers.ps1 was completely broken — always returned empty"
+    approach: "Read actual xperf dpcisr_report.txt format, rewrite parser for per-module histograms"
+    outcome: SUCCESS
+    reason: "Old parser looked for 'DPC Module Summary' header that doesn't exist. Actual format: 'Total = N for module X.sys' + bucket lines."
+    rule_created: "Always verify tool output format against actual files before writing parsers"
+    confidence: 0.9
+
+  - id: stutter-detector-false-positives
+    date: 2026-04-02
+    category: bugfix
+    description: "70 'stutters' at idle were DWM compositor idle gaps (122ms, 178ms)"
+    approach: "Add >50ms filter — gaps beyond 50ms are idle pauses, not rendering stalls"
+    outcome: SUCCESS
+    reason: "DWM skips composition when nothing changes on screen. 122ms = 7 VSync cycles of sleep."
+    rule_created: "Frame gaps >50ms at idle = DWM power-saving, not stutters. During gaming with Independent Flip, all gaps are real."
+    confidence: 0.9
+
+  - id: defender-impact-research
+    date: 2026-04-02
+    category: feature
+    description: "Deep research: Defender scanning 37K events/10s, CatRoot impact, mitigation strategy"
+    approach: "ProcMon capture + web research + New-MpPerformanceRecording integration"
+    outcome: SUCCESS
+    reason: "Defender exclusions for game processes + shader caches reduced events 65%. Don't exclude CatRoot (security-critical)."
+    rule_created: "Exclude game folders + shader caches from Defender, never exclude CatRoot/system dirs"
+    confidence: 0.9
+
+  - id: procmon-no-duration
+    date: 2026-04-02
+    category: partial
+    description: "ProcMon CSV missing Duration column — can't measure operation time"
+    approach: "Default ProcMon export excludes Duration. Need PMC config file."
+    outcome: PARTIAL
+    reason: "PMC is binary format, requires GUI creation. Script falls back cleanly without it."
+    rule_created: "ProcMon /LoadConfig for Duration column — PMC files must be created via GUI, can't be generated from PS"
+    confidence: 0.7
+    next_action: "Create procmon_gaming.pmc via ProcMon GUI with Duration column enabled"
+
+  - id: tauri-no-msvc
+    date: 2026-04-02
+    category: infra
+    description: "Tauri build failed — MSVC C++ build tools not installed"
+    approach: "winget install Microsoft.VisualStudio.2022.BuildTools with VCTools workload"
+    outcome: SUCCESS
+    reason: "Tauri on Windows requires MSVC for Rust compilation. zerocopy crate needs C++ compiler."
+    rule_created: "Tauri Windows prereqs: Rust + MSVC Build Tools (VCTools workload). Check cl.exe availability before building."
+    confidence: 0.95
+
+  - id: tauri-no-global-tauri
+    date: 2026-04-02
+    category: bugfix
+    description: "LatencyGuard app: clicking buttons did nothing — window.__TAURI__ not injected"
+    approach: "Add withGlobalTauri: true to tauri.conf.json"
+    outcome: SUCCESS
+    reason: "Tauri v2 doesn't inject __TAURI__ global by default. Need explicit opt-in."
+    rule_created: "Tauri v2 vanilla JS: add withGlobalTauri: true in tauri.conf.json for window.__TAURI__ access"
+    confidence: 0.95
+
+  - id: tauri-exe-locked
+    date: 2026-04-02
+    category: infra
+    description: "cargo tauri build failed — 'Access denied' on latencyguard.exe"
+    approach: "Must close the running app before rebuilding. taskkill from bash has path issues with /IM flag."
+    outcome: PARTIAL
+    reason: "Git bash interprets /IM as a file path. Use cmd.exe /c 'taskkill /IM ...' or ask user to close manually."
+    rule_created: "Close running Tauri app before rebuild. Kill via cmd.exe (not bash) to avoid /IM path interpretation."
+    confidence: 0.9
+
+  - id: razer-synapse-download
+    date: 2026-04-05
+    category: feature
+    description: "Razer mouse model detection + Synapse auto-download fix"
+    approach: "Detect VID_1532 + PID lookup table, download Synapse installer via BITS. Fixed apply_fix to route script paths through run_ps() with absolute path resolution."
+    outcome: SUCCESS
+    reason: "Root cause was apply_fix using -Command with relative CWD path. Fix: detect .\\scripts\\ prefix, route to run_ps() which uses -File with scripts_dir(). User confirmed working."
+    rule_created: "Tauri apply_fix: script paths (.\\scripts\\*) must use run_ps() with -File, not -Command with relative path. Razer PID 00C1 = Viper V3 Pro."
+    confidence: 0.9
+
+  - id: exp15-mitigations
+    date: 2026-04-02
+    category: feature
+    description: "EXP15: disable autologgers, add Defender exclusions, set NVIDIA max performance"
+    approach: "Backup/apply/verify pattern with rollback commands"
+    outcome: SUCCESS
+    reason: "12 mitigations applied. ProcMon events dropped 55%, Defender events 65%, P99 frame time 36.8ms→5.45ms."
+    rule_created: "LwtNetLog + DiagTrack autologgers safe to disable for gaming. NVIDIA PerfLevelSrc=0x2222 fixes RTX 50-series idle bus load."
+    confidence: 0.9
+
+  - id: accessibility-audit
+    date: 2026-04-05
+    category: design
+    description: "WCAG 2.1 AA accessibility audit of LatencyGuard — 14 issues found and fixed"
+    approach: "Compute contrast ratios, review keyboard access, add ARIA attributes"
+    outcome: SUCCESS
+    reason: "3 contrast failures, 6 keyboard/ARIA issues, 5 minor issues. All fixed in one pass."
+    rule_created: "Split --blue into --blue (text) and --blue-bg (filled buttons) for contrast. Always use <button> not <span> for clickable elements."
+    confidence: 0.9
+
+validations:
+  - date: 2026-04-02
+    file: scripts/audit.ps1
+    result: PASS
+    errors: 0
+  - date: 2026-04-02
+    file: scripts/audit-checks.ps1
+    result: PASS
+    errors: 0
+  - date: 2026-04-02
+    file: scripts/pipeline-helpers.ps1
+    result: PASS
+    errors: 0
+  - date: 2026-04-02
+    file: scripts/audit-report.ps1
+    result: PASS
+    errors: 0
+  - date: 2026-04-02
+    file: "all 7 scripts"
+    result: PASS
+    errors: 0
+  - date: 2026-04-02
+    file: latencyguard (cargo tauri build)
+    result: PASS
+    errors: 0

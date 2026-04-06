@@ -30,7 +30,11 @@ param(
     [string]$WPRDetail = 'Verbose',
 
     [string]$GameProcess = '',
-    [switch]$SkipPresentMon
+    [switch]$SkipPresentMon,
+    [switch]$SkipProcMon,
+    [switch]$SkipDefenderRecording,
+    [switch]$SkipPktMon,
+    [switch]$SkipNetworkLatency
 )
 
 # pipeline.ps1 - End-to-end experiment capture and analysis (orchestrator)
@@ -70,7 +74,21 @@ if (-not $SkipWPR) {
 }
 
 # ── PHASE 3: Perf counters + PresentMon (started before blocking capture) ────
+# Auto-detect game if not specified
+if ($GameProcess -eq '' -and -not $SkipPresentMon) {
+    $detectedGame = Find-ForegroundGame
+    if ($null -ne $detectedGame) {
+        $GameProcess = $detectedGame
+    } else {
+        Log 'No game detected — PresentMon skipped (DWM fallback available from ETL)' 'INFO'
+    }
+}
 $pmProc = Invoke-PresentMonCapture -GameProcess $GameProcess -OutDir $outDir -DurationSec $DurationSec -SkipPresentMon:$SkipPresentMon
+
+# Start ProcMon + Defender recording (all run concurrently with perf counters)
+$procmonPml = Invoke-ProcMonCapture -OutDir $outDir -DurationSec $DurationSec -SkipProcMon:$SkipProcMon
+$defenderRec = Start-DefenderRecording -OutDir $outDir -SkipDefenderRecording:$SkipDefenderRecording
+$pktmonEtl = Start-PktMonCapture -OutDir $outDir -SkipPktMon:$SkipPktMon
 
 $perfResult = Invoke-PerfCounterCapture -DurationSec $DurationSec
 
@@ -101,13 +119,49 @@ if ($pmProc) {
 # ── PHASE 3C: GPU counters ───────────────────────────────────────────────────
 $gpuUtilData = Invoke-GpuCapture
 
+# ── PHASE 3D: Network latency ───────────────────────────────────────────────
+$networkData = Invoke-NetworkLatencyCapture -SkipNetworkLatency:$SkipNetworkLatency
+
 # ── PHASE 4: Stop WPR + xperf analysis ───────────────────────────────────────
 $dpcIsrData = $null
 if ($wprStarted) {
-    $dpcIsrData = Stop-WprAndAnalyze -EtlFile $etlFile -OutDir $outDir -Description $Description
+    $dpcIsrData = Stop-WprAndAnalyze -EtlFile $etlFile -OutDir $outDir -Description $Description -WPRProfile $WPRProfile
 } else {
     Log ''
     Log '=== Phase 4: Skipped - no WPR trace ==='
+}
+
+# ── PHASE 4B: ProcMon conversion + analysis ──────────────────────────────────
+$procmonData = $null
+if ($null -ne $procmonPml) {
+    Log ''
+    Log '=== Phase 4B: ProcMon analysis ==='
+    # Wait for ProcMon to finish (it auto-terminates after /Runtime seconds)
+    $pmWait = 0
+    while ($pmWait -lt ($DurationSec + 10)) {
+        Start-Sleep -Seconds 2
+        $pmWait += 2
+        if (Test-Path $procmonPml) {
+            $pmRunning = Get-Process -Name 'Procmon64' -ErrorAction SilentlyContinue
+            if ($null -eq $pmRunning) { break }
+        }
+    }
+    $procmonCsv = Convert-ProcMonToCSV -PmlFile $procmonPml -OutDir $outDir
+    if ($null -ne $procmonCsv) {
+        $procmonData = Analyze-ProcMonCSV -CsvPath $procmonCsv
+    }
+}
+
+# ── PHASE 4C: Stop Defender recording ────────────────────────────────────────
+$defenderData = Stop-DefenderRecording -RecordingInfo $defenderRec -OutDir $outDir
+
+# ── PHASE 4D: Stop pktmon + analysis ─────────────────────────────────────────
+$pktmonData = $null
+if ($null -ne $pktmonEtl) {
+    Log ''
+    Log '=== Phase 4D: Network capture analysis ==='
+    $pktmonFile = Stop-PktMonCapture -EtlFile $pktmonEtl -OutDir $outDir
+    $pktmonData = Analyze-PktMonCapture -CaptureFile $pktmonFile -OutDir $outDir
 }
 
 # ── PHASE 5: Registry snapshot ───────────────────────────────────────────────
@@ -118,7 +172,8 @@ $analysisResult = New-ExperimentAnalysis `
     -Label $Label -Description $Description -DurationSec $DurationSec `
     -CpuData $cpuData -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData `
-    -GpuUtilData $gpuUtilData -WprStarted $wprStarted -EtlFile $etlFile
+    -GpuUtilData $gpuUtilData -NetworkLatencyData $networkData `
+    -WprStarted $wprStarted -EtlFile $etlFile
 
 $cpu0Share  = $analysisResult.cpu0Share
 $cpu23Share = $analysisResult.cpu23Share
@@ -135,7 +190,8 @@ Save-ExperimentJson `
     -Registry $reg -Perf $perf -CpuData $cpuData `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
     -Cpu0Share $cpu0Share -Cpu23Share $cpu23Share -Cpu47Share $cpu47Share `
-    -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData
+    -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
+    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData
 
 # ── PHASE 8: Dashboard update ────────────────────────────────────────────────
 Update-DashboardData -ScriptRoot $scriptRoot -SkipDashboardUpdate:$SkipDashboardUpdate
@@ -157,6 +213,14 @@ Log ''
 Log ('Topology: CPU0=' + $cpu0Share + '% | Input=' + $cpu23Share + '% | GPU/NIC=' + $cpu47Share + '%')
 if ($frameTimingData) {
     Log ('  FPS: ' + $frameTimingData.fps.avg + ' avg, ' + $frameTimingData.fps.p1Low + ' 1% low')
+}
+if ($networkData) {
+    foreach ($h in ($networkData.Keys | Sort-Object)) {
+        $nd = $networkData[$h]
+        if ($null -ne $nd.avg) {
+            Log ('  Ping ' + $h + ': ' + $nd.avg + 'ms avg, ' + $nd.p99 + 'ms p99')
+        }
+    }
 }
 
 $logLines | Out-File (Join-Path $outDir 'pipeline.log') -Encoding UTF8

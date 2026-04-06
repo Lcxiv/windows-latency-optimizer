@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LatencyGuard</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>LatencyGuard</span>
+    </div>
+    <div id="sys-chips" class="sys-chips"></div>
+    <div class="mode-toggle" id="mode-toggle" role="tablist" aria-label="View mode">
+      <button class="active" role="tab" aria-selected="true" data-mode="simple" onclick="setMode('simple')">Simple</button>
+      <button role="tab" aria-selected="false" data-mode="expert" onclick="setMode('expert')">Expert</button>
+    </div>
+  </header>
+  <main id="app" role="main"></main>
+  <div id="a11y-announce" class="sr-only" aria-live="polite"></div>
+  <script src="views/diagnostics.js"></script>
+  <script src="views/history.js"></script>
+  <script src="views/advanced.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

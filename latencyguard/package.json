@@ -1,0 +1,12 @@
+{
+  "name": "latencyguard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LatencyGuard — Gaming Latency Diagnostic Tool",
+  "scripts": {
+    "tauri": "cargo tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  }
+}
