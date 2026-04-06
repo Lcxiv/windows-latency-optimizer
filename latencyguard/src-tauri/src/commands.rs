@@ -116,6 +116,18 @@ pub async fn run_audit(mode: String) -> Result<serde_json::Value, String> {
 
 #[tauri::command]
 pub async fn apply_fix(command: String) -> Result<bool, String> {
+    // If the command is a script path, resolve it via scripts_dir() and use -File
+    if command.starts_with(".\\scripts\\") || command.starts_with("./scripts/") {
+        let script_name = command
+            .trim_start_matches(".\\scripts\\")
+            .trim_start_matches("./scripts/");
+        match run_ps(script_name, &[]) {
+            Ok(_) => return Ok(true),
+            Err(e) => return Err(e),
+        }
+    }
+
+    // Otherwise run as inline PowerShell expression
     let output = Command::new("powershell")
         .arg("-ExecutionPolicy").arg("Bypass")
         .arg("-Command").arg(&command)
