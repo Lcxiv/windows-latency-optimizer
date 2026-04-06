@@ -543,6 +543,175 @@ function Analyze-ProcMonCSV {
     return $result
 }
 
+function Start-PktMonCapture {
+    <#
+    .SYNOPSIS
+        Start pktmon packet capture (built-in Windows 11, zero-install, <0.3% CPU).
+    .OUTPUTS
+        [string] ETL file path, or $null if failed.
+    #>
+    param(
+        [string]$OutDir,
+        [switch]$SkipPktMon
+    )
+
+    if ($SkipPktMon) { return $null }
+
+    # Check pktmon is available
+    $pktmon = Get-Command pktmon.exe -ErrorAction SilentlyContinue
+    if ($null -eq $pktmon) {
+        Log 'pktmon.exe not found (requires Windows 10 2004+)' 'INFO'
+        return $null
+    }
+
+    # Stop any existing capture (ignore errors if not running)
+    try { pktmon stop 2>&1 | Out-Null } catch {}
+
+    $etlFile = Join-Path $OutDir 'pktmon_capture.etl'
+    Log 'Starting pktmon network capture...'
+
+    try {
+        # Capture on all NICs, full packets, to ETL file
+        $startResult = pktmon start -c --comp nics --pkt-size 128 --file-name $etlFile 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Log 'pktmon capture started' 'PASS'
+            return $etlFile
+        } else {
+            Log ('pktmon start failed: ' + $startResult) 'WARN'
+            return $null
+        }
+    } catch {
+        Log ('pktmon exception: ' + $_.Exception.Message) 'WARN'
+        return $null
+    }
+}
+
+function Stop-PktMonCapture {
+    <#
+    .SYNOPSIS
+        Stop pktmon capture and convert to pcapng if possible.
+    .OUTPUTS
+        [string] pcapng file path, or ETL path, or $null.
+    #>
+    param(
+        [string]$EtlFile,
+        [string]$OutDir
+    )
+
+    if ($null -eq $EtlFile -or -not (Test-Path $EtlFile)) { return $null }
+
+    Log 'Stopping pktmon capture...'
+    pktmon stop 2>&1 | Out-Null
+
+    $etlSize = [math]::Round((Get-Item $EtlFile).Length / 1MB, 1)
+    Log ('pktmon ETL: ' + $etlSize + ' MB') 'PASS'
+
+    # Convert to pcapng for tshark/Wireshark analysis
+    $pcapFile = Join-Path $OutDir 'pktmon_capture.pcapng'
+    try {
+        pktmon etl2pcap $EtlFile -o $pcapFile 2>&1 | Out-Null
+        if (Test-Path $pcapFile) {
+            $pcapSize = [math]::Round((Get-Item $pcapFile).Length / 1MB, 1)
+            Log ('pktmon pcapng: ' + $pcapSize + ' MB') 'PASS'
+            return $pcapFile
+        }
+    } catch {
+        Log 'pktmon etl2pcap conversion failed' 'WARN'
+    }
+
+    return $EtlFile
+}
+
+function Analyze-PktMonCapture {
+    <#
+    .SYNOPSIS
+        Analyze pktmon counters and optionally parse pcapng with tshark.
+    .OUTPUTS
+        [hashtable] with packetCount, etlSizeMB, tsharkAvailable, and optionally conversations/stats.
+    #>
+    param(
+        [string]$CaptureFile,
+        [string]$OutDir
+    )
+
+    if ($null -eq $CaptureFile) { return $null }
+
+    $result = @{
+        captureFile    = (Split-Path $CaptureFile -Leaf)
+        captureType    = 'pktmon'
+        tsharkAvailable = $false
+        conversations  = @()
+        stats          = @{}
+    }
+
+    if (Test-Path $CaptureFile) {
+        $result['sizeMB'] = [math]::Round((Get-Item $CaptureFile).Length / 1MB, 1)
+    }
+
+    # Check for pktmon counters
+    try {
+        $counters = pktmon counters 2>&1 | Out-String
+        if ($counters -match 'Packets:\s+(\d+)') {
+            $result['packetCount'] = [int]$Matches[1]
+            Log ('pktmon packets captured: ' + $Matches[1]) 'INFO'
+        }
+    } catch {}
+
+    # Check if tshark is available for deeper analysis
+    $tshark = Get-Command tshark.exe -ErrorAction SilentlyContinue
+    if ($null -ne $tshark -and $CaptureFile -like '*.pcapng') {
+        $result['tsharkAvailable'] = $true
+        Log 'tshark found — running network analysis...' 'INFO'
+
+        # TCP conversation stats (RTT, retransmissions)
+        try {
+            $convOutput = & tshark.exe -r $CaptureFile -q -z conv,tcp 2>&1 | Out-String
+            $convLines = @()
+            foreach ($line in ($convOutput -split "`n")) {
+                if ($line -match '(\d+\.\d+\.\d+\.\d+):(\d+)\s+<->\s+(\d+\.\d+\.\d+\.\d+):(\d+)\s+(\d+)\s+(\d+)') {
+                    $convLines += @{
+                        srcIP   = $Matches[1]
+                        srcPort = $Matches[2]
+                        dstIP   = $Matches[3]
+                        dstPort = $Matches[4]
+                        frames  = [int]$Matches[5]
+                        bytes   = [int]$Matches[6]
+                    }
+                }
+            }
+            $result['conversations'] = @($convLines | Sort-Object { $_.frames } -Descending | Select-Object -First 10)
+        } catch {
+            Log ('tshark conv analysis failed: ' + $_.Exception.Message) 'WARN'
+        }
+
+        # Retransmission count
+        try {
+            $retransOutput = & tshark.exe -r $CaptureFile -Y 'tcp.analysis.retransmission' -T fields -e frame.number 2>&1
+            $retransCount = @($retransOutput | Where-Object { $_ -match '^\d+$' }).Count
+            $result['retransmissions'] = $retransCount
+            Log ('TCP retransmissions: ' + $retransCount) 'INFO'
+        } catch {}
+
+        # DNS slow queries
+        try {
+            $dnsOutput = & tshark.exe -r $CaptureFile -Y 'dns.time > 0.1' -T fields -e dns.qry.name -e dns.time 2>&1
+            $dnsLines = @()
+            foreach ($line in ($dnsOutput -split "`n")) {
+                $parts = $line -split "`t"
+                if ($parts.Count -ge 2) {
+                    $dnsLines += @{ query = $parts[0]; timeMs = [math]::Round([double]$parts[1] * 1000, 1) }
+                }
+            }
+            $result['slowDnsQueries'] = @($dnsLines | Select-Object -First 10)
+            if ($dnsLines.Count -gt 0) { Log ('Slow DNS queries (>100ms): ' + $dnsLines.Count) 'WARN' }
+        } catch {}
+    } else {
+        Log 'tshark not found — basic pktmon counters only. Install Wireshark for deep network analysis.' 'INFO'
+    }
+
+    return $result
+}
+
 function Start-DefenderRecording {
     <#
     .SYNOPSIS
@@ -1216,7 +1385,8 @@ function Save-ExperimentJson {
         $GpuUtilData,
         $NetworkLatencyData,
         $ProcMonData = $null,
-        $DefenderData = $null
+        $DefenderData = $null,
+        $PktMonData = $null
     )
 
     Log ''
@@ -1256,6 +1426,7 @@ function Save-ExperimentJson {
         cswitchAnalysis   = $null
         procmonAnalysis   = $ProcMonData
         defenderAnalysis  = $DefenderData
+        networkCapture    = $PktMonData
     }
 
     $jsonFile = Join-Path $OutDir 'experiment.json'

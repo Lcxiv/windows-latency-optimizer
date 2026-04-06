@@ -33,6 +33,7 @@ param(
     [switch]$SkipPresentMon,
     [switch]$SkipProcMon,
     [switch]$SkipDefenderRecording,
+    [switch]$SkipPktMon,
     [switch]$SkipNetworkLatency
 )
 
@@ -87,6 +88,7 @@ $pmProc = Invoke-PresentMonCapture -GameProcess $GameProcess -OutDir $outDir -Du
 # Start ProcMon + Defender recording (all run concurrently with perf counters)
 $procmonPml = Invoke-ProcMonCapture -OutDir $outDir -DurationSec $DurationSec -SkipProcMon:$SkipProcMon
 $defenderRec = Start-DefenderRecording -OutDir $outDir -SkipDefenderRecording:$SkipDefenderRecording
+$pktmonEtl = Start-PktMonCapture -OutDir $outDir -SkipPktMon:$SkipPktMon
 
 $perfResult = Invoke-PerfCounterCapture -DurationSec $DurationSec
 
@@ -153,6 +155,15 @@ if ($null -ne $procmonPml) {
 # ── PHASE 4C: Stop Defender recording ────────────────────────────────────────
 $defenderData = Stop-DefenderRecording -RecordingInfo $defenderRec -OutDir $outDir
 
+# ── PHASE 4D: Stop pktmon + analysis ─────────────────────────────────────────
+$pktmonData = $null
+if ($null -ne $pktmonEtl) {
+    Log ''
+    Log '=== Phase 4D: Network capture analysis ==='
+    $pktmonFile = Stop-PktMonCapture -EtlFile $pktmonEtl -OutDir $outDir
+    $pktmonData = Analyze-PktMonCapture -CaptureFile $pktmonFile -OutDir $outDir
+}
+
 # ── PHASE 5: Registry snapshot ───────────────────────────────────────────────
 $reg = Get-RegistrySnapshot
 
@@ -180,7 +191,7 @@ Save-ExperimentJson `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
     -Cpu0Share $cpu0Share -Cpu23Share $cpu23Share -Cpu47Share $cpu47Share `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
-    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData
+    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData
 
 # ── PHASE 8: Dashboard update ────────────────────────────────────────────────
 Update-DashboardData -ScriptRoot $scriptRoot -SkipDashboardUpdate:$SkipDashboardUpdate
