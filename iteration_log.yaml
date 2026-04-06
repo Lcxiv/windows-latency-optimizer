@@ -134,16 +134,14 @@ iterations:
     confidence: 0.9
 
   - id: razer-synapse-download
-    date: 2026-04-02
+    date: 2026-04-05
     category: feature
     description: "Razer mouse model detection + Synapse auto-download fix"
-    approach: "Detect VID_1532 + PID lookup table, download Synapse installer via BITS"
-    outcome: PARTIAL
-    reason: "Detection works (Viper V3 Pro identified). But Apply button in Tauri app doesn't trigger the PS script correctly."
-    rule_created: "Razer PID 00C1 = Viper V3 Pro. $pid is reserved in PS — use $mousePid."
-    confidence: 0.7
-    next_action: "Debug why apply_fix doesn't execute fix_razer_polling.ps1 from Tauri"
-    pending_decision: "Should the fix script download Synapse or just open the download URL?"
+    approach: "Detect VID_1532 + PID lookup table, download Synapse installer via BITS. Fixed apply_fix to route script paths through run_ps() with absolute path resolution."
+    outcome: SUCCESS
+    reason: "Root cause was apply_fix using -Command with relative CWD path. Fix: detect .\\scripts\\ prefix, route to run_ps() which uses -File with scripts_dir(). User confirmed working."
+    rule_created: "Tauri apply_fix: script paths (.\\scripts\\*) must use run_ps() with -File, not -Command with relative path. Razer PID 00C1 = Viper V3 Pro."
+    confidence: 0.9
 
   - id: exp15-mitigations
     date: 2026-04-02
