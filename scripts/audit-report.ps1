@@ -214,6 +214,59 @@ function Build-SystemHealthPanel($Summary, $PipelineData) {
     return $h
 }
 
+function Build-NetworkHealthPanel($PipelineData) {
+    if ($null -eq $PipelineData) {
+        return (Build-Placeholder 'Network Health' 'Run pipeline.ps1 to capture network data')
+    }
+
+    $h = '<div class="panel">'
+    $h += '<div class="panel-title">NETWORK HEALTH</div>'
+
+    # Connection quality score
+    $cq = $null
+    if ($null -ne $PipelineData.connectionQuality) { $cq = $PipelineData.connectionQuality }
+    if ($null -ne $cq) {
+        $cqColor = '#10b981'
+        if ($cq -lt 60) { $cqColor = '#ef4444' }
+        elseif ($cq -lt 80) { $cqColor = '#f59e0b' }
+        $h += '<div style="font-size:24px;font-weight:800;color:' + $cqColor + '">' + $cq + '<span style="font-size:12px;color:var(--muted)">/100</span></div>'
+        $h += '<div style="font-size:10px;color:var(--muted);margin-bottom:8px">CONNECTION QUALITY</div>'
+    }
+
+    # Bufferbloat
+    if ($null -ne $PipelineData.bufferbloat -and $null -ne $PipelineData.bufferbloat.bloatFactor) {
+        $bb = $PipelineData.bufferbloat
+        $bbColor = '#10b981'
+        if ($bb.bloatFactor -ge 5) { $bbColor = '#ef4444' }
+        elseif ($bb.bloatFactor -ge 2) { $bbColor = '#f59e0b' }
+        $h += '<div class="health-row"><span class="health-dot" style="background:' + $bbColor + '" aria-hidden="true"></span>'
+        $h += '<span class="health-label">Bufferbloat</span>'
+        $h += '<span class="health-val" style="color:' + $bbColor + '">' + $bb.bloatFactor + 'x (' + $bb.bloatRating + ')</span></div>'
+    }
+
+    # Network latency (best target)
+    if ($null -ne $PipelineData.networkLatency) {
+        $nl = $PipelineData.networkLatency
+        foreach ($key in $nl.Keys) {
+            if ($key -eq 'targets') { continue }
+            $t = $nl[$key]
+            if ($null -eq $t -or $null -eq $t.avg) { continue }
+            $rttColor = '#10b981'
+            if ($t.avg -gt 60) { $rttColor = '#ef4444' }
+            elseif ($t.avg -gt 30) { $rttColor = '#f59e0b' }
+            $targetLabel = $key
+            if ($targetLabel.Length -gt 15) { $targetLabel = $targetLabel.Substring(0, 12) + '...' }
+            $h += '<div class="health-row"><span class="health-dot" style="background:' + $rttColor + '" aria-hidden="true"></span>'
+            $h += '<span class="health-label">' + (Esc $targetLabel) + '</span>'
+            $h += '<span class="health-val">' + [math]::Round($t.avg, 1) + 'ms</span></div>'
+            break  # Show only best target in panel
+        }
+    }
+
+    $h += '</div>'
+    return $h
+}
+
 function Build-AdvancedTab($PipelineData) {
     if ($null -eq $PipelineData) {
         return '<div class="adv-placeholder">Run pipeline.ps1 to populate the Advanced tab with ETW event counts, per-CPU interrupt data, and full DPC histograms.</div>'
@@ -415,6 +468,7 @@ function New-AuditHtmlReport {
     $stutterHtml   = Build-StutterPanel $ft
     $dpcBlameHtml  = Build-DpcBlamePanel $dpcDrivers
     $healthHtml    = Build-SystemHealthPanel $Summary $PipelineData
+    $networkHtml   = Build-NetworkHealthPanel $PipelineData
     $advancedHtml  = Build-AdvancedTab $PipelineData
     $compareHtml   = Build-CompareTab $History
     $checklistHtml = Build-ChecklistSection $Checks $Summary
@@ -568,6 +622,7 @@ function New-AuditHtmlReport {
     $html += $stutterHtml
     $html += $dpcBlameHtml
     $html += $healthHtml
+    $html += $networkHtml
     $html += '</div>'
     $html += '<div style="margin-top:8px">' + $checklistHtml + '</div>'
     $html += '</div>'
