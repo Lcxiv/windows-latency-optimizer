@@ -270,6 +270,103 @@ if ($null -ne $dwmFrameTiming -and $dwmFrameTiming.stutterCount -gt 0 -and $resu
     Write-Host ('  ' + $correlations.Count + ' stutter(s) correlated (top DPC: ' + $topDpcDriver.module + ' ' + $topDpcDriver.maxUs + 'us)') -ForegroundColor Green
 }
 
+# --- Stage 2D: HID input gap detection (mouse stutter diagnostic) ---
+Write-Host ''
+Write-Host '[2D/4] HID input gap detection...' -ForegroundColor Yellow
+
+$mouseInputGaps = $null
+$hidDumpFile = Join-Path $OutDir 'events_HID_Class.txt'
+if (Test-Path $hidDumpFile) {
+    # Parse timestamps from xperf dumper output
+    # Format varies but timestamps are typically the second CSV field (microseconds)
+    $hidTimestamps = @()
+    foreach ($hline in (Get-Content $hidDumpFile)) {
+        # Match lines with provider events: "ProviderName, TIMESTAMP, ..."
+        if ($hline -match ',\s*(\d{8,}),') {
+            $hidTimestamps += [double]$Matches[1]
+        }
+    }
+
+    if ($hidTimestamps.Count -gt 20) {
+        # Sort timestamps (should already be sorted, but be safe)
+        $hidTimestamps = $hidTimestamps | Sort-Object
+
+        # Compute inter-event deltas (microseconds -> milliseconds)
+        $hidDeltas = @()
+        for ($hi = 1; $hi -lt $hidTimestamps.Count; $hi++) {
+            $hdelta = ($hidTimestamps[$hi] - $hidTimestamps[$hi - 1]) / 1000.0
+            # Filter: 0.01ms < delta < 1000ms (ignore noise and huge gaps from idle periods)
+            if ($hdelta -gt 0.01 -and $hdelta -lt 1000) {
+                $hidDeltas += $hdelta
+            }
+        }
+
+        if ($hidDeltas.Count -gt 10) {
+            $sortedDeltas = $hidDeltas | Sort-Object
+            $medianDelta = $sortedDeltas[[math]::Floor($sortedDeltas.Count / 2)]
+
+            # Detect gaps: events with delta > 4ms or > 4x the median (whichever is larger)
+            $gapThresholdMs = [math]::Max(4.0, $medianDelta * 4)
+            $gaps = @()
+            $deltaIdx = 0
+            for ($hi = 1; $hi -lt $hidTimestamps.Count; $hi++) {
+                $hdelta = ($hidTimestamps[$hi] - $hidTimestamps[$hi - 1]) / 1000.0
+                if ($hdelta -gt $gapThresholdMs -and $hdelta -lt 1000) {
+                    # Blame the top DPC driver (best-effort, same as Stage 2C)
+                    $blamedDriver = 'unknown'
+                    $blamedUs = 0
+                    if ($result.dpcHistogram.Count -gt 0) {
+                        $topDpc = $result.dpcHistogram | Select-Object -First 1
+                        $blamedDriver = $topDpc.module
+                        $blamedUs = $topDpc.maxUs
+                    }
+                    $gaps += @{
+                        timestampUs   = [long]$hidTimestamps[$hi]
+                        gapMs         = [math]::Round($hdelta, 2)
+                        blamedDriver  = $blamedDriver
+                        dpcMaxUs      = $blamedUs
+                    }
+                }
+            }
+
+            # Compute stats
+            $gapMsValues = @()
+            foreach ($g in $gaps) { $gapMsValues += $g.gapMs }
+            $maxGap = 0
+            $avgGap = 0
+            if ($gapMsValues.Count -gt 0) {
+                $maxGap = ($gapMsValues | Measure-Object -Maximum).Maximum
+                $avgGap = ($gapMsValues | Measure-Object -Average).Average
+            }
+
+            $mouseInputGaps = @{
+                totalEvents       = $hidTimestamps.Count
+                medianIntervalMs  = [math]::Round($medianDelta, 3)
+                gapThresholdMs    = [math]::Round($gapThresholdMs, 1)
+                gapCount          = $gaps.Count
+                maxGapMs          = [math]::Round($maxGap, 2)
+                avgGapMs          = [math]::Round($avgGap, 2)
+                gaps              = @($gaps | Select-Object -First 50)
+            }
+
+            Write-Host ('  HID events: ' + $hidTimestamps.Count + ', median interval: ' + [math]::Round($medianDelta, 2) + 'ms') -ForegroundColor Green
+            if ($gaps.Count -gt 0) {
+                Write-Host ('  INPUT GAPS DETECTED: ' + $gaps.Count + ' gaps > ' + [math]::Round($gapThresholdMs, 1) + 'ms (max ' + [math]::Round($maxGap, 1) + 'ms)') -ForegroundColor Red
+            } else {
+                Write-Host ('  No input gaps detected (threshold ' + [math]::Round($gapThresholdMs, 1) + 'ms)') -ForegroundColor Green
+            }
+        } else {
+            Write-Host '  Not enough valid HID deltas (need >10)' -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host '  Not enough HID events (need >20, got ' + $hidTimestamps.Count + ')' -ForegroundColor Yellow
+    }
+} else {
+    Write-Host '  HID dump file not found — run with InputLatency profile' -ForegroundColor Yellow
+}
+
+$result['mouseInputGaps'] = $mouseInputGaps
+
 # --- Stage 3: Pipeline stage summary ---
 Write-Host ''
 Write-Host '[3/4] Pipeline stage summary...' -ForegroundColor Yellow

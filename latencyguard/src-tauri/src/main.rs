@@ -26,6 +26,7 @@ fn main() {
             commands::get_pipeline_data,
             commands::get_experiments,
             commands::compare_experiments,
+            commands::diagnose_mouse,
             commands::export_report,
             commands::get_history,
         ])

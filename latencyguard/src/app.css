@@ -570,6 +570,17 @@ main {
 }
 .heatmap-cell:hover .heatmap-tooltip { display: block; }
 
+/* --- Mouse diagnostic --- */
+.mouse-diag-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px; }
+.mouse-diag-summary { display: flex; gap: 24px; margin: 12px 0; }
+.mouse-diag-stat { text-align: center; }
+.mouse-diag-num { font-size: 28px; font-weight: 800; font-family: var(--font-mono); display: block; }
+.mouse-diag-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.mouse-gap-bars { margin: 8px 0; }
+.mouse-gap-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.mouse-gap-bar { height: 14px; border-radius: 2px; min-width: 4px; }
+.mouse-gap-val { font-size: 11px; color: var(--text); white-space: nowrap; }
+
 /* --- History selection --- */
 .history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .history-header h3 { margin: 0; }

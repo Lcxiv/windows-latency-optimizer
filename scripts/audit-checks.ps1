@@ -757,6 +757,124 @@ function Invoke-PeripheralChecks {
         }
     }
 
+    # --- Check 21b: Mouse USB Controller Topology ---
+    if ($mouseFound) {
+        $mouseControllerStatus = 'SKIP'
+        $mouseControllerCurrent = 'Could not determine USB controller'
+        $mouseControllerMsg = ''
+        $mouseControllerFix = ''
+        $mouseControllerFixNote = ''
+        try {
+            # Find the mouse's USB device entry and trace its parent controller
+            $mouseDevId = ''
+            foreach ($dev in $hidDevices) {
+                if ($dev.DeviceID -like '*VID_1532*' -or ($mouseBrand -ne '' -and $dev.DeviceID -like ('*' + $dev.DeviceID.Substring(0,17) + '*'))) {
+                    $mouseDevId = $dev.DeviceID
+                    break
+                }
+            }
+
+            # Walk up the PnP device tree to find the USB host controller
+            $controllerName = ''
+            $controllerShared = $false
+            $sharedWith = ''
+            if ($mouseDevId -ne '') {
+                # Get all USB host controllers
+                $usbControllers = Get-WmiObject Win32_PnPEntity -ErrorAction SilentlyContinue |
+                    Where-Object { $_.DeviceID -like 'PCI\VEN_1022&DEV_15B*' -or $_.DeviceID -like 'PCI\VEN_1022&DEV_43F*' }
+
+                # Check which USB controller tree contains the mouse device
+                $usbChildren = Get-WmiObject Win32_PnPEntity -ErrorAction SilentlyContinue |
+                    Where-Object { $_.DeviceID -like 'USB\*VID_1532*' }
+                if ($usbChildren) {
+                    $usbChild = $usbChildren | Select-Object -First 1
+                    $usbPath = $usbChild.DeviceID
+
+                    # Determine USB version from controller PCI ID
+                    $isUsb3 = $false
+                    foreach ($ctrl in $usbControllers) {
+                        # Check if device is a descendant by matching root hub pattern
+                        if ($ctrl.DeviceID -like '*DEV_15B6*') { $controllerName = 'USB 3.1 xHCI (DEV_15B6)' }
+                        elseif ($ctrl.DeviceID -like '*DEV_15B7*') { $controllerName = 'USB 3.1 xHCI (DEV_15B7)' }
+                        elseif ($ctrl.DeviceID -like '*DEV_43F7*') { $controllerName = 'USB 3.2 xHCI (DEV_43F7)'; $isUsb3 = $true }
+                        elseif ($ctrl.DeviceID -like '*DEV_15B8*') { $controllerName = 'USB 3.1 xHCI (DEV_15B8)' }
+                    }
+
+                    # Check if GPU or NIC uses same controller affinity CPUs
+                    # Read interrupt affinities from registry to detect sharing
+                    $mouseOnCpus = ''
+                    $gpuOnCpus = ''
+                    $nicOnCpus = ''
+                    $usbAffKeys = @('USB_15B6','USB_15B7','USB_43F7','USB_15B8')
+                    foreach ($uKey in $usbAffKeys) {
+                        $uPat = $uKey.Replace('USB_','VEN_1022&DEV_')
+                        $dk = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
+                            Where-Object { $_.PSChildName -like ('*' + $uPat + '*') } | Select-Object -First 1
+                        if ($dk) {
+                            $affPath = Join-Path $dk.PSPath 'Device Parameters\Interrupt Management\Affinity Policy'
+                            if (Test-Path $affPath) {
+                                $v = Get-ItemProperty $affPath -ErrorAction SilentlyContinue
+                                if ($v.AssignmentSetOverride) {
+                                    $mask = '0x' + $v.AssignmentSetOverride[0].ToString('X2')
+                                    $mouseOnCpus = $mask
+                                }
+                            }
+                        }
+                    }
+                    # Get GPU affinity
+                    $gpuKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
+                        Where-Object { $_.PSChildName -like '*VEN_10DE*' } | Select-Object -First 1
+                    if ($gpuKey) {
+                        $affPath = Join-Path $gpuKey.PSPath 'Device Parameters\Interrupt Management\Affinity Policy'
+                        if (Test-Path $affPath) {
+                            $v = Get-ItemProperty $affPath -ErrorAction SilentlyContinue
+                            if ($v.AssignmentSetOverride) { $gpuOnCpus = '0x' + $v.AssignmentSetOverride[0].ToString('X2') }
+                        }
+                    }
+                    # Get NIC affinity
+                    $nicKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
+                        Where-Object { $_.PSChildName -like '*VEN_8086&DEV_125C*' } | Select-Object -First 1
+                    if ($nicKey) {
+                        $affPath = Join-Path $nicKey.PSPath 'Device Parameters\Interrupt Management\Affinity Policy'
+                        if (Test-Path $affPath) {
+                            $v = Get-ItemProperty $affPath -ErrorAction SilentlyContinue
+                            if ($v.AssignmentSetOverride) { $nicOnCpus = '0x' + $v.AssignmentSetOverride[0].ToString('X2') }
+                        }
+                    }
+
+                    if ($mouseOnCpus -ne '' -and ($mouseOnCpus -eq $gpuOnCpus -or $mouseOnCpus -eq $nicOnCpus)) {
+                        $controllerShared = $true
+                        if ($mouseOnCpus -eq $gpuOnCpus) { $sharedWith = 'GPU' }
+                        if ($mouseOnCpus -eq $nicOnCpus) {
+                            if ($sharedWith -ne '') { $sharedWith = $sharedWith + ' and NIC' }
+                            else { $sharedWith = 'NIC' }
+                        }
+                    }
+
+                    if ($controllerShared) {
+                        $mouseControllerStatus = 'WARN'
+                        $mouseControllerCurrent = 'Mouse shares interrupt CPUs (' + $mouseOnCpus + ') with ' + $sharedWith
+                        $mouseControllerMsg = 'Mouse USB controller shares CPUs with ' + $sharedWith + '. High DPC load from ' + $sharedWith + ' can stall mouse input processing.'
+                        $mouseControllerFixNote = 'Move the mouse dongle to a USB port on a different controller, or reassign interrupt affinity so mouse and ' + $sharedWith + ' use separate CPUs.'
+                    } else {
+                        $mouseControllerStatus = 'PASS'
+                        $detail = 'dedicated controller'
+                        if ($mouseOnCpus -ne '') { $detail = $detail + ' (CPUs ' + $mouseOnCpus + ')' }
+                        $mouseControllerCurrent = $displayName + ' on ' + $detail
+                    }
+                } else {
+                    $mouseControllerCurrent = 'Mouse USB device not found in PnP tree'
+                }
+            }
+        } catch {
+            $mouseControllerCurrent = 'Detection failed: ' + $_.Exception.Message
+        }
+
+        $results += New-CheckResult -Name 'Mouse USB Controller' -Category 'Peripheral' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status $mouseControllerStatus -Current $mouseControllerCurrent -Expected 'Mouse on dedicated USB controller, not shared with GPU/NIC' `
+            -Message $mouseControllerMsg -Fix $mouseControllerFix -FixNote $mouseControllerFixNote
+    }
+
     # --- Check 22: Capture Card Present ---
     $captureVIDs = @('VID_07CA', 'VID_0FD9', 'VID_1CEA')  # AVerMedia, Elgato, Magewell
     $captureFound = $false

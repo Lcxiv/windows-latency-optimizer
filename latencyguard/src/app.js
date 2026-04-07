@@ -7,6 +7,7 @@ const state = {
   pipelineData: null,
   systemInfo: null,
   scanning: false,
+  mouseDiag: null,
 };
 
 // --- Tauri IPC helpers ---

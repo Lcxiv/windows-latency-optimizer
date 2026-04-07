@@ -329,6 +329,45 @@ pub async fn compare_experiments(label1: String, label2: String) -> Result<serde
 }
 
 #[tauri::command]
+pub async fn diagnose_mouse(duration_sec: Option<u32>) -> Result<serde_json::Value, String> {
+    let scripts = scripts_dir();
+    let script_path = scripts.join("diagnose-mouse.ps1");
+    if !script_path.exists() {
+        return Err("diagnose-mouse.ps1 not found".to_string());
+    }
+
+    let dur = duration_sec.unwrap_or(10).to_string();
+    let args = vec!["-DurationSec", dur.as_str()];
+    let _output = run_ps("diagnose-mouse.ps1", &args)?;
+
+    // Find the latest mouse_diagnostic.json
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let exp_dir = project.join("captures").join("experiments");
+    if !exp_dir.exists() {
+        return Err("No experiments directory".to_string());
+    }
+
+    let mut dirs: Vec<_> = std::fs::read_dir(&exp_dir)
+        .map_err(|e| format!("Cannot read experiments: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir() && e.file_name().to_string_lossy().contains("MOUSE_DIAG"))
+        .collect();
+    dirs.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+
+    match dirs.first() {
+        Some(d) => {
+            let json_path = d.path().join("mouse_diagnostic.json");
+            if json_path.exists() {
+                read_json_file(&json_path)
+            } else {
+                Err("Mouse diagnostic completed but no JSON output found".to_string())
+            }
+        }
+        None => Err("No mouse diagnostic results found".to_string()),
+    }
+}
+
+#[tauri::command]
 pub async fn export_report() -> Result<String, String> {
     let scripts = scripts_dir();
     let project = scripts.parent().unwrap_or(std::path::Path::new("."));

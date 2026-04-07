@@ -124,6 +124,9 @@ function renderDiagnostics(container, auditData, pipelineData) {
     html += renderCpuHeatmap(pipelineData.cpuData);
   }
 
+  // Mouse diagnostic section
+  html += renderMouseDiagSection();
+
   // Checklist
   if (auditData && auditData.checks) {
     html += renderChecklist(auditData.checks, auditData.summary);
@@ -194,6 +197,92 @@ function renderCpuHeatmap(cpuData) {
   html += '</div></div>';
   return html;
 }
+
+// --- Mouse Diagnostic ---
+function renderMouseDiagSection() {
+  var html = '<div class="mouse-diag-section">';
+  html += '<div class="diag-panel-title">MOUSE INPUT HEALTH</div>';
+
+  // Show last diagnostic result if available, otherwise show run button
+  if (state.mouseDiag && state.mouseDiag.mouseInputGaps) {
+    var gaps = state.mouseDiag.mouseInputGaps;
+    var healthy = gaps.gapCount === 0;
+    var color = healthy ? 'var(--green)' : 'var(--red)';
+
+    html += '<div class="mouse-diag-summary">';
+    html += '<div class="mouse-diag-stat">';
+    html += '<span class="mouse-diag-num" style="color:' + color + '">' + gaps.gapCount + '</span>';
+    html += '<span class="mouse-diag-label">input gaps</span>';
+    html += '</div>';
+
+    if (!healthy) {
+      html += '<div class="mouse-diag-stat">';
+      html += '<span class="mouse-diag-num" style="color:var(--amber)">' + gaps.maxGapMs + '</span>';
+      html += '<span class="mouse-diag-label">max gap (ms)</span>';
+      html += '</div>';
+      html += '<div class="mouse-diag-stat">';
+      html += '<span class="mouse-diag-num" style="color:var(--muted)">' + gaps.medianIntervalMs + '</span>';
+      html += '<span class="mouse-diag-label">median (ms)</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    if (!healthy && gaps.gaps && gaps.gaps.length > 0) {
+      // Show gap timeline as bars
+      html += '<div class="mouse-gap-bars">';
+      var maxGap = gaps.maxGapMs || 1;
+      var shown = gaps.gaps.slice(0, 20);
+      for (var gi = 0; gi < shown.length; gi++) {
+        var g = shown[gi];
+        var pct = Math.min(100, Math.round(g.gapMs / maxGap * 100));
+        var barColor = g.gapMs >= 10 ? 'var(--red)' : 'var(--amber)';
+        html += '<div class="mouse-gap-row">';
+        html += '<div class="mouse-gap-bar" style="width:' + pct + '%;background:' + barColor + '"></div>';
+        html += '<span class="mouse-gap-val">' + g.gapMs + 'ms';
+        if (g.blamedDriver && g.blamedDriver !== 'unknown') {
+          html += ' <span style="color:var(--muted)">(' + escHtml(g.blamedDriver) + ')</span>';
+        }
+        html += '</span></div>';
+      }
+      html += '</div>';
+    }
+
+    html += '<div style="margin-top:8px">';
+    html += '<button class="btn-secondary" onclick="runMouseDiag()" style="font-size:11px;padding:5px 14px">Re-run Diagnostic</button>';
+    if (state.mouseDiag.mouse) {
+      html += '<span style="font-size:11px;color:var(--muted);margin-left:12px">' + escHtml(state.mouseDiag.mouse) + '</span>';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="diag-placeholder">';
+    html += '<button class="btn-secondary" onclick="runMouseDiag()" aria-label="Run mouse stutter diagnostic">&#128433; Run Mouse Diagnostic</button>';
+    html += '<div style="font-size:11px;color:var(--muted);margin-top:6px">10-second capture to detect input gaps</div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+window.runMouseDiag = async function() {
+  showToast('Starting mouse diagnostic (10s)... move your mouse continuously', 'info');
+  try {
+    var result = await invoke('diagnose_mouse', { duration_sec: 10 });
+    if (result) {
+      state.mouseDiag = result;
+      if (result.mouseInputGaps && result.mouseInputGaps.gapCount > 0) {
+        showToast(result.mouseInputGaps.gapCount + ' input gaps detected (max ' + result.mouseInputGaps.maxGapMs + 'ms)', 'error');
+      } else {
+        showToast('Mouse input healthy — no gaps detected', 'success');
+      }
+      // Re-render diagnostics tab
+      var pane = document.getElementById('tab-diagnostics');
+      if (pane) renderDiagnostics(pane, state.auditData, state.pipelineData);
+    }
+  } catch (e) {
+    showToast('Mouse diagnostic failed: ' + e, 'error');
+  }
+};
 
 // --- Comparison View ---
 function renderComparison(container, data) {
