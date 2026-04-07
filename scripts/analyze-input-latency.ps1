@@ -275,14 +275,36 @@ Write-Host ''
 Write-Host '[2D/4] HID input gap detection...' -ForegroundColor Yellow
 
 $mouseInputGaps = $null
+# Try HID Class events first, fall back to Win32k Input events
+# (Razer wireless mice don't fire HID Class ETW events)
 $hidDumpFile = Join-Path $OutDir 'events_HID_Class.txt'
+$win32kDumpFile = Join-Path $OutDir 'events_Win32k_Input.txt'
+$inputSource = 'HID_Class'
+$inputDumpFile = $hidDumpFile
+
+# Check if HID dump has actual data (not just header)
+$hidHasData = $false
 if (Test-Path $hidDumpFile) {
-    # Parse timestamps from xperf dumper output
-    # Format varies but timestamps are typically the second CSV field (microseconds)
+    $hidLineCount = @(Get-Content $hidDumpFile | Where-Object { $_ -match '^\S.*,\s+\d{6,},' }).Count
+    if ($hidLineCount -gt 20) { $hidHasData = $true }
+}
+if (-not $hidHasData -and (Test-Path $win32kDumpFile)) {
+    $inputDumpFile = $win32kDumpFile
+    $inputSource = 'Win32k_Input'
+    Write-Host '  HID Class events empty, using Win32k Input events' -ForegroundColor Yellow
+}
+
+if (Test-Path $inputDumpFile) {
+    # Parse timestamps from xperf dumper output (after EndHeader)
+    # Data format: "EventName,  TIMESTAMP,  ProcessName (PID), ..."
     $hidTimestamps = @()
-    foreach ($hline in (Get-Content $hidDumpFile)) {
-        # Match lines with provider events: "ProviderName, TIMESTAMP, ..."
-        if ($hline -match ',\s*(\d{8,}),') {
+    $pastHeader = $false
+    foreach ($hline in (Get-Content $inputDumpFile)) {
+        if (-not $pastHeader) {
+            if ($hline -eq 'EndHeader') { $pastHeader = $true }
+            continue
+        }
+        if ($hline -match ',\s+(\d{6,}),') {
             $hidTimestamps += [double]$Matches[1]
         }
     }
@@ -359,10 +381,10 @@ if (Test-Path $hidDumpFile) {
             Write-Host '  Not enough valid HID deltas (need >10)' -ForegroundColor Yellow
         }
     } else {
-        Write-Host '  Not enough HID events (need >20, got ' + $hidTimestamps.Count + ')' -ForegroundColor Yellow
+        Write-Host ('  Not enough input events (need >20, got ' + $hidTimestamps.Count + ')') -ForegroundColor Yellow
     }
 } else {
-    Write-Host '  HID dump file not found — run with InputLatency profile' -ForegroundColor Yellow
+    Write-Host '  No input event dump files found — run with InputLatency profile' -ForegroundColor Yellow
 }
 
 $result['mouseInputGaps'] = $mouseInputGaps

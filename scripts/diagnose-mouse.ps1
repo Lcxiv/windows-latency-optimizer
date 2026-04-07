@@ -28,27 +28,24 @@ Write-Host ''
 # --- Step 1: Detect mouse ---
 Write-Host '[1/4] Detecting mouse...' -ForegroundColor Yellow
 $mouseDesc = 'Unknown'
-try {
-    $hidDevices = Get-WmiObject Win32_PnPEntity -Filter "Service='HidUsb' OR Service='mouhid'" -ErrorAction Stop
-    $razerMice = @{
-        '00C1' = 'Viper V3 Pro (Wireless)'; '00C0' = 'Viper V3 Pro (Wired)'
-        '00B6' = 'Viper V3 HyperSpeed';     '00AA' = 'Basilisk V3 Pro'
-        '009C' = 'DeathAdder V3';            '00B2' = 'DeathAdder V3 Pro'
+$razerMice = @{
+    '00C1' = 'Viper V3 Pro (Wireless)'; '00C0' = 'Viper V3 Pro (Wired)'
+    '00B6' = 'Viper V3 HyperSpeed';     '00AA' = 'Basilisk V3 Pro'
+    '009C' = 'DeathAdder V3';            '00B2' = 'DeathAdder V3 Pro'
+}
+$hidDevices = @(Get-WmiObject Win32_PnPEntity -ErrorAction SilentlyContinue |
+    Where-Object { $_.DeviceID -like '*VID_1532*' -or $_.DeviceID -like '*VID_046D*' -or $_.DeviceID -like '*VID_1038*' })
+foreach ($dev in $hidDevices) {
+    if ($dev.DeviceID -like '*VID_1532*') {
+        if ($dev.DeviceID -match 'PID_([0-9A-F]+)') {
+            $mousePid = $Matches[1]
+            if ($razerMice.ContainsKey($mousePid)) { $mouseDesc = 'Razer ' + $razerMice[$mousePid] }
+            else { $mouseDesc = 'Razer (PID ' + $mousePid + ')' }
+        } else { $mouseDesc = 'Razer Mouse' }
+        break
     }
-    foreach ($dev in $hidDevices) {
-        if ($dev.DeviceID -like '*VID_1532*') {
-            if ($dev.DeviceID -match 'PID_([0-9A-F]+)') {
-                $pid = $Matches[1]
-                if ($razerMice.ContainsKey($pid)) { $mouseDesc = 'Razer ' + $razerMice[$pid] }
-                else { $mouseDesc = 'Razer (PID ' + $pid + ')' }
-            } else { $mouseDesc = 'Razer Mouse' }
-            break
-        }
-        if ($dev.DeviceID -like '*VID_046D*') { $mouseDesc = 'Logitech ' + $dev.Description; break }
-        if ($dev.DeviceID -like '*VID_1038*') { $mouseDesc = 'SteelSeries ' + $dev.Description; break }
-    }
-} catch {
-    Write-Host '  Mouse detection failed' -ForegroundColor Red
+    if ($dev.DeviceID -like '*VID_046D*') { $mouseDesc = 'Logitech ' + $dev.Description; break }
+    if ($dev.DeviceID -like '*VID_1038*') { $mouseDesc = 'SteelSeries ' + $dev.Description; break }
 }
 Write-Host ('  Found: ' + $mouseDesc) -ForegroundColor Green
 
