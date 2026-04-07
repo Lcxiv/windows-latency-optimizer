@@ -40,6 +40,9 @@ latencyguard/src-tauri/target/
 latencyguard/src-tauri/gen/
 latencyguard/node_modules/
 
+# Razer installer artifact
+latencyguard/%windir%/
+
 # Brainstorm sessions
 .superpowers/
 

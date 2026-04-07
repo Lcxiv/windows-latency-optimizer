@@ -1,28 +1,41 @@
 use std::process::Command;
 use std::path::PathBuf;
 
-/// Find the scripts directory relative to the executable or CWD
-fn scripts_dir() -> PathBuf {
-    // Try relative to exe: ../scripts/ (when running from latencyguard/)
+/// Find the scripts directory relative to the executable or CWD.
+/// Search order: LATENCYGUARD_SCRIPTS env var → exe ancestors → CWD ancestors → fallback.
+pub fn scripts_dir() -> PathBuf {
+    // 1. Explicit override via environment variable
+    if let Ok(env_path) = std::env::var("LATENCYGUARD_SCRIPTS") {
+        let p = PathBuf::from(&env_path);
+        if p.join("audit.ps1").exists() {
+            return p;
+        }
+        eprintln!("[LatencyGuard] LATENCYGUARD_SCRIPTS={} but audit.ps1 not found there", env_path);
+    }
+
+    // 2. Walk ancestors from exe location (up to 10 levels for safety)
     if let Ok(exe) = std::env::current_exe() {
         let parent = exe.parent().unwrap_or(std::path::Path::new("."));
-        // In dev mode, exe is in target/debug/, scripts are at ../../scripts/
-        for ancestor in parent.ancestors().take(5) {
+        for ancestor in parent.ancestors().take(10) {
             let candidate = ancestor.join("scripts");
             if candidate.join("audit.ps1").exists() {
                 return candidate;
             }
         }
     }
-    // Fallback: check CWD parents
+
+    // 3. Walk ancestors from CWD
     if let Ok(cwd) = std::env::current_dir() {
-        for ancestor in cwd.ancestors().take(5) {
+        for ancestor in cwd.ancestors().take(10) {
             let candidate = ancestor.join("scripts");
             if candidate.join("audit.ps1").exists() {
                 return candidate;
             }
         }
     }
+
+    eprintln!("[LatencyGuard] Could not find scripts/audit.ps1 — commands will fail. \
+        Set LATENCYGUARD_SCRIPTS to the scripts directory path.");
     PathBuf::from("scripts")
 }
 
