@@ -14,7 +14,7 @@
       <Buffers Value="128"/>
     </EventCollector>
 
-    <!-- System Provider: DPC + ISR + Context Switch + ReadyThread -->
+    <!-- System Provider: DPC + ISR + Context Switch + ReadyThread + SampledProfile -->
     <SystemProvider Id="SP_InputLatency">
       <Keywords>
         <Keyword Value="ProcessThread"/>
@@ -23,23 +23,28 @@
         <Keyword Value="Interrupt"/>
         <Keyword Value="CSwitch"/>
         <Keyword Value="ReadyThread"/>
+        <Keyword Value="SampledProfile"/>
       </Keywords>
       <Stacks>
         <Stack Value="DpcExecute"/>
         <Stack Value="CSwitch"/>
         <Stack Value="ReadyThread"/>
+        <Stack Value="SampledProfile"/>
       </Stacks>
     </SystemProvider>
 
     <!-- ETW Providers for the input-to-display pipeline -->
     <EventProvider Id="EP_Win32k" Name="8C416C79-D49B-4F01-A467-E56D3AA8234C" NonPagedMemory="true" Level="5"/>
     <EventProvider Id="EP_DwmCore" Name="9E9BBA3C-2E38-40CB-99F4-9E8281425164" Level="5"/>
-    <EventProvider Id="EP_DxgKrnl" Name="802EC45A-1E99-4B83-9920-87C98277BA9D" NonPagedMemory="true" Level="5"/>
+    <!-- DxgKrnl: GPUScheduler(0x8000) + Power(0x200) + DriverEvents(0x400) + Present(0x8000000) -->
+    <EventProvider Id="EP_DxgKrnl" Name="802EC45A-1E99-4B83-9920-87C98277BA9D" NonPagedMemory="true" Level="5" Keywords="0x08008600"/>
     <EventProvider Id="EP_DXGI" Name="CA11C036-0102-4A2D-A6AD-F03CFED5D3C9" Level="5"/>
     <EventProvider Id="EP_D3D11" Name="DB6F6DDB-AC77-4E88-8253-819DF9BBF140" Level="5"/>
     <EventProvider Id="EP_D3D12" Name="5D8087DD-3A9B-4F56-90DF-49196CDC4F11" Level="5"/>
     <EventProvider Id="EP_HIDCLASS" Name="6465DA78-E7A0-4F39-B084-8F53C7C30DC6" Level="5"/>
     <EventProvider Id="EP_USBHUB3" Name="AC52AD17-CC01-4F85-8DF5-4DCE4333C99B" Level="4"/>
+    <!-- NVIDIA internal driver events -->
+    <EventProvider Id="EP_NvExternal" Name="AE4F8626-8265-40D1-A70B-11B64240E8E9" Level="4"/>
 
     <!-- Verbose File Profile -->
     <Profile Id="InputLatency.Verbose.File" LoggingMode="File"
@@ -59,6 +64,7 @@
             <EventProviderId Value="EP_D3D12"/>
             <EventProviderId Value="EP_HIDCLASS"/>
             <EventProviderId Value="EP_USBHUB3"/>
+            <EventProviderId Value="EP_NvExternal"/>
           </EventProviders>
         </EventCollectorId>
       </Collectors>
@@ -82,6 +88,7 @@
             <EventProviderId Value="EP_D3D12"/>
             <EventProviderId Value="EP_HIDCLASS"/>
             <EventProviderId Value="EP_USBHUB3"/>
+            <EventProviderId Value="EP_NvExternal"/>
           </EventProviders>
         </EventCollectorId>
       </Collectors>

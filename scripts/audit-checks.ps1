@@ -574,9 +574,9 @@ function Invoke-GpuChecks {
     } else {
         $results += New-CheckResult -Name 'GPU MSI Mode' -Category 'GPU' -Tier 'Quick' -Severity 'MEDIUM' `
             -Status 'FAIL' -Current ('MSISupported = ' + $msiVal) -Expected 'MSISupported = 1' `
-            -Message 'Line-based interrupts are less efficient than MSI and can cause DPC spikes.' `
-            -Fix ('Set-ItemProperty -Path "' + $msiPath + '" -Name MSISupported -Value 1 -Type DWord') `
-            -FixNote 'Reboot required.'
+            -Message 'Line-based interrupts cause shared IRQ contention and higher DPC latency. NVIDIA driver updates silently reset this to 0.' `
+            -Fix '.\scripts\exp21_msi_gpu_clocks.ps1' `
+            -FixNote 'Reboot required. Re-apply after every NVIDIA driver update — the installer resets MSISupported to 0.'
     }
 
     # --- Check 18: GPU Interrupt Affinity ---
