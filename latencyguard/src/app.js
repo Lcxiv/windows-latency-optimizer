@@ -216,7 +216,7 @@ function renderSimple(container) {
   // Actions
   html += '<div class="action-bar">';
   html += '<button class="btn-primary" onclick="runScan()">&#8635; Scan Again</button>';
-  html += '<button class="btn-secondary" onclick="exportReport()">&#128196; Export Report</button>';
+  html += '<button class="btn-secondary" onclick="exportReport()" aria-label="Export HTML report">&#128196; Export Report</button>';
   html += '<button class="btn-secondary" onclick="setMode(\'expert\')">Expert Mode &#8594;</button>';
   html += '</div>';
 
@@ -266,7 +266,7 @@ window.applyFixByIndex = async function(index) {
 window.showFixNote = function(index) {
   const checks = (state.auditData && state.auditData.checks) ? state.auditData.checks : [];
   const check = checks[index];
-  if (check && check.fixNote) alert(check.fixNote);
+  if (check && check.fixNote) showToast(check.fixNote, 'info');
 };
 
 function renderMetricCards(pd) {
@@ -352,8 +352,8 @@ function renderScanning() {
   return '<div class="simple-center" style="padding-top:60px">' +
     '<div style="font-size:48px;opacity:0.3;margin-bottom:16px">&#9881;</div>' +
     '<div style="font-size:18px;font-weight:600">Scanning your system...</div>' +
-    '<div class="scanning-text">Checking 37 latency settings across OS, GPU, NIC, and more</div>' +
-    '<div class="progress-bar" role="progressbar" aria-label="Scanning system"><div class="progress-fill" style="width:60%"></div></div>' +
+    '<div class="scanning-text">Checking 41 latency settings across OS, GPU, NIC, and more</div>' +
+    '<div class="progress-bar" role="progressbar" aria-label="Scanning system"><div class="progress-fill indeterminate"></div></div>' +
     '</div>';
 }
 
@@ -414,7 +414,7 @@ async function runScan() {
     state.scanning = false;
     state.auditData = null;
     render();
-    alert('Scan failed: ' + e);
+    showToast('Scan failed: ' + e, 'error');
   }
 }
 window.runScan = runScan;
@@ -456,17 +456,29 @@ async function exportReport() {
   try {
     var path = await invoke('export_report');
     if (path) {
-      alert('Report exported to:\n' + path);
+      showToast('Report exported to: ' + path, 'success');
     } else {
-      alert('Export completed but no file path returned.');
+      showToast('Export completed but no file path returned.', 'info');
     }
   } catch (e) {
-    alert('Export failed: ' + e);
+    showToast('Export failed: ' + e, 'error');
   }
 
   if (btn) { btn.textContent = '\uD83D\uDCC4 Export Report'; btn.disabled = false; }
 }
 window.exportReport = exportReport;
+
+// --- Toast notifications ---
+function showToast(message, type) {
+  var container = document.getElementById('toasts');
+  if (!container) return;
+  var el = document.createElement('div');
+  el.className = 'toast toast-' + (type || 'info');
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 5000);
+}
+window.showToast = showToast;
 
 // --- Util ---
 function escHtml(str) {

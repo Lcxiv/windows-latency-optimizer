@@ -15,7 +15,7 @@ async function renderHistory(container) {
   state.experiments = experiments;
 
   var html = '<div class="history-header"><h3>Experiment History (' + experiments.length + ')</h3>';
-  html += '<button class="btn-secondary compare-btn" id="compare-btn" onclick="compareExperiments()" disabled>Compare Selected</button>';
+  html += '<button class="btn-secondary compare-btn" id="compare-btn" onclick="compareExperiments()" disabled aria-label="Compare two selected experiments">Compare Selected</button>';
   html += '</div>';
 
   html += '<div class="history-table"><table><thead><tr>';
@@ -31,9 +31,9 @@ async function renderHistory(container) {
     var date = exp.capturedAt ? exp.capturedAt.substring(0, 16).replace('T', ' ') : '-';
     var label = exp.label || '';
 
-    html += '<tr>';
-    html += '<td class="hist-sel"><input type="radio" name="cmp-before" value="' + escHtml(label) + '" onchange="updateCompareBtn()"></td>';
-    html += '<td class="hist-sel"><input type="radio" name="cmp-after" value="' + escHtml(label) + '" onchange="updateCompareBtn()"></td>';
+    html += '<tr id="hist-row-' + idx + '">';
+    html += '<td class="hist-sel"><label><input type="radio" name="cmp-before" value="' + escHtml(label) + '" onchange="updateCompareSelection()"><span class="sr-only">Before: ' + escHtml(label) + '</span></label></td>';
+    html += '<td class="hist-sel"><label><input type="radio" name="cmp-after" value="' + escHtml(label) + '" onchange="updateCompareSelection()"><span class="sr-only">After: ' + escHtml(label) + '</span></label></td>';
     html += '<td class="hist-label">' + escHtml(label) + '</td>';
     html += '<td class="hist-date">' + date + '</td>';
     html += '<td style="color:' + dpcColor + '">' + dpc + '%</td>';
@@ -50,15 +50,34 @@ async function renderHistory(container) {
   container.innerHTML = html;
 }
 
-window.updateCompareBtn = function() {
+window.updateCompareSelection = function() {
   var before = document.querySelector('input[name="cmp-before"]:checked');
   var after = document.querySelector('input[name="cmp-after"]:checked');
   var btn = document.getElementById('compare-btn');
+
+  // Clear old highlights
+  document.querySelectorAll('.history-table tr').forEach(function(r) {
+    r.classList.remove('selected-before', 'selected-after');
+  });
+
+  // Highlight selected rows
+  if (before) {
+    var beforeRow = before.closest('tr');
+    if (beforeRow) beforeRow.classList.add('selected-before');
+  }
+  if (after) {
+    var afterRow = after.closest('tr');
+    if (afterRow) afterRow.classList.add('selected-after');
+  }
+
   if (btn) {
     var ready = before && after && before.value !== after.value;
     btn.disabled = !ready;
   }
 };
+
+// Legacy alias
+window.updateCompareBtn = window.updateCompareSelection;
 
 window.compareExperiments = async function() {
   var before = document.querySelector('input[name="cmp-before"]:checked');
@@ -75,7 +94,7 @@ window.compareExperiments = async function() {
       if (result) renderComparison(result, data);
     }
   } catch (e) {
-    alert('Compare failed: ' + e);
+    showToast('Compare failed: ' + e, 'error');
   }
 
   if (btn) { btn.textContent = 'Compare Selected'; btn.disabled = false; }
