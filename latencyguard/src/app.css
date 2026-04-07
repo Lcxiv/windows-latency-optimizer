@@ -492,8 +492,59 @@ main {
 .adv-note { font-size: 11px; margin-top: 8px; }
 .mono { font-family: Consolas, monospace; }
 
+/* ── Metric cards (Simple Mode dashboard) ── */
+.metric-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  max-width: 480px; margin: 20px auto 24px;
+}
+.metric-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+.metric-card:hover { border-color: var(--blue); }
+.metric-icon { font-size: 24px; flex-shrink: 0; }
+.metric-body { min-width: 0; }
+.metric-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 600; }
+.metric-value { font-size: 22px; font-weight: 700; font-family: Consolas, monospace; line-height: 1.2; }
+.metric-sub { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── CPU Heatmap (Diagnostics tab) ── */
+.heatmap-section { margin-bottom: 24px; }
+.heatmap-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); font-weight: 600; margin-bottom: 10px;
+}
+.heatmap-grid {
+  display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 4px;
+  max-width: 420px;
+}
+.heatmap-label {
+  display: flex; align-items: center; justify-content: flex-end;
+  font-size: 9px; color: var(--muted); padding-right: 6px;
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.heatmap-cell {
+  position: relative; border-radius: 6px; padding: 8px 4px;
+  text-align: center; cursor: default;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.heatmap-cell:hover { transform: scale(1.08); box-shadow: 0 0 12px rgba(96,165,250,0.3); z-index: 1; }
+.heatmap-cpu { font-size: 10px; font-weight: 700; opacity: 0.7; }
+.heatmap-pct { font-size: 14px; font-weight: 700; font-family: Consolas, monospace; }
+.heatmap-tooltip {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 10px; font-size: 11px; white-space: nowrap;
+  z-index: 10; pointer-events: none;
+}
+.heatmap-cell:hover .heatmap-tooltip { display: block; }
+
 @media (max-width: 700px) {
   .diag-grid { grid-template-columns: 1fr; }
   .check-row { grid-template-columns: 50px 1fr; }
   .check-cat, .check-val { display: none; }
+  .metric-cards { grid-template-columns: 1fr; }
 }

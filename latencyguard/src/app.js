@@ -22,8 +22,28 @@ async function invoke(cmd, args) {
 // --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSystemInfo();
+  await loadCachedData();
   render();
 });
+
+async function loadCachedData() {
+  try {
+    var audit = await invoke('get_latest_audit');
+    if (audit && audit !== null && audit.summary) {
+      state.auditData = audit;
+    }
+  } catch (e) {
+    console.warn('No cached audit data:', e);
+  }
+  try {
+    var pipeline = await invoke('get_pipeline_data');
+    if (pipeline && pipeline !== null) {
+      state.pipelineData = pipeline;
+    }
+  } catch (e) {
+    console.warn('No pipeline data:', e);
+  }
+}
 
 async function loadSystemInfo() {
   try {
@@ -123,6 +143,9 @@ function renderSimple(container) {
   if (summary.fail > 0) html += '<span class="pill pill-fail">' + summary.fail + ' issue' + (summary.fail > 1 ? 's' : '') + '</span>';
   html += '</div>';
   html += '</div>';
+
+  // Metric cards (from pipeline data)
+  html += renderMetricCards(state.pipelineData);
 
   // Group checks by category
   const groups = {};
@@ -244,6 +267,76 @@ window.showFixNote = function(index) {
   const check = checks[index];
   if (check && check.fixNote) alert(check.fixNote);
 };
+
+function renderMetricCards(pd) {
+  if (!pd) return '';
+  var html = '<div class="metric-cards">';
+
+  // Card 1: DPC Latency
+  var dpcPct = pd.cpuTotal ? pd.cpuTotal.dpcPct : null;
+  var dpcVal = dpcPct !== null ? dpcPct.toFixed(2) + '%' : 'N/A';
+  var dpcColor = dpcPct === null ? 'var(--muted)' : dpcPct < 2 ? 'var(--green)' : dpcPct < 5 ? 'var(--amber)' : 'var(--red)';
+  html += metricCard('DPC Latency', dpcVal, 'Total DPC time', dpcColor, '&#9201;');
+
+  // Card 2: Network
+  var netVal = 'N/A';
+  var netSub = 'No ping data';
+  var netColor = 'var(--muted)';
+  if (pd.networkLatency) {
+    var bestPing = 999;
+    var bestHost = '';
+    var keys = Object.keys(pd.networkLatency);
+    for (var i = 0; i < keys.length; i++) {
+      var entry = pd.networkLatency[keys[i]];
+      if (entry && entry.p50 < bestPing) {
+        bestPing = entry.p50;
+        bestHost = keys[i].replace('ping-', '').replace('.ds.on.epicgames.com', '');
+      }
+    }
+    if (bestPing < 999) {
+      netVal = bestPing + 'ms';
+      netSub = bestHost + ' (p50)';
+      netColor = bestPing < 20 ? 'var(--green)' : bestPing < 50 ? 'var(--amber)' : 'var(--red)';
+    }
+  }
+  html += metricCard('Network', netVal, netSub, netColor, '&#127760;');
+
+  // Card 3: Interrupt Distribution
+  var cpu0Val = 'N/A';
+  var cpu0Sub = 'CPU 0 interrupt share';
+  var cpu0Color = 'var(--muted)';
+  if (pd.interruptTopology) {
+    var cpu0Share = pd.interruptTopology.cpu0Share;
+    cpu0Val = cpu0Share.toFixed(1) + '%';
+    cpu0Color = cpu0Share < 5 ? 'var(--green)' : cpu0Share < 20 ? 'var(--amber)' : 'var(--red)';
+    cpu0Sub = cpu0Share < 5 ? 'Balanced (optimal)' : 'CPU 0 overloaded';
+  }
+  html += metricCard('Interrupts', cpu0Val, cpu0Sub, cpu0Color, '&#9889;');
+
+  // Card 4: Connection Quality
+  var qualVal = 'N/A';
+  var qualSub = 'No data';
+  var qualColor = 'var(--muted)';
+  if (pd.connectionQuality !== undefined && pd.connectionQuality !== null) {
+    qualVal = pd.connectionQuality + '/100';
+    qualColor = pd.connectionQuality >= 80 ? 'var(--green)' : pd.connectionQuality >= 50 ? 'var(--amber)' : 'var(--red)';
+    qualSub = pd.connectionQuality >= 80 ? 'Excellent' : pd.connectionQuality >= 50 ? 'Fair' : 'Poor';
+  }
+  html += metricCard('Connection', qualVal, qualSub, qualColor, '&#128225;');
+
+  html += '</div>';
+  return html;
+}
+
+function metricCard(title, value, subtitle, color, icon) {
+  return '<div class="metric-card">' +
+    '<div class="metric-icon" style="color:' + color + '">' + icon + '</div>' +
+    '<div class="metric-body">' +
+    '<div class="metric-title">' + title + '</div>' +
+    '<div class="metric-value" style="color:' + color + '">' + value + '</div>' +
+    '<div class="metric-sub">' + escHtml(subtitle) + '</div>' +
+    '</div></div>';
+}
 
 function renderEmpty() {
   return '<div class="empty-state">' +

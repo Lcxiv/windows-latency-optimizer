@@ -119,12 +119,80 @@ function renderDiagnostics(container, auditData, pipelineData) {
 
   html += '</div>'; // end grid
 
+  // CPU Heatmap
+  if (pipelineData && pipelineData.cpuData && pipelineData.cpuData.length > 0) {
+    html += renderCpuHeatmap(pipelineData.cpuData);
+  }
+
   // Checklist
   if (auditData && auditData.checks) {
     html += renderChecklist(auditData.checks, auditData.summary);
   }
 
   container.innerHTML = html;
+}
+
+function renderCpuHeatmap(cpuData) {
+  var rowLabels = ['Preferred', 'Input', 'GPU / NIC', 'GPU / NIC', 'Game', 'Game', 'Game', 'Game'];
+  // 9800X3D: 16 logical CPUs in 4x4 grid, but we label rows of 2
+  var groupLabels = [
+    { label: 'Preferred', rows: [0] },
+    { label: 'Input',     rows: [1] },
+    { label: 'GPU/NIC',   rows: [2, 3] },
+    { label: 'Game',      rows: [4, 5, 6, 7] }
+  ];
+
+  var html = '<div class="heatmap-section">';
+  html += '<div class="heatmap-title">CPU Interrupt Heatmap</div>';
+  html += '<div class="heatmap-grid">';
+
+  for (var row = 0; row < 4; row++) {
+    // Row label (4 rows of 4 CPUs each)
+    var label = '';
+    if (row === 0) label = 'Preferred';
+    if (row === 1) label = 'Input';
+    if (row === 2) label = 'GPU/NIC';
+    if (row === 3) label = 'Game';
+    html += '<div class="heatmap-label">' + label + '</div>';
+
+    for (var col = 0; col < 4; col++) {
+      var cpuIdx = row * 4 + col;
+      var cpu = null;
+      for (var k = 0; k < cpuData.length; k++) {
+        if (cpuData[k].cpu === cpuIdx) { cpu = cpuData[k]; break; }
+      }
+
+      if (!cpu) {
+        html += '<div class="heatmap-cell" style="background:var(--surface2)"><div class="heatmap-cpu">CPU ' + cpuIdx + '</div><div class="heatmap-pct">-</div></div>';
+        continue;
+      }
+
+      var intrPct = cpu.interruptPct || 0;
+      var dpcPct = cpu.dpcPct || 0;
+      var intrSec = cpu.intrPerSec || 0;
+      var bgColor = 'rgba(16,185,129,0.2)';   // green
+      var textColor = 'var(--green)';
+      if (intrPct >= 5) {
+        bgColor = 'rgba(239,68,68,0.25)'; textColor = 'var(--red)';
+      } else if (intrPct >= 1) {
+        bgColor = 'rgba(245,158,11,0.25)'; textColor = 'var(--amber)';
+      }
+
+      html += '<div class="heatmap-cell" style="background:' + bgColor + '">';
+      html += '<div class="heatmap-cpu" style="color:' + textColor + '">CPU ' + cpuIdx + '</div>';
+      html += '<div class="heatmap-pct" style="color:' + textColor + '">' + intrPct.toFixed(1) + '%</div>';
+      html += '<div class="heatmap-tooltip">';
+      html += 'CPU ' + cpuIdx + '<br>';
+      html += 'Interrupt: ' + intrPct.toFixed(2) + '%<br>';
+      html += 'DPC: ' + dpcPct.toFixed(2) + '%<br>';
+      html += 'Intr/sec: ' + Math.round(intrSec).toLocaleString();
+      html += '</div>';
+      html += '</div>';
+    }
+  }
+
+  html += '</div></div>';
+  return html;
 }
 
 function healthRow(label, val, color) {

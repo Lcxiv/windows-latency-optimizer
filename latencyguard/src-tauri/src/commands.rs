@@ -114,6 +114,34 @@ pub async fn run_audit(mode: String) -> Result<serde_json::Value, String> {
     Ok(json)
 }
 
+/// Read the latest audit JSON without running a scan (instant load on app launch)
+#[tauri::command]
+pub async fn get_latest_audit() -> Result<serde_json::Value, String> {
+    let scripts = scripts_dir();
+    let audits_dir = scripts.parent().unwrap_or(std::path::Path::new(".")).join("captures").join("audits");
+
+    if !audits_dir.exists() {
+        return Ok(serde_json::Value::Null);
+    }
+
+    let mut json_files: Vec<_> = std::fs::read_dir(&audits_dir)
+        .map_err(|e| format!("Cannot read audits dir: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path().extension().map_or(false, |ext| ext == "json")
+                && e.file_name().to_string_lossy().starts_with("audit_")
+        })
+        .collect();
+
+    if json_files.is_empty() {
+        return Ok(serde_json::Value::Null);
+    }
+
+    json_files.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+
+    read_json_file(&json_files[0].path())
+}
+
 #[tauri::command]
 pub async fn apply_fix(command: String) -> Result<bool, String> {
     // If the command is a script path, resolve it via scripts_dir() and use -File

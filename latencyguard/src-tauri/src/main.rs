@@ -9,6 +9,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_system_info,
             commands::run_audit,
+            commands::get_latest_audit,
             commands::apply_fix,
             commands::get_pipeline_data,
             commands::get_experiments,
