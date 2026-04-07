@@ -542,9 +542,48 @@ main {
 }
 .heatmap-cell:hover .heatmap-tooltip { display: block; }
 
+/* --- History selection --- */
+.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.history-header h3 { margin: 0; }
+.compare-btn { font-size: 13px; padding: 6px 16px; }
+.compare-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.hist-sel { width: 50px; text-align: center; }
+.hist-sel input[type="radio"] { accent-color: var(--cyan); width: 16px; height: 16px; cursor: pointer; }
+
+/* --- Comparison View --- */
+.compare-section { margin-top: 24px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+.compare-header { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+.compare-exp { font-size: 14px; font-weight: 600; color: var(--text); }
+.compare-vs { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+.compare-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-right: 8px; background: rgba(96,165,250,0.15); color: var(--blue); }
+.compare-tag-after { background: rgba(16,185,129,0.15); color: var(--green); }
+
+.compare-rings { display: flex; align-items: center; justify-content: center; gap: 24px; margin-bottom: 20px; }
+.compare-ring { position: relative; text-align: center; }
+.compare-ring svg { transform: rotate(-90deg); }
+.compare-ring .track { fill: none; stroke: var(--surface2); stroke-width: 6; }
+.compare-ring .bar { fill: none; stroke-width: 6; stroke-linecap: round; }
+.compare-ring-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 28px; font-weight: 800; }
+.compare-ring-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.compare-delta-big { font-size: 24px; font-weight: 700; }
+
+.compare-deltas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.compare-delta-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+.compare-delta-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+.compare-delta-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+.compare-val { font-size: 16px; font-weight: 600; color: var(--text); }
+.compare-arrow { color: var(--muted); font-size: 14px; }
+.compare-delta-badge { font-size: 14px; font-weight: 700; }
+
+.compare-heatmaps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-heatmap-col { }
+.compare-heatmap-label { text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+
 @media (max-width: 700px) {
   .diag-grid { grid-template-columns: 1fr; }
   .check-row { grid-template-columns: 50px 1fr; }
   .check-cat, .check-val { display: none; }
   .metric-cards { grid-template-columns: 1fr; }
+  .compare-deltas { grid-template-columns: 1fr; }
+  .compare-heatmaps { grid-template-columns: 1fr; }
 }

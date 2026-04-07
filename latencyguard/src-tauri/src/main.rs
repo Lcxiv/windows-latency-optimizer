@@ -25,6 +25,8 @@ fn main() {
             commands::apply_fix,
             commands::get_pipeline_data,
             commands::get_experiments,
+            commands::compare_experiments,
+            commands::export_report,
             commands::get_history,
         ])
         .run(tauri::generate_context!())

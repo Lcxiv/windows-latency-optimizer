@@ -195,6 +195,99 @@ function renderCpuHeatmap(cpuData) {
   return html;
 }
 
+// --- Comparison View ---
+function renderComparison(container, data) {
+  var e1 = data.exp1;
+  var e2 = data.exp2;
+  var d = data.deltas;
+  var html = '<div class="compare-section">';
+
+  // Header
+  html += '<div class="compare-header">';
+  html += '<div class="compare-exp"><span class="compare-tag">BEFORE</span>' + escHtml(e1.label || '') + '</div>';
+  html += '<div class="compare-vs">vs</div>';
+  html += '<div class="compare-exp"><span class="compare-tag compare-tag-after">AFTER</span>' + escHtml(e2.label || '') + '</div>';
+  html += '</div>';
+
+  // Score rings side-by-side (use audit scores if available, else DPC-based proxy)
+  var s1 = e1.auditScore || null;
+  var s2 = e2.auditScore || null;
+  if (s1 !== null && s2 !== null) {
+    html += '<div class="compare-rings">';
+    html += compactScoreRing(s1, 'Before');
+    html += '<div class="compare-delta-big">' + deltaArrow(s2 - s1, true) + '</div>';
+    html += compactScoreRing(s2, 'After');
+    html += '</div>';
+  }
+
+  // Delta metric cards
+  html += '<div class="compare-deltas">';
+  html += deltaCard('DPC %', d.dpcPct.before, d.dpcPct.after, d.dpcPct.delta, d.dpcPct.improved, false);
+  html += deltaCard('Interrupt %', d.interruptPct.before, d.interruptPct.after, d.interruptPct.delta, d.interruptPct.improved, false);
+  html += deltaCard('CPU 0 Share', d.cpu0Share.before, d.cpu0Share.after, d.cpu0Share.delta, d.cpu0Share.improved, false);
+  html += '</div>';
+
+  // Side-by-side CPU heatmaps
+  var cpu1 = e1.cpuData || [];
+  var cpu2 = e2.cpuData || [];
+  if (cpu1.length > 0 || cpu2.length > 0) {
+    html += '<div class="compare-heatmaps">';
+    html += '<div class="compare-heatmap-col">';
+    html += '<div class="compare-heatmap-label">Before</div>';
+    html += cpu1.length > 0 ? renderCpuHeatmap(cpu1) : '<div class="diag-placeholder">No CPU data</div>';
+    html += '</div>';
+    html += '<div class="compare-heatmap-col">';
+    html += '<div class="compare-heatmap-label">After</div>';
+    html += cpu2.length > 0 ? renderCpuHeatmap(cpu2) : '<div class="diag-placeholder">No CPU data</div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Scroll into view
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function compactScoreRing(score, label) {
+  var sc = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--amber)' : 'var(--red)';
+  var circ = 314.16;
+  var dash = (circ * score / 100).toFixed(1);
+  var gap = (circ - dash).toFixed(1);
+  return '<div class="compare-ring">' +
+    '<svg width="100" height="100" viewBox="0 0 100 100">' +
+    '<circle class="track" cx="50" cy="50" r="45"/>' +
+    '<circle class="bar" cx="50" cy="50" r="45" stroke="' + sc + '" stroke-dasharray="' + dash + ' ' + gap + '"/>' +
+    '</svg>' +
+    '<div class="compare-ring-num" style="color:' + sc + '">' + score + '</div>' +
+    '<div class="compare-ring-label">' + label + '</div></div>';
+}
+
+function deltaCard(title, before, after, delta, improved, higherIsBetter) {
+  var absD = Math.abs(delta);
+  var color = improved ? 'var(--green)' : absD < 0.001 ? 'var(--muted)' : 'var(--red)';
+  var arrow = improved ? '&#9660;' : delta > 0 ? '&#9650;' : '&#9679;';
+  var sign = delta > 0 ? '+' : '';
+  return '<div class="compare-delta-card">' +
+    '<div class="compare-delta-title">' + title + '</div>' +
+    '<div class="compare-delta-row">' +
+    '<span class="compare-val">' + before.toFixed(3) + '</span>' +
+    '<span class="compare-arrow">&#8594;</span>' +
+    '<span class="compare-val">' + after.toFixed(3) + '</span>' +
+    '</div>' +
+    '<div class="compare-delta-badge" style="color:' + color + '">' +
+    arrow + ' ' + sign + delta.toFixed(3) +
+    '</div></div>';
+}
+
+function deltaArrow(diff, higherIsBetter) {
+  var improved = higherIsBetter ? diff > 0 : diff < 0;
+  var color = improved ? 'var(--green)' : Math.abs(diff) < 0.5 ? 'var(--muted)' : 'var(--red)';
+  var sign = diff > 0 ? '+' : '';
+  return '<span style="color:' + color + ';font-size:24px;font-weight:700">' + sign + Math.round(diff) + '</span>';
+}
+
 function healthRow(label, val, color) {
   return '<div class="health-row"><span class="health-dot" style="background:' + color + '" aria-hidden="true"></span>' +
     '<span class="health-label">' + label + '</span><span class="health-val" style="color:' + color + '">' + val + '</span></div>';

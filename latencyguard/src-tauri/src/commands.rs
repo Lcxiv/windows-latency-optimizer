@@ -262,6 +262,116 @@ pub async fn get_experiments() -> Result<Vec<serde_json::Value>, String> {
 }
 
 #[tauri::command]
+pub async fn compare_experiments(label1: String, label2: String) -> Result<serde_json::Value, String> {
+    let scripts = scripts_dir();
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let exp_dir = project.join("captures").join("experiments");
+
+    if !exp_dir.exists() {
+        return Err("No experiments directory found".to_string());
+    }
+
+    let mut exp1: Option<serde_json::Value> = None;
+    let mut exp2: Option<serde_json::Value> = None;
+
+    let dirs: Vec<_> = std::fs::read_dir(&exp_dir)
+        .map_err(|e| format!("Cannot read experiments: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+
+    for dir in &dirs {
+        let json_path = dir.path().join("experiment.json");
+        if !json_path.exists() { continue; }
+        if let Ok(data) = read_json_file(&json_path) {
+            let label = data["label"].as_str().unwrap_or("");
+            if label == label1 && exp1.is_none() {
+                exp1 = Some(data);
+            } else if label == label2 && exp2.is_none() {
+                exp2 = Some(data);
+            }
+            if exp1.is_some() && exp2.is_some() { break; }
+        }
+    }
+
+    let e1 = exp1.ok_or_else(|| format!("Experiment '{}' not found", label1))?;
+    let e2 = exp2.ok_or_else(|| format!("Experiment '{}' not found", label2))?;
+
+    // Compute deltas for key metrics
+    let dpc1 = e1["cpuTotal"]["dpcPct"].as_f64().unwrap_or(0.0);
+    let dpc2 = e2["cpuTotal"]["dpcPct"].as_f64().unwrap_or(0.0);
+    let intr1 = e1["cpuTotal"]["interruptPct"].as_f64().unwrap_or(0.0);
+    let intr2 = e2["cpuTotal"]["interruptPct"].as_f64().unwrap_or(0.0);
+    let cpu0_1 = e1["interruptTopology"]["cpu0Share"].as_f64().unwrap_or(0.0);
+    let cpu0_2 = e2["interruptTopology"]["cpu0Share"].as_f64().unwrap_or(0.0);
+
+    Ok(serde_json::json!({
+        "exp1": e1,
+        "exp2": e2,
+        "deltas": {
+            "dpcPct": {
+                "before": dpc1, "after": dpc2,
+                "delta": dpc2 - dpc1,
+                "improved": dpc2 < dpc1
+            },
+            "interruptPct": {
+                "before": intr1, "after": intr2,
+                "delta": intr2 - intr1,
+                "improved": intr2 < intr1
+            },
+            "cpu0Share": {
+                "before": cpu0_1, "after": cpu0_2,
+                "delta": cpu0_2 - cpu0_1,
+                "improved": cpu0_2 < cpu0_1
+            }
+        }
+    }))
+}
+
+#[tauri::command]
+pub async fn export_report() -> Result<String, String> {
+    let scripts = scripts_dir();
+    let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+    let audits_dir = project.join("captures").join("audits");
+    let audit_path = scripts.join("audit.ps1");
+
+    if !audit_path.exists() {
+        return Err("audit.ps1 not found".to_string());
+    }
+
+    // Build a PS expression that runs audit.ps1 in quiet export mode
+    // audit.ps1 already handles reading data, calling New-AuditHtmlReport, and writing HTML
+    let expr = format!(
+        ". '{}' -Mode Deep -Quiet",
+        audit_path.display()
+    );
+
+    // Run the audit which generates HTML automatically
+    let _output = run_ps_expression(&expr)?;
+
+    // Find the latest HTML file generated
+    if !audits_dir.exists() {
+        return Err("Audits directory not found after export".to_string());
+    }
+
+    let mut html_files: Vec<_> = std::fs::read_dir(&audits_dir)
+        .map_err(|e| format!("Cannot read audits dir: {}", e))?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path().extension().map_or(false, |ext| ext == "html")
+                && e.file_name().to_string_lossy().starts_with("audit_")
+        })
+        .collect();
+
+    html_files.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+
+    match html_files.first() {
+        Some(f) => Ok(f.path().display().to_string()),
+        None => Err("No HTML report was generated".to_string()),
+    }
+}
+
+#[tauri::command]
 pub async fn get_history() -> Result<Vec<serde_json::Value>, String> {
     let scripts = scripts_dir();
     let project = scripts.parent().unwrap_or(std::path::Path::new("."));

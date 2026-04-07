@@ -216,6 +216,7 @@ function renderSimple(container) {
   // Actions
   html += '<div class="action-bar">';
   html += '<button class="btn-primary" onclick="runScan()">&#8635; Scan Again</button>';
+  html += '<button class="btn-secondary" onclick="exportReport()">&#128196; Export Report</button>';
   html += '<button class="btn-secondary" onclick="setMode(\'expert\')">Expert Mode &#8594;</button>';
   html += '</div>';
 
@@ -442,6 +443,30 @@ async function applyFix(issueIndex) {
   }
 }
 window.applyFix = applyFix;
+
+// --- Export ---
+async function exportReport() {
+  var btns = document.querySelectorAll('.action-bar .btn-secondary');
+  var btn = null;
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].textContent.indexOf('Export') !== -1) { btn = btns[i]; break; }
+  }
+  if (btn) { btn.textContent = 'Exporting...'; btn.disabled = true; }
+
+  try {
+    var path = await invoke('export_report');
+    if (path) {
+      alert('Report exported to:\n' + path);
+    } else {
+      alert('Export completed but no file path returned.');
+    }
+  } catch (e) {
+    alert('Export failed: ' + e);
+  }
+
+  if (btn) { btn.textContent = '\uD83D\uDCC4 Export Report'; btn.disabled = false; }
+}
+window.exportReport = exportReport;
 
 // --- Util ---
 function escHtml(str) {
