@@ -61,19 +61,18 @@ $outputBase = Join-Path $outDir 'nsight_profile'
 
 $nsysArgs = @(
     'profile',
-    '--trace=wddm,osrt',
+    '--trace=wddm,dx12',
     '--isr=true',
     '--wddm-additional-events=true',
+    '--wddm-memory-trace=false',
     '--sample=system-wide',
     ('--duration=' + $DurationSec),
     '--stats=true',
     '--export=sqlite',
     ('--output=' + $outputBase),
-    '--force-overwrite=true'
+    '--force-overwrite=true',
+    '--system-wide=true'
 )
-
-# Add DX12 trace if available
-$nsysArgs[1] = '--trace=wddm,dx12,osrt'
 
 if ($GameProcess -ne '') {
     Write-Host ('  Target: ' + $GameProcess) -ForegroundColor Cyan
@@ -81,11 +80,16 @@ if ($GameProcess -ne '') {
 }
 
 Write-Host '  Running nsys profile... (move mouse, play game during capture)' -ForegroundColor Cyan
-try {
-    & $nsysPath $nsysArgs 2>&1 | ForEach-Object { Write-Host ('  ' + $_) }
-} catch {
-    Write-Host ('  nsys failed: ' + $_.Exception.Message) -ForegroundColor Red
-    return @{ error = $_.Exception.Message }
+$nsysOutput = & $nsysPath $nsysArgs 2>&1
+$nsysOutputText = $nsysOutput | Out-String
+# Show output lines (filter progress bars)
+foreach ($line in ($nsysOutput | Where-Object { $_ -notmatch '^\s*\[[\d/]+\]\s*\[' })) {
+    Write-Host ('  ' + $line)
+}
+# Check for fatal errors (not SKIPPED warnings about NVTX)
+if ($LASTEXITCODE -ne 0 -and $nsysOutputText -notmatch 'SKIPPED.*NVTX') {
+    Write-Host ('  nsys failed (exit ' + $LASTEXITCODE + ')') -ForegroundColor Red
+    return @{ error = ($nsysOutputText -replace '\s+', ' ').Trim() }
 }
 
 # --- Step 3: Parse results ---
