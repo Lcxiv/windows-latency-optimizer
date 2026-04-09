@@ -1,6 +1,8 @@
 # LatencyGuard
 
-A desktop diagnostic tool that finds and fixes the hidden Windows settings causing gaming latency — built with Rust, PowerShell, and kernel-level ETW tracing.
+I built this because I was tired of following "optimization guides" that tell you to flip 20 registry keys and pray. I wanted a tool that actually diagnoses *what's wrong* with your system, explains *why* in plain English, and lets you fix it with one click.
+
+LatencyGuard is a Windows desktop app (Tauri v2 + Rust + PowerShell) that runs 41 automated checks across your OS, GPU, NIC, and peripherals. It uses kernel-level ETW tracing to catch things like mouse input gaps at microsecond precision and pinpoint exactly which driver caused the freeze.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2011-0078D4)
@@ -10,44 +12,47 @@ A desktop diagnostic tool that finds and fixes the hidden Windows settings causi
 
 ![Symptom Picker](docs/screenshots/01-symptom-picker.png)
 
-## What It Does
+## How It Works
 
-Most "optimization guides" hand you a checklist of registry tweaks and hope for the best. LatencyGuard takes a different approach: **it asks what's wrong, then figures out why.**
+Instead of dumping a wall of numbers at you, the app opens with a simple question: **"What are you experiencing?"**
 
-- **Symptom-first diagnostics** — opens with "What are you experiencing?" instead of a dashboard of numbers. Pick your symptom (mouse freezing, frame drops, sluggishness) and the app runs only the relevant checks
-- **41 automated checks** across OS, GPU, NIC, network, memory, and peripherals — each with a plain-English explanation of what it found and why it matters
-- **Kernel-level ETW tracing** — captures HID input events at microsecond precision to detect mouse input gaps, then blames the specific driver (nvlddmkm.sys, storport.sys) that caused each freeze
-- **One-click fixes with proof** — applies registry changes and immediately re-checks to show you before/after verification. Every fix has a rollback command
-- **22 controlled experiments** with before/after captures, following a scientific methodology documented in [docs/methodology.md](docs/methodology.md)
+You pick your symptom, and it runs only the checks that matter:
+
+- **Mouse Freezing** runs 13 checks (polling rate, USB controller, GPU MSI mode, DPC health, interrupt affinity, VBS/Hyper-V)
+- **Frame Drops** runs 14 checks (HAGS, GPU MSI/ReBAR, power plan, MMCSS, platform clock, RAM speed)
+- **General Sluggishness** runs 17 checks (power plan, Defender exclusions, telemetry services, TCP tuning)
+- **Full System Audit** runs all 41 checks across every category
+
+Every finding comes with three things: what's happening, why it matters, and what to do about it. If there's an automated fix, you get a one-click "Apply" button that captures the before state, makes the change, re-checks, and shows you proof that it worked.
 
 ## Screenshots
 
 ### Symptom Picker
-The landing page. Select your symptom and LatencyGuard runs a targeted subset of its 41 checks.
+The first thing you see. Pick what's bothering you and the app figures out which checks to run.
 
 ![Symptom Picker](docs/screenshots/01-symptom-picker.png)
 
 ### Diagnostic Progress
-Real-time step-by-step progress via Tauri event streaming. Each diagnostic chain shows a determinate progress bar with green checkmarks as steps complete. For "Mouse Freezing," the chain runs 5 steps: check polling rate, analyze GPU interrupts, measure DPC latency, run 10-second ETW input capture, and analyze results.
+While running, you get real-time step-by-step progress with checkmarks as each step finishes. For mouse freezing, the chain runs 5 steps: check polling rate, analyze GPU interrupts, measure DPC latency, run a 10-second ETW input capture, and analyze results.
 
 ### Findings
-Plain-English results. Every finding explains what's happening, why it matters, and how to fix it. Mouse diagnostics show gap count, max gap duration, and which driver was responsible.
+Results in plain English. The mouse diagnostic card shows how many input gaps were detected, the longest gap, and which driver was responsible.
 
 ![Findings](docs/screenshots/03-findings.png)
 
 ### Dashboard
-Health score with category breakdown. Expand any category to see individual checks with current values, recommended settings, and one-click "Apply" buttons.
+After a scan completes, you get a health score with collapsible categories. Expand any category to see individual checks with current values, recommended settings, and "Apply" buttons for automated fixes.
 
 ![Dashboard](docs/screenshots/04-dashboard.png)
 
 ### Expert Mode
-Full diagnostic view: mouse input gap bars with driver blame attribution, system health metrics, and a filterable 41-check audit table. Tabs for History, Advanced raw data, and Live Monitor.
+The full data view. Mouse input gap bars with driver blame, system health metrics, and a filterable audit table showing all checks. Tabs for History (experiment comparison), Advanced (raw ETW data), and Live Monitor.
 
 ![Expert Mode](docs/screenshots/05-expert-mode.png)
 
-## Key Results
+## Results
 
-This system (Ryzen 7 9800X3D + RTX 5070 Ti) went from a baseline where **97.7% of all interrupt work was bottlenecked on CPU 0** to a balanced, optimized state:
+I ran this on my own gaming rig (Ryzen 7 9800X3D + RTX 5070 Ti). The baseline was rough: **97.7% of all interrupt work was piling up on CPU 0** while 15 other logical CPUs sat idle.
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
@@ -56,11 +61,9 @@ This system (Ryzen 7 9800X3D + RTX 5070 Ti) went from a baseline where **97.7% o
 | Total DPC latency | 0.40% | 0.54% | Redistributed across cores |
 | Top DPC driver | nvlddmkm.sys (561us) | storvsp.sys (8us) | GPU DPC eliminated |
 | Defender hard pagefaults | 149 in 2min | <10 | 93% reduction |
-| Audit score | — | 98% (39 pass, 1 warn, 1 skip) | Fully optimized |
+| Audit score | n/a | 98% (39 pass, 1 warn, 1 skip) | Fully optimized |
 
-## How It Works
-
-### Architecture
+## Architecture
 
 ```
 User selects symptom
@@ -82,32 +85,23 @@ JS Frontend renders findings cards
 
 ### The Diagnostic Chain
 
-When you click a symptom, LatencyGuard runs a targeted pipeline:
+When you click a symptom, this is what happens under the hood:
 
-1. **System audit** — checks a filtered subset of 41 settings relevant to your symptom (registry keys, WMI queries, driver configs)
-2. **Mouse capture** (Mouse Freezing only) — 10-second ETW trace via Windows Performance Recorder, capturing raw HID input events at the kernel level
-3. **DPC/ISR analysis** — measures Deferred Procedure Call latency per driver using xperf ETW traces
-4. **Gap detection** — calculates inter-event timing on mouse input, identifies gaps >4ms, and correlates each gap with the driver that had the highest DPC time during that window
-5. **Results aggregation** — attaches plain-English narrative templates and severity ratings
+1. **System audit** checks a filtered subset of 41 settings relevant to your symptom (registry keys, WMI queries, driver configs)
+2. **Mouse capture** (Mouse Freezing only) runs a 10-second ETW trace via Windows Performance Recorder, capturing raw HID input events at the kernel level
+3. **DPC/ISR analysis** measures Deferred Procedure Call latency per driver using xperf ETW traces
+4. **Gap detection** calculates inter-event timing on mouse input, identifies gaps >4ms, and correlates each gap with the driver that had the highest DPC time during that window
+5. **Results aggregation** attaches plain-English narrative templates and severity ratings to each finding
 
-### Symptom-to-Check Mapping
+## Diagnostic Tools
 
-| Symptom | Checks Run | Key Focus |
-|---------|-----------|-----------|
-| Mouse Freezing | 13 checks | Polling rate, USB controller, GPU MSI, DPC health, interrupt affinity, VBS/Hyper-V |
-| Frame Drops | 14 checks | HAGS, GPU MSI/ReBAR, power plan, MMCSS, platform clock, RAM speed |
-| General Sluggishness | 17 checks | Power plan, Defender exclusions, telemetry, background services, TCP tuning |
-| Full System Audit | All 41 | Everything across all 6 categories |
-
-## Diagnostic Tools & Techniques
-
-| Tool | What It Does | How LatencyGuard Uses It |
-|------|-------------|------------------------|
-| **ETW / WPR** | Kernel-level event tracing | Captures HID input events to detect mouse gaps with microsecond precision |
-| **xperf** | DPC/ISR latency measurement | Per-driver breakdown: which driver is consuming the most time in deferred contexts |
+| Tool | What It Does | How It's Used Here |
+|------|-------------|-------------------|
+| **ETW / WPR** | Kernel-level event tracing | Captures HID input events to detect mouse gaps at microsecond precision |
+| **xperf** | DPC/ISR latency measurement | Per-driver breakdown of which driver is hogging deferred processing time |
 | **NVIDIA Nsight Systems** | GPU timeline profiling | 30-second GPU trace for nvlddmkm.sys DPC analysis |
-| **WMI / Registry** | System configuration queries | Reads 41 settings across power plans, driver configs, interrupt affinity, and more |
-| **pktmon** | Network packet capture | Bufferbloat detection via latency-under-load measurement |
+| **WMI / Registry** | System configuration queries | Reads 41 settings across power plans, driver configs, interrupt affinity |
+| **pktmon** | Network packet capture | Bufferbloat detection by comparing latency under load vs idle |
 | **ProcMon** | Process I/O monitoring | Tracks Defender scan I/O during gameplay |
 | **GPUView** | GPU queue visualization | Frame presentation timing and GPU work queue depth |
 
@@ -166,14 +160,14 @@ When you click a symptom, LatencyGuard runs a targeted pipeline:
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| Desktop Runtime | **Tauri v2** (Rust) | Native performance, 5MB binary, system-level access via PowerShell child processes |
-| Backend | **Rust** | Async command handlers, Tauri event streaming for real-time progress, serde JSON |
-| Diagnostic Scripts | **PowerShell 5.1** | Direct access to WMI, Windows Registry, ETW via WPR, admin-level system queries |
-| Frontend | **Vanilla JS** | Zero framework overhead, string-template rendering, Tauri IPC via `invoke()` |
-| Styling | **CSS** | Glass morphism (`backdrop-filter: blur`), CSS custom properties, semantic color system |
-| Kernel Tracing | **ETW / WPR / xperf** | Hardware-level event capture (HID, DPC, ISR) with microsecond precision |
-| GPU Profiling | **NVIDIA Nsight Systems** | GPU timeline capture, driver DPC measurement |
-| Testing | **PowerShell + Cargo** | 32 automated tests: PS syntax validation, XML schema checks, Rust compilation |
+| Desktop Runtime | **Tauri v2** (Rust) | Native performance, 5MB binary, can shell out to PowerShell for system access |
+| Backend | **Rust** | Async command handlers, Tauri event streaming for real-time progress, serde for JSON |
+| Diagnostic Scripts | **PowerShell 5.1** | Direct access to WMI, Windows Registry, ETW via WPR, and admin-level system queries |
+| Frontend | **Vanilla JS** | No framework needed. String-template rendering, Tauri IPC via `invoke()` |
+| Styling | **CSS** | Glass morphism with `backdrop-filter: blur`, CSS custom properties, dark theme |
+| Kernel Tracing | **ETW / WPR / xperf** | Hardware-level event capture (HID, DPC, ISR) at microsecond precision |
+| GPU Profiling | **NVIDIA Nsight Systems** | GPU timeline capture and driver DPC measurement |
+| Testing | **PowerShell + Cargo** | 32 automated tests covering PS syntax validation, XML schema checks, and Rust compilation |
 
 ## Build & Run
 
@@ -183,7 +177,7 @@ When you click a symptom, LatencyGuard runs a targeted pipeline:
 - [Rust toolchain](https://rustup.rs/) (for building the Tauri app)
 - Node.js 18+ (for `@tauri-apps/api`)
 - PowerShell 5.1 (built into Windows)
-- **Administrator access** required for ETW traces and registry reads
+- **Administrator access** is required for ETW traces and registry reads
 
 ### Quick Start
 
@@ -197,7 +191,7 @@ cd latencyguard/src-tauri
 cargo run
 ```
 
-The app will detect your system info, load any cached audit data, and present the symptom picker.
+The app detects your system info, loads any cached audit data, and shows the symptom picker.
 
 ### Running Scripts Standalone
 
@@ -231,7 +225,7 @@ windows-latency-optimizer/
 │   │   ├── app.js                 # Symptom picker, diagnostic chain, dashboard
 │   │   ├── app.css                # Glass morphism theme, responsive layout
 │   │   ├── views/diagnostics.js   # Findings renderer, narrative templates, proof cards
-│   │   ├── views/history.js       # Experiment history & comparison
+│   │   ├── views/history.js       # Experiment history and comparison
 │   │   └── views/advanced.js      # Raw data tables (ETW, per-CPU, DPC drivers)
 │   └── src-tauri/                 # Rust backend
 │       └── src/commands.rs        # 12 Tauri commands (audit, diagnostic chain, fixes)
@@ -243,11 +237,11 @@ windows-latency-optimizer/
 │   ├── analyze-dpc-deep.ps1       # DPC/ISR per-driver analysis
 │   ├── rollback.ps1               # Safe registry rollback
 │   └── exp*.ps1                   # Individual experiment apply scripts
-├── captures/                      # Experiment data & audit results
+├── captures/                      # Experiment data and audit results
 │   ├── audits/                    # JSON + HTML audit reports
 │   └── experiments/               # Timestamped experiment folders
 ├── docs/
-│   ├── methodology.md             # Scientific protocol & reproducibility guide
+│   ├── methodology.md             # Scientific protocol and reproducibility guide
 │   ├── findings.md                # Initial LatencyMon root cause analysis
 │   ├── tools-glossary.md          # Reference for all diagnostic tools
 │   └── screenshots/               # App screenshots for this README
@@ -268,19 +262,19 @@ windows-latency-optimizer/
 
 ## Experiments
 
-22 controlled experiments were run following the [scientific methodology](docs/methodology.md). Each captures baseline state, applies a change, re-measures, and stores results as JSON with rollback commands.
+I ran 22 controlled experiments following a [scientific methodology](docs/methodology.md) I wrote up front. Each one captures baseline state, applies a change, re-measures, and stores results as JSON with rollback commands. Nothing gets changed without a backup.
 
 <details>
 <summary>Click to expand experiment log</summary>
 
 | # | Experiment | Key Change | Outcome |
 |---|-----------|-----------|---------|
-| 00 | Clean Baseline | — | Established reference metrics |
+| 00 | Clean Baseline | n/a | Established reference metrics |
 | 01 | MMCSS Priority | SystemResponsiveness: 20 -> 0 | More CPU time to game threads |
 | 02 | Defender CPU Limit | ScanAvgCPULoadFactor: 50 -> 5 | Scan stalls reduced 93% |
 | 03 | NVIDIA MSI Mode | MSISupported=1 | Eliminated legacy IRQ sharing |
 | 04 | Interrupt Affinity | GPU/NIC -> CPUs 4-7 | Registry written (reboot required) |
-| 05 | Post-Reboot Verify | — | **CPU 0 share: 97.7% -> 4.2%** |
+| 05 | Post-Reboot Verify | n/a | **CPU 0 share: 97.7% -> 4.2%** |
 | 06 | Input Affinity | KB/Mouse -> CPUs 2-3 | Input device isolation |
 | 07 | C-State Tuning | BIOS C6 disable guide | Latency floor reduction |
 | 08 | TCP Tuning | Nagle, RSC, auto-tuning | Network packet latency |
@@ -300,13 +294,13 @@ windows-latency-optimizer/
 
 </details>
 
-## See Also
+## Related Docs
 
-- [docs/methodology.md](docs/methodology.md) — Scientific protocol and reproducibility guide
-- [docs/findings.md](docs/findings.md) — Initial LatencyMon root cause analysis
-- [docs/implementation-plan.md](docs/implementation-plan.md) — Detailed fix plan with rollback commands
-- [docs/tools-glossary.md](docs/tools-glossary.md) — Reference for all diagnostic tools
-- [LATENCY-OPTIMIZATION-REPORT.md](LATENCY-OPTIMIZATION-REPORT.md) — Full 34KB optimization report
+- [docs/methodology.md](docs/methodology.md) - Scientific protocol and reproducibility guide
+- [docs/findings.md](docs/findings.md) - Initial LatencyMon root cause analysis
+- [docs/implementation-plan.md](docs/implementation-plan.md) - Detailed fix plan with rollback commands
+- [docs/tools-glossary.md](docs/tools-glossary.md) - Reference for all diagnostic tools
+- [LATENCY-OPTIMIZATION-REPORT.md](LATENCY-OPTIMIZATION-REPORT.md) - Full 34KB optimization report
 
 ## License
 
