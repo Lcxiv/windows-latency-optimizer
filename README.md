@@ -310,4 +310,4 @@ windows-latency-optimizer/
 
 ## License
 
-[MIT](LICENSE) - Louis Condreay ([@Lcxiv](https://github.com/Lcxiv))
+[MIT](LICENSE) - Louis Condevaux ([@Lcxiv](https://github.com/Lcxiv))
