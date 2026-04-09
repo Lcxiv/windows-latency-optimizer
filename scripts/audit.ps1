@@ -14,6 +14,9 @@ param(
     [ValidateSet('Quick','Deep')]
     [string]$Mode = 'Quick',
 
+    [ValidateSet('MouseFreezing','FrameDrops','GeneralSluggishness','FullAudit','')]
+    [string]$Symptom = '',
+
     [switch]$GenerateFix,
 
     [int]$Threshold = -1,
@@ -25,6 +28,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+
+# Force Deep mode when a specific symptom is selected (relevant checks are Deep-tier)
+if ($Symptom -ne '' -and $Symptom -ne 'FullAudit') { $Mode = 'Deep' }
 
 if ($OutDir -eq '') { $OutDir = Join-Path $projectRoot 'captures\audits' }
 if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
@@ -67,6 +73,38 @@ if ($Mode -eq 'Deep') {
     $allChecks += Invoke-AntiCheatChecks
     $allChecks += Invoke-NvidiaDpcHealthCheck
     $allChecks += Invoke-LatencyMitigationChecks
+}
+
+# --- Symptom filtering (post-aggregation) ---
+if ($Symptom -ne '' -and $Symptom -ne 'FullAudit') {
+    $symptomChecks = @{
+        'MouseFreezing' = @(
+            'Mouse Polling Rate', 'Mouse USB Controller', 'Overlay Processes',
+            'GPU MSI Mode', 'GPU Interrupt Affinity', 'NVIDIA DPC Health',
+            'VBS/Core Isolation Off', 'Hyper-V Off', 'Win32PrioritySeparation',
+            'NIC Interrupt Moderation', 'NIC Interrupt Affinity',
+            'MMCSS SystemResponsiveness', 'MPO Disabled'
+        )
+        'FrameDrops' = @(
+            'HAGS Enabled', 'GPU MSI Mode', 'GPU Interrupt Affinity',
+            'NVIDIA Power Max Perf', 'GPU ReBAR', 'NVIDIA DPC Health',
+            'Platform Clock (HPET)', 'MMCSS SystemResponsiveness', 'Power Plan',
+            'RAM Speed vs Rated', 'MPO Disabled', 'VBS/Core Isolation Off',
+            'Hyper-V Off', 'Win32PrioritySeparation'
+        )
+        'GeneralSluggishness' = @(
+            'Power Plan', 'MMCSS SystemResponsiveness', 'MMCSS NetworkThrottling',
+            'MMCSS Games Priority', 'Win32PrioritySeparation', 'Hyper-V Off',
+            'VBS/Core Isolation Off', 'Defender Gaming Exclusion', 'Defender Shader Exclusion',
+            'DiagTrack Disabled', 'LwtNetLog Disabled', 'RAM Speed vs Rated',
+            'Nagle Disabled', 'TCP Auto-Tuning', 'TCP RSC',
+            'Defender CPU Limit', 'Anti-Cheat Drivers'
+        )
+    }
+    $allowedNames = $symptomChecks[$Symptom]
+    if ($allowedNames) {
+        $allChecks = @($allChecks | Where-Object { $_.name -in $allowedNames })
+    }
 }
 
 # --- Aggregate results ---

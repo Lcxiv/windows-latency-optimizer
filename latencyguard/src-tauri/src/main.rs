@@ -29,6 +29,8 @@ fn main() {
             commands::diagnose_mouse,
             commands::export_report,
             commands::get_history,
+            commands::run_diagnostic_chain,
+            commands::run_single_check,
         ])
         .run(tauri::generate_context!())
         .expect("error while running LatencyGuard");

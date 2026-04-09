@@ -1,3 +1,334 @@
+// --- Narrative Templates ---
+// Plain-English explanations for each check. {current} and {expected} are replaced with actual values.
+var NARRATIVE_TEMPLATES = {
+  'Mouse Polling Rate': {
+    what: 'Your mouse is reporting at <b>{current}</b>',
+    whyBad: 'Low polling rates mean bigger gaps between position updates. Fast flick shots feel sluggish because the cursor can only update a few hundred times per second instead of 1000.',
+    whyGood: 'Your mouse is polling at a high rate, giving you the smoothest possible tracking.',
+  },
+  'Mouse USB Controller': {
+    what: 'Mouse connected via <b>{current}</b>',
+    whyBad: 'Your mouse may be sharing a USB controller with other devices, causing input contention. A dedicated port reduces interrupt conflicts.',
+    whyGood: 'Your mouse has a clean USB path with no contention.',
+  },
+  'Overlay Processes': {
+    what: 'Overlay processes detected: <b>{current}</b>',
+    whyBad: 'Overlays hook into the render pipeline, adding frame latency and sometimes causing hitches. Disable overlays you don\'t actively use.',
+    whyGood: 'No problematic overlays detected.',
+  },
+  'GPU MSI Mode': {
+    what: 'GPU interrupt signaling: <b>{current}</b>',
+    whyBad: 'Line-based interrupts share a single IRQ with other devices. This causes contention and DPC delays that show up as micro-stutters.',
+    whyGood: 'MSI mode gives your GPU a dedicated interrupt path — no sharing, no contention.',
+  },
+  'GPU Interrupt Affinity': {
+    what: 'GPU interrupts routed to: <b>{current}</b>',
+    whyBad: 'GPU interrupts landing on the same core as your game thread creates direct contention. Moving them to a dedicated core eliminates this.',
+    whyGood: 'GPU interrupts are properly isolated from game threads.',
+  },
+  'NVIDIA DPC Health': {
+    what: 'GPU DPC status: <b>{current}</b>',
+    whyBad: 'High GPU DPC latency (nvlddmkm.sys) directly causes frame hitches. Each spike over 500us is a visible stutter.',
+    whyGood: 'GPU DPC latency is within healthy limits.',
+  },
+  'NVIDIA Power Max Perf': {
+    what: 'NVIDIA power mode: <b>{current}</b>',
+    whyBad: 'Without maximum performance mode, the GPU may clock down between frames, causing inconsistent frame times.',
+    whyGood: 'GPU is set to maintain maximum performance clocks.',
+  },
+  'GPU ReBAR': {
+    what: 'Resizable BAR: <b>{current}</b>',
+    whyBad: 'Without ReBAR, the CPU can only access 256MB of VRAM at a time, causing extra data transfer overhead.',
+    whyGood: 'ReBAR enabled — CPU has full access to GPU memory.',
+  },
+  'HAGS Enabled': {
+    what: 'Hardware Accelerated GPU Scheduling: <b>{current}</b>',
+    whyBad: 'On RTX 40/50 series, disabling HAGS adds ~20% scheduler overhead. Your GPU benefits from hardware scheduling.',
+    whyGood: 'HAGS is enabled, letting your GPU handle its own scheduling efficiently.',
+  },
+  'VBS/Core Isolation Off': {
+    what: 'Virtualization-Based Security: <b>{current}</b>',
+    whyBad: 'VBS runs a hypervisor that adds latency to every system call. This measurably increases input and frame latency.',
+    whyGood: 'VBS is disabled — no hypervisor overhead.',
+  },
+  'Hyper-V Off': {
+    what: 'Hyper-V: <b>{current}</b>',
+    whyBad: 'When Hyper-V is enabled, Windows runs inside a virtual machine, adding measurable latency to all hardware access.',
+    whyGood: 'Hyper-V is disabled — bare metal performance.',
+  },
+  'Win32PrioritySeparation': {
+    what: 'Process priority: <b>{current}</b>',
+    whyBad: 'The current setting doesn\'t optimally prioritize foreground applications. This affects input responsiveness.',
+    whyGood: 'Process scheduling is optimized for foreground application responsiveness.',
+  },
+  'Power Plan': {
+    what: 'Power plan: <b>{current}</b>',
+    whyBad: 'Balanced/power saver plans throttle CPU frequency, adding 10-30% latency. High Performance or Ultimate Performance keeps clocks stable.',
+    whyGood: 'Power plan is set for maximum performance.',
+  },
+  'MMCSS SystemResponsiveness': {
+    what: 'System responsiveness: <b>{current}</b>',
+    whyBad: 'This setting reserves CPU time for background tasks during multimedia playback. A value too high steals cycles from your game.',
+    whyGood: 'MMCSS is configured to minimize background interference.',
+  },
+  'MMCSS NetworkThrottling': {
+    what: 'Network throttling index: <b>{current}</b>',
+    whyBad: 'Windows throttles network processing during multimedia — this can delay game network packets.',
+    whyGood: 'Network throttling is disabled for gaming.',
+  },
+  'MMCSS Games Priority': {
+    what: 'MMCSS Games scheduling: <b>{current}</b>',
+    whyBad: 'Game threads aren\'t getting optimal CPU scheduling priority.',
+    whyGood: 'Game threads are scheduled with optimal priority.',
+  },
+  'MPO Disabled': {
+    what: 'Multi-Plane Overlay: <b>{current}</b>',
+    whyBad: 'MPO can cause cursor flickering and frame presentation issues on some GPU/monitor combos.',
+    whyGood: 'MPO is disabled — no overlay composition artifacts.',
+  },
+  'Platform Clock (HPET)': {
+    what: 'Platform clock: <b>{current}</b>',
+    whyBad: 'HPET adds ~1ms timer overhead compared to TSC. Disabling it improves frame timing precision.',
+    whyGood: 'Using optimal clock source for minimum timer latency.',
+  },
+  'RAM Speed vs Rated': {
+    what: 'RAM speed: <b>{current}</b>',
+    whyBad: 'Your RAM is running at JEDEC defaults instead of its rated XMP speed. This is typically 10-15% slower and affects frame consistency.',
+    whyGood: 'RAM is running at its rated speed.',
+  },
+  'Defender Gaming Exclusion': {
+    what: 'Defender game folder exclusion: <b>{current}</b>',
+    whyBad: 'Windows Defender scans game files during gameplay, causing I/O spikes and micro-stutters.',
+    whyGood: 'Game folders are excluded from Defender scanning.',
+  },
+  'Defender Shader Exclusion': {
+    what: 'Defender shader cache exclusion: <b>{current}</b>',
+    whyBad: 'Defender scanning shader cache causes stutters during shader compilation.',
+    whyGood: 'Shader cache is excluded from Defender scanning.',
+  },
+  'DiagTrack Disabled': {
+    what: 'Telemetry service: <b>{current}</b>',
+    whyBad: 'The DiagTrack telemetry service consumes CPU and disk I/O in the background during gameplay.',
+    whyGood: 'Telemetry service is disabled.',
+  },
+  'LwtNetLog Disabled': {
+    what: 'LwtNetLog autologger: <b>{current}</b>',
+    whyBad: 'This ETW autologger runs constantly, consuming 5-15% background CPU.',
+    whyGood: 'LwtNetLog is disabled — no background ETW drain.',
+  },
+  'Nagle Disabled': {
+    what: 'Nagle\'s algorithm: <b>{current}</b>',
+    whyBad: 'Nagle batches small TCP packets, adding up to 200ms delay to game network traffic.',
+    whyGood: 'Nagle is disabled — packets are sent immediately.',
+  },
+  'NIC Interrupt Moderation': {
+    what: 'NIC interrupt moderation: <b>{current}</b>',
+    whyBad: 'Interrupt moderation batches network interrupts, adding latency to packet processing.',
+    whyGood: 'Interrupt moderation is set for low latency.',
+  },
+  'NIC Interrupt Affinity': {
+    what: 'NIC interrupts routed to: <b>{current}</b>',
+    whyBad: 'NIC interrupts on CPU 0 compete with OS scheduler work. Moving them to a dedicated core reduces latency.',
+    whyGood: 'NIC interrupts are properly isolated.',
+  },
+  'TCP Auto-Tuning': {
+    what: 'TCP auto-tuning: <b>{current}</b>',
+    whyBad: 'Auto-tuning can cause buffer bloat on some connections, increasing latency.',
+    whyGood: 'TCP auto-tuning is configured optimally.',
+  },
+  'TCP RSC': {
+    what: 'TCP Receive Segment Coalescing: <b>{current}</b>',
+    whyBad: 'RSC batches received segments, adding latency to packet delivery.',
+    whyGood: 'RSC is disabled for minimum receive latency.',
+  },
+  'Defender CPU Limit': {
+    what: 'Defender CPU limit: <b>{current}</b>',
+    whyBad: 'Without a CPU limit, Defender scans can use 100% of a core during gameplay.',
+    whyGood: 'Defender scan CPU usage is capped.',
+  },
+  'Anti-Cheat Drivers': {
+    what: 'Anti-cheat status: <b>{current}</b>',
+    whyBad: 'Kernel-level anti-cheat drivers add DPC latency and can interfere with input processing.',
+    whyGood: 'No problematic anti-cheat interference detected.',
+  },
+};
+
+function getNarrative(check) {
+  var tmpl = NARRATIVE_TEMPLATES[check.title || check.name];
+  if (!tmpl) {
+    // Fallback: use the check's own message
+    return {
+      what: 'Current: <b>' + escHtml(check.current || '') + '</b>',
+      why: check.why || check.message || ''
+    };
+  }
+  var status = check.severity || 'low';
+  var isPass = status === 'pass';
+  var what = (tmpl.what || '').replace(/\{current\}/g, escHtml(check.current || ''));
+  var why = isPass ? (tmpl.whyGood || '') : (tmpl.whyBad || '');
+  return { what: what, why: why };
+}
+
+// --- Findings Renderer (symptom-first results view) ---
+function renderFindings(container, data) {
+  var findings = data.findings || [];
+  var summary = data.summary || {};
+  var symptom = data.symptom || 'FullAudit';
+  var mouseDiag = data.mouseDiag || null;
+
+  var issueCount = (summary.high || 0) + (summary.medium || 0) + (summary.low || 0);
+  var symptomLabels = {
+    MouseFreezing: 'mouse performance',
+    FrameDrops: 'frame stability',
+    GeneralSluggishness: 'system performance',
+    FullAudit: 'your system'
+  };
+  var symptomLabel = symptomLabels[symptom] || 'your system';
+
+  var html = '<div class="findings-container">';
+
+  // Summary bar
+  html += '<div class="findings-summary">';
+  if (issueCount === 0) {
+    html += '<div class="findings-summary-icon">&#9989;</div>';
+    html += '<div class="findings-summary-text">';
+    html += '<div class="findings-summary-title" style="color:var(--green)">All clear!</div>';
+    html += '<div class="findings-summary-sub">All ' + (summary.pass || 0) + ' checks passed for ' + symptomLabel + '</div>';
+  } else {
+    html += '<div class="findings-summary-icon">&#9888;</div>';
+    html += '<div class="findings-summary-text">';
+    html += '<div class="findings-summary-title">Found ' + issueCount + ' issue' + (issueCount !== 1 ? 's' : '') + ' affecting ' + symptomLabel + '</div>';
+    html += '<div class="findings-summary-sub">' + (summary.pass || 0) + ' checks passed, ' + (summary.total || 0) + ' total</div>';
+  }
+  html += '</div>';
+  html += '<div class="findings-pills">';
+  if (summary.high > 0) html += '<span class="pill pill-fail">' + summary.high + ' high</span>';
+  if (summary.medium > 0) html += '<span class="pill pill-warn">' + summary.medium + ' medium</span>';
+  if (summary.low > 0) html += '<span class="pill" style="background:var(--blue-10);color:var(--blue)">' + summary.low + ' low</span>';
+  html += '</div>';
+  html += '</div>';
+
+  // Mouse diagnostic summary (if MouseFreezing)
+  if (mouseDiag && mouseDiag.mouseInputGaps) {
+    var gaps = mouseDiag.mouseInputGaps;
+    html += '<div class="finding-card" data-severity="' + (gaps.gapCount > 0 ? 'high' : 'pass') + '">';
+    html += '<div class="finding-header">';
+    html += '<span class="finding-severity" data-severity="' + (gaps.gapCount > 0 ? 'high' : 'pass') + '">' + (gaps.gapCount > 0 ? 'MEASURED' : 'PASS') + '</span>';
+    html += '<span class="finding-title">Mouse Input Capture (10s)</span>';
+    html += '</div>';
+    html += '<div class="finding-narrative">';
+    if (gaps.gapCount > 0) {
+      html += 'Detected <b>' + gaps.gapCount + ' input gaps</b> in 10 seconds. ';
+      html += 'The longest gap was <b>' + gaps.maxGapMs + 'ms</b> (median interval: ' + gaps.medianIntervalMs + 'ms). ';
+      html += 'Input gaps above 4ms are perceptible as cursor freezes during fast movements.';
+    } else {
+      html += 'No input gaps detected in 10 seconds of capture. Your mouse input is <b>clean and consistent</b>.';
+    }
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // Finding cards
+  for (var i = 0; i < findings.length; i++) {
+    var f = findings[i];
+    var narrative = getNarrative(f);
+    var sev = f.severity || 'low';
+
+    html += '<div class="finding-card" data-severity="' + sev + '" id="finding-' + i + '">';
+    html += '<div class="finding-header">';
+    html += '<span class="finding-severity" data-severity="' + sev + '">' + sev.toUpperCase() + '</span>';
+    html += '<span class="finding-title">' + escHtml(f.title) + '</span>';
+    html += '<span style="font-size:11px;color:var(--muted)">' + escHtml(f.category) + '</span>';
+    html += '</div>';
+    html += '<div class="finding-narrative">';
+    html += narrative.what + '<br>';
+    html += narrative.why;
+    if (f.expected) {
+      html += '<br><span style="color:var(--green)">Recommended: <b>' + escHtml(f.expected) + '</b></span>';
+    }
+    html += '</div>';
+    html += '<div class="finding-actions">';
+    if (f.fixType === 'auto' && f.fix) {
+      html += '<button class="finding-fix-btn" id="fix-btn-' + i + '" onclick="applyFinding(' + i + ')">Apply Fix</button>';
+    } else if (f.fixType === 'manual' && f.fixNote) {
+      html += '<span class="finding-manual">' + escHtml(f.fixNote) + '</span>';
+    } else if (f.fixNote) {
+      html += '<span class="finding-manual">' + escHtml(f.fixNote) + '</span>';
+    }
+    html += '</div>';
+    // Proof card placeholder (shown after fix)
+    html += '<div id="proof-' + i + '"></div>';
+    html += '</div>';
+  }
+
+  // Action bar
+  html += '<div class="action-bar">';
+  html += '<button class="btn-secondary" onclick="backToSymptoms()">&#8592; Back to Symptoms</button>';
+  html += '<button class="btn-primary" onclick="runScan()">&#8635; Re-run Diagnostic</button>';
+  html += '<button class="btn-secondary" onclick="setMode(\'expert\')">Expert Mode &#8594;</button>';
+  html += '</div>';
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// --- Apply a finding fix with before/after proof ---
+window.applyFinding = async function(index) {
+  var findings = state.findings ? state.findings.findings : [];
+  var finding = findings[index];
+  if (!finding || !finding.fix) return;
+
+  var btn = document.getElementById('fix-btn-' + index);
+  if (btn) { btn.textContent = 'Applying...'; btn.disabled = true; }
+
+  var beforeValue = finding.current;
+
+  try {
+    var ok = await invoke('apply_fix', { command: finding.fix });
+    if (!ok) {
+      if (btn) { btn.textContent = 'Failed'; setTimeout(function() { btn.textContent = 'Retry'; btn.disabled = false; }, 2000); }
+      return;
+    }
+
+    // Re-check the single setting
+    if (btn) { btn.textContent = 'Verifying...'; }
+    try {
+      var recheck = await invoke('run_single_check', { checkName: finding.title });
+      if (recheck) {
+        var afterValue = recheck.current || recheck.Current || '';
+        var afterStatus = recheck.status || recheck.Status || '';
+        var improved = afterStatus === 'PASS';
+
+        // Show proof card
+        var proofEl = document.getElementById('proof-' + index);
+        if (proofEl) {
+          var phtml = '<div class="proof-card">';
+          phtml += '<div class="proof-header">Verification</div>';
+          phtml += '<div class="proof-row">';
+          phtml += '<span class="proof-before">' + escHtml(beforeValue) + '</span>';
+          phtml += '<span class="proof-arrow">&#8594;</span>';
+          phtml += '<span class="proof-after">' + escHtml(afterValue) + '</span>';
+          phtml += '<span class="proof-delta ' + (improved ? 'improved' : 'unchanged') + '">' + (improved ? '&#10003; Fixed' : '&#9888; Check') + '</span>';
+          phtml += '</div></div>';
+          proofEl.innerHTML = phtml;
+        }
+
+        if (btn) {
+          btn.textContent = improved ? '&#10003; Fixed' : 'Verify';
+          btn.classList.toggle('done', improved);
+          if (improved) btn.disabled = true;
+        }
+      }
+    } catch (e) {
+      console.warn('Re-check failed:', e);
+      if (btn) { btn.textContent = '&#10003; Applied'; btn.classList.add('done'); btn.disabled = true; }
+    }
+  } catch (e) {
+    if (btn) { btn.textContent = 'Error'; }
+    showToast('Fix failed: ' + e, 'error');
+  }
+};
+
 // Diagnostics Tab — ported from audit-report.ps1 panel builders
 
 function renderDiagnostics(container, auditData, pipelineData) {

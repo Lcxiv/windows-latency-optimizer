@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "dashboard", "-l", "3847", "--no-clipboard"],
       "port": 3847
+    },
+    {
+      "name": "latencyguard",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "latencyguard/src", "-l", "1420", "--no-clipboard"],
+      "port": 1420
     }
   ]
 }

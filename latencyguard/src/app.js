@@ -8,6 +8,9 @@ const state = {
   systemInfo: null,
   scanning: false,
   mouseDiag: null,
+  activeSymptom: null,
+  findings: null,
+  diagnosticProgress: null,
 };
 
 // --- Tauri IPC helpers ---
@@ -108,11 +111,15 @@ const CATEGORIES = {
 // --- Simple Mode ---
 function renderSimple(container) {
   if (state.scanning) {
-    container.innerHTML = renderScanning();
+    container.innerHTML = renderDiagnosticProgress();
+    return;
+  }
+  if (state.findings) {
+    renderFindings(container, state.findings);
     return;
   }
   if (!state.auditData) {
-    container.innerHTML = renderEmpty();
+    container.innerHTML = renderSymptomPicker();
     return;
   }
   const data = state.auditData;
@@ -216,6 +223,7 @@ function renderSimple(container) {
 
   // Actions
   html += '<div class="action-bar">';
+  html += '<button class="btn-secondary" onclick="backToSymptoms()">&#8592; Symptoms</button>';
   html += '<button class="btn-primary" onclick="runScan()">&#8635; Scan Again</button>';
   html += '<button class="btn-secondary" onclick="exportReport()" aria-label="Export HTML report">&#128196; Export Report</button>';
   html += '<button class="btn-secondary" onclick="setMode(\'expert\')">Expert Mode &#8594;</button>';
@@ -340,6 +348,177 @@ function metricCard(title, value, subtitle, color, icon) {
     '</div></div>';
 }
 
+// --- Symptom Picker ---
+function renderSymptomPicker() {
+  var html = '<div class="symptom-picker">';
+  html += '<div class="symptom-heading">What are you experiencing?</div>';
+  html += '<div class="symptom-subheading">Select a symptom and we\'ll run targeted diagnostics</div>';
+  html += '<div class="symptom-grid">';
+
+  html += '<button class="symptom-card" data-symptom="MouseFreezing" onclick="startDiagnostic(\'MouseFreezing\')" tabindex="0">';
+  html += '<div class="symptom-icon">&#128433;</div>';
+  html += '<div class="symptom-title">Mouse Freezing</div>';
+  html += '<div class="symptom-desc">Cursor stutters, freezes, or feels unresponsive during gameplay</div>';
+  html += '</button>';
+
+  html += '<button class="symptom-card" data-symptom="FrameDrops" onclick="startDiagnostic(\'FrameDrops\')" tabindex="0">';
+  html += '<div class="symptom-icon">&#127918;</div>';
+  html += '<div class="symptom-title">Frame Drops</div>';
+  html += '<div class="symptom-desc">FPS drops, micro-stutters, or hitching during gameplay</div>';
+  html += '</button>';
+
+  html += '<button class="symptom-card" data-symptom="GeneralSluggishness" onclick="startDiagnostic(\'GeneralSluggishness\')" tabindex="0">';
+  html += '<div class="symptom-icon">&#128034;</div>';
+  html += '<div class="symptom-title">General Sluggishness</div>';
+  html += '<div class="symptom-desc">Everything feels slow or laggy, system not performing well</div>';
+  html += '</button>';
+
+  html += '<button class="symptom-card" data-symptom="FullAudit" onclick="startDiagnostic(\'FullAudit\')" tabindex="0">';
+  html += '<div class="symptom-icon">&#128269;</div>';
+  html += '<div class="symptom-title">Full System Audit</div>';
+  html += '<div class="symptom-desc">Check all 41 settings across OS, GPU, NIC, and peripherals</div>';
+  html += '</button>';
+
+  html += '</div></div>';
+  return html;
+}
+
+// --- Diagnostic Progress ---
+var DIAGNOSTIC_STEPS = {
+  MouseFreezing: [
+    'Checking mouse polling rate and USB controller',
+    'Analyzing GPU interrupt configuration',
+    'Measuring DPC latency',
+    'Running 10-second mouse input capture',
+    'Analyzing results'
+  ],
+  FrameDrops: [
+    'Checking GPU configuration (HAGS, MSI, ReBAR)',
+    'Analyzing power and priority settings',
+    'Measuring DPC latency',
+    'Checking frame timing and memory',
+    'Analyzing results'
+  ],
+  GeneralSluggishness: [
+    'Checking power plan and CPU priority',
+    'Scanning background services and telemetry',
+    'Checking memory and network settings',
+    'Analyzing system overhead',
+    'Analyzing results'
+  ],
+  FullAudit: [
+    'Scanning OS and power settings',
+    'Checking GPU and display configuration',
+    'Analyzing NIC and network stack',
+    'Checking peripherals and memory',
+    'Running deep analysis',
+    'Analyzing results'
+  ]
+};
+
+function renderDiagnosticProgress() {
+  var symptom = state.activeSymptom || 'FullAudit';
+  var steps = DIAGNOSTIC_STEPS[symptom] || DIAGNOSTIC_STEPS.FullAudit;
+  var progress = state.diagnosticProgress || { step: 0, total: steps.length, status: '' };
+
+  var titles = {
+    MouseFreezing: 'Investigating mouse freezing...',
+    FrameDrops: 'Investigating frame drops...',
+    GeneralSluggishness: 'Investigating sluggishness...',
+    FullAudit: 'Running full system audit...'
+  };
+
+  var html = '<div class="diag-progress">';
+  html += '<div class="diag-progress-title">' + (titles[symptom] || 'Diagnosing...') + '</div>';
+  html += '<div class="diag-progress-sub">' + escHtml(progress.status || 'Starting diagnostics...') + '</div>';
+
+  // Progress bar
+  var pct = Math.round((progress.step / steps.length) * 100);
+  html += '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
+
+  // Step list
+  html += '<div class="diag-steps">';
+  for (var i = 0; i < steps.length; i++) {
+    var cls = 'diag-step';
+    var icon = (i + 1);
+    if (i < progress.step) {
+      cls += ' done';
+      icon = '&#10003;';
+    } else if (i === progress.step) {
+      cls += ' active';
+    }
+    html += '<div class="' + cls + '">';
+    html += '<div class="diag-step-icon">' + icon + '</div>';
+    html += '<span>' + escHtml(steps[i]) + '</span>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// --- Diagnostic Chain ---
+async function startDiagnostic(symptom) {
+  state.activeSymptom = symptom;
+  state.scanning = true;
+  state.findings = null;
+  state.diagnosticProgress = { step: 0, total: 1, status: 'Starting diagnostics...' };
+  render();
+  announce('Starting ' + symptom + ' diagnostic');
+
+  // Listen for progress events from Tauri
+  var unlisten = null;
+  if (window.__TAURI__ && window.__TAURI__.event) {
+    try {
+      unlisten = await window.__TAURI__.event.listen('diagnostic-progress', function(event) {
+        state.diagnosticProgress = event.payload;
+        // Re-render progress without full render cycle
+        var app = document.getElementById('app');
+        if (app && state.scanning) {
+          app.innerHTML = renderDiagnosticProgress();
+        }
+      });
+    } catch (e) {
+      console.warn('Could not listen for progress events:', e);
+    }
+  }
+
+  try {
+    var result = await invoke('run_diagnostic_chain', { symptom: symptom });
+    state.scanning = false;
+    state.diagnosticProgress = null;
+
+    if (result) {
+      state.findings = result;
+      state.auditData = result.auditData || state.auditData;
+      if (result.mouseDiag) state.mouseDiag = result.mouseDiag;
+    }
+    render();
+    if (result && result.summary) {
+      var total = (result.summary.high || 0) + (result.summary.medium || 0) + (result.summary.low || 0);
+      announce('Diagnostic complete. Found ' + total + ' issue' + (total !== 1 ? 's' : ''));
+    }
+  } catch (e) {
+    state.scanning = false;
+    state.diagnosticProgress = null;
+    render();
+    showToast('Diagnostic failed: ' + e, 'error');
+  } finally {
+    if (unlisten) {
+      try { await unlisten(); } catch (ignored) {}
+    }
+  }
+}
+window.startDiagnostic = startDiagnostic;
+
+// --- Back to symptom picker ---
+function backToSymptoms() {
+  state.findings = null;
+  state.activeSymptom = null;
+  state.auditData = null;
+  render();
+}
+window.backToSymptoms = backToSymptoms;
+
 function renderEmpty() {
   return '<div class="empty-state">' +
     '<div class="empty-state-icon">&#128270;</div>' +
@@ -350,12 +529,8 @@ function renderEmpty() {
 }
 
 function renderScanning() {
-  return '<div class="simple-center" style="padding-top:60px">' +
-    '<div style="font-size:48px;opacity:0.3;margin-bottom:16px">&#9881;</div>' +
-    '<div style="font-size:18px;font-weight:600">Scanning your system...</div>' +
-    '<div class="scanning-text">Checking 41 latency settings across OS, GPU, NIC, and more</div>' +
-    '<div class="progress-bar" role="progressbar" aria-label="Scanning system"><div class="progress-fill indeterminate"></div></div>' +
-    '</div>';
+  // Legacy scanning state — now handled by renderDiagnosticProgress
+  return renderDiagnosticProgress();
 }
 
 async function renderExpert(container) {
@@ -400,23 +575,8 @@ window.switchExpertTab = function(tab) {
 
 // --- Actions ---
 async function runScan() {
-  state.scanning = true;
-  render();
-
-  try {
-    state.auditData = await invoke('run_audit', { mode: 'Deep' });
-    state.scanning = false;
-    render();
-    if (state.auditData && state.auditData.summary) {
-      const s = state.auditData.summary;
-      announce('Scan complete. Score: ' + s.score + ' percent. ' + s.pass + ' passed, ' + s.warn + ' warnings, ' + s.fail + ' failures.');
-    }
-  } catch (e) {
-    state.scanning = false;
-    state.auditData = null;
-    render();
-    showToast('Scan failed: ' + e, 'error');
-  }
+  // Re-run the active symptom, or default to FullAudit
+  startDiagnostic(state.activeSymptom || 'FullAudit');
 }
 window.runScan = runScan;
 

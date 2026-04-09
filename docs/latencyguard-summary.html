@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LatencyGuard — Project Summary</title>
+<style>
+:root { --bg: #060d1b; --surface: rgba(15,23,42,0.6); --border: rgba(56,89,138,0.25); --text: #e2e8f0; --muted: #94a3b8; --blue: #60a5fa; --green: #10b981; --amber: #f59e0b; --red: #ef4444; --purple: #a855f7; --cyan: #06b6d4; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.08) 0%, transparent 70%); color: var(--text); line-height: 1.7; padding: 0; }
+.hero { text-align: center; padding: 60px 20px 40px; }
+.hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 8px; }
+.hero h1 span { color: var(--blue); }
+.hero p { font-size: 18px; color: var(--muted); max-width: 700px; margin: 0 auto; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px 60px; }
+section { margin-bottom: 48px; }
+h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 16px; font-weight: 600; color: var(--blue); margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+p, li { font-size: 15px; color: #cbd5e1; }
+ul { padding-left: 20px; }
+li { margin-bottom: 6px; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin: 2px 3px; }
+.tag-rust { background: rgba(239,68,68,0.15); color: var(--red); }
+.tag-ps { background: rgba(96,165,250,0.15); color: var(--blue); }
+.tag-js { background: rgba(245,158,11,0.15); color: var(--amber); }
+.tag-css { background: rgba(168,85,247,0.15); color: var(--purple); }
+.tag-tool { background: rgba(6,182,212,0.15); color: var(--cyan); }
+.tag-green { background: rgba(16,185,129,0.15); color: var(--green); }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+th { text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid rgba(56,89,138,0.12); }
+.card { background: var(--surface); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.25); }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 20px 0; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center; backdrop-filter: blur(16px); }
+.stat-num { font-size: 32px; font-weight: 800; font-family: 'Consolas', monospace; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
+.arch-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; padding: 16px; background: rgba(15,23,42,0.4); border-radius: 12px; border: 1px solid var(--border); }
+.arch-box { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.arch-arrow { color: var(--muted); font-size: 18px; }
+.arch-ui { background: rgba(168,85,247,0.2); color: var(--purple); }
+.arch-rust { background: rgba(239,68,68,0.2); color: var(--red); }
+.arch-ps { background: rgba(96,165,250,0.2); color: var(--blue); }
+.arch-etw { background: rgba(6,182,212,0.2); color: var(--cyan); }
+.arch-win { background: rgba(16,185,129,0.2); color: var(--green); }
+code { font-family: 'Consolas', monospace; background: rgba(30,41,59,0.6); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.footer { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
+@media (max-width: 700px) { .stat-grid { grid-template-columns: 1fr 1fr; } .arch-flow { flex-direction: column; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>LatencyGuard</span></h1>
+  <p>A desktop diagnostic tool that finds and fixes the hidden Windows settings causing gaming latency — built with Rust, PowerShell, and kernel-level tracing.</p>
+</div>
+
+<div class="container">
+
+<!-- What It Is -->
+<section>
+  <h2>What It Is</h2>
+  <div class="card">
+    <p>LatencyGuard is a <strong>symptom-first diagnostic tool</strong> for competitive gamers. Instead of showing a dashboard of numbers, it asks <em>"What are you experiencing?"</em> — mouse freezing, frame drops, or sluggishness — then runs targeted diagnostics using kernel-level ETW traces, DPC/ISR analysis, and system registry audits to find the root cause.</p>
+    <p style="margin-top:12px">Every finding is explained in plain English ("Your GPU interrupts are landing on the same core as your game thread, causing direct contention") with one-click fixes that capture before/after proof.</p>
+  </div>
+</section>
+
+<!-- By The Numbers -->
+<section>
+  <h2>By The Numbers</h2>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num" style="color:var(--blue)">41</div><div class="stat-label">System Checks</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--green)">30</div><div class="stat-label">PowerShell Scripts</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--amber)">22</div><div class="stat-label">Experiments Run</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--red)">92%</div><div class="stat-label">Latency Reduction</div></div>
+  </div>
+  <p style="color:var(--muted);font-size:13px;text-align:center">Mouse input gaps reduced from 103 (703ms max) to 25 (11ms max) through systematic optimization.</p>
+</section>
+
+<!-- Architecture -->
+<section>
+  <h2>Architecture</h2>
+  <div class="card">
+    <h3>Diagnostic Chain Flow</h3>
+    <div class="arch-flow">
+      <div class="arch-box arch-ui">Symptom Picker</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-rust">Rust Backend</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-ps">PowerShell Audit</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-etw">ETW Kernel Trace</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-ui">Narrative Findings</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-win">One-Click Fix</div>
+      <div class="arch-arrow">&rarr;</div>
+      <div class="arch-box arch-green">Before/After Proof</div>
+    </div>
+    <h3>Stack</h3>
+    <p>
+      <span class="tag tag-rust">Rust / Tauri v2</span>
+      <span class="tag tag-ps">PowerShell 5.1</span>
+      <span class="tag tag-js">Vanilla JS</span>
+      <span class="tag tag-css">CSS (Glass Morphism)</span>
+      <span class="tag tag-tool">ETW / WPR / xperf</span>
+      <span class="tag tag-tool">NVIDIA Nsight Systems</span>
+    </p>
+  </div>
+</section>
+
+<!-- Diagnostic Tools & Techniques -->
+<section>
+  <h2>Diagnostic Tools &amp; Techniques</h2>
+
+  <div class="card">
+    <h3>Kernel-Level Tracing (ETW)</h3>
+    <p>Uses Windows Performance Recorder (WPR) with custom <code>.wprp</code> profiles to capture Event Tracing for Windows (ETW) events. Captures HID input events at the kernel level to detect mouse input gaps — intervals between position reports that indicate driver-level stalls.</p>
+    <ul>
+      <li><strong>Input Latency Analysis</strong> — captures raw HID events, calculates inter-event timing, identifies gaps &gt;4ms</li>
+      <li><strong>DPC/ISR Analysis</strong> — measures Deferred Procedure Call and Interrupt Service Routine latency per driver</li>
+      <li><strong>Driver Blame Attribution</strong> — correlates input gaps with DPC spikes to identify which driver (nvlddmkm.sys, storport.sys, etc.) caused the freeze</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>DPC Latency Profiling</h3>
+    <p>Deep analysis of Deferred Procedure Call (DPC) latency using <code>xperf</code> ETW traces. Identifies drivers consuming excessive CPU time in deferred contexts, which directly causes frame stutters and input lag.</p>
+    <ul>
+      <li><strong>Per-driver breakdown</strong> — ranks drivers by max DPC time in microseconds</li>
+      <li><strong>CPU core heatmap</strong> — shows interrupt distribution across all 16 logical CPUs (9800X3D)</li>
+      <li><strong>CPU 0 contention detection</strong> — flags when interrupts pile on the OS scheduler core</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>GPU Performance Analysis</h3>
+    <p>Checks GPU configuration (MSI mode, interrupt affinity, HAGS, ReBAR) and uses NVIDIA Nsight Systems for GPU-specific profiling.</p>
+    <ul>
+      <li><strong>MSI vs Line-Based Interrupts</strong> — detects shared IRQ contention</li>
+      <li><strong>GPU DPC Health</strong> — nvlddmkm.sys DPC spikes &gt;500us cause visible frame hitches</li>
+      <li><strong>Nsight Systems Capture</strong> — 30-second GPU trace with timeline analysis</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>System Registry Audit</h3>
+    <p>41 automated checks across 6 categories, reading Windows registry keys, WMI objects, and driver configurations:</p>
+    <table>
+      <tr><th>Category</th><th>Checks</th><th>What It Examines</th></tr>
+      <tr><td>OS</td><td>16</td><td>Power plan, MMCSS priority, Hyper-V, VBS, telemetry, MPO</td></tr>
+      <tr><td>GPU</td><td>6</td><td>MSI mode, interrupt affinity, HAGS, ReBAR, DPC health, power mode</td></tr>
+      <tr><td>NIC</td><td>7</td><td>Driver, speed/duplex, EEE, interrupt moderation, Nagle, affinity</td></tr>
+      <tr><td>Network</td><td>7</td><td>Flow control, IPv6, TCP tuning, RSC, latency probe, bufferbloat</td></tr>
+      <tr><td>Peripheral</td><td>3</td><td>Mouse polling rate, USB controller, overlay processes</td></tr>
+      <tr><td>Memory</td><td>1</td><td>RAM speed vs rated (JEDEC vs XMP)</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Network Diagnostics</h3>
+    <p>Multi-server latency probing with bufferbloat detection:</p>
+    <ul>
+      <li><strong>Latency Probe</strong> — pings Cloudflare DNS, Epic Games servers, measures p50/p95/p99</li>
+      <li><strong>Bufferbloat Detection</strong> — measures latency under load vs idle to detect queue bloat</li>
+      <li><strong>Connection Quality Score</strong> — composite 0-100 score combining jitter, loss, and latency</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Experiment Framework</h3>
+    <p>Controlled A/B testing for system changes with automated before/after comparison:</p>
+    <ul>
+      <li><strong>22 experiments run</strong> — each captures baseline, applies change, re-measures, stores JSON</li>
+      <li><strong>Side-by-side comparison</strong> — score rings, delta cards, CPU heatmaps for before vs after</li>
+      <li><strong>Rollback scripts</strong> — every fix generates a reversible rollback command</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Key Findings -->
+<section>
+  <h2>Key Findings From This System</h2>
+  <div class="card">
+    <table>
+      <tr><th>Finding</th><th>Impact</th><th>Fix</th></tr>
+      <tr><td>GPU using line-based interrupts (MSI disabled)</td><td>Shared IRQ contention, DPC spikes</td><td>Enabled MSI mode via registry</td></tr>
+      <tr><td>HAGS was disabled on RTX 5070 Ti</td><td>20% GPU scheduler overhead</td><td>Re-enabled HAGS (HwSchMode=2)</td></tr>
+      <tr><td>GPU DPCs landing on CPU 0</td><td>Contention with OS scheduler</td><td>Moved GPU affinity to dedicated core</td></tr>
+      <tr><td>LwtNetLog ETW autologger running</td><td>5-15% background CPU drain</td><td>Disabled autologger via registry</td></tr>
+      <tr><td>Balanced power plan active</td><td>CPU throttling during gameplay</td><td>Switched to High Performance</td></tr>
+      <tr><td>Defender scanning game folders</td><td>I/O spikes during shader compilation</td><td>Added game folder exclusions</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- Tech Stack Detail -->
+<section>
+  <h2>Full Tech Stack</h2>
+  <div class="card">
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Why</th></tr>
+      <tr><td>Desktop Runtime</td><td><span class="tag tag-rust">Tauri v2 (Rust)</span></td><td>Native performance, small binary, system-level access via PowerShell child processes</td></tr>
+      <tr><td>Backend Logic</td><td><span class="tag tag-rust">Rust</span></td><td>Async command handlers, event streaming to frontend, JSON serialization via serde</td></tr>
+      <tr><td>Diagnostic Scripts</td><td><span class="tag tag-ps">PowerShell 5.1</span></td><td>Direct access to WMI, registry, ETW via WPR, admin-level system queries</td></tr>
+      <tr><td>Frontend</td><td><span class="tag tag-js">Vanilla JS</span></td><td>Zero framework overhead, string-template rendering, Tauri IPC via invoke()</td></tr>
+      <tr><td>Styling</td><td><span class="tag tag-css">CSS Custom Properties</span></td><td>Glass morphism (backdrop-filter blur), semantic color system, responsive grid</td></tr>
+      <tr><td>Kernel Tracing</td><td><span class="tag tag-tool">ETW / WPR / xperf</span></td><td>Hardware-level event capture (HID, DPC, ISR) with microsecond precision</td></tr>
+      <tr><td>GPU Profiling</td><td><span class="tag tag-tool">NVIDIA Nsight Systems</span></td><td>GPU timeline capture, CUDA kernel analysis, driver DPC measurement</td></tr>
+      <tr><td>Testing</td><td><span class="tag tag-green">PowerShell + Cargo</span></td><td>32 automated tests: PS syntax validation, XML schema checks, Rust compilation</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- Views -->
+<section>
+  <h2>App Views</h2>
+  <p style="color:var(--muted);margin-bottom:16px">LatencyGuard has 4 main views. Screenshots captured with real data from a tuned gaming system (Ryzen 9800X3D + RTX 5070 Ti).</p>
+
+  <div class="card">
+    <h3>1. Symptom Picker (Landing Page)</h3>
+    <p>Asks "What are you experiencing?" with 4 symptom cards. Each triggers a targeted diagnostic chain that only runs the relevant subset of 41 checks. Liquid glass design with colored accent borders.</p>
+  </div>
+
+  <div class="card">
+    <h3>2. Diagnostic Progress</h3>
+    <p>Real-time step-by-step progress via Tauri event streaming. Shows which checks are running, with a determinate progress bar and checkmarks as steps complete. For Mouse Freezing, includes a 10-second ETW input capture.</p>
+  </div>
+
+  <div class="card">
+    <h3>3. Findings (Results)</h3>
+    <p>Plain-English finding cards sorted by severity. Each card explains what's wrong, why it matters, and how to fix it. Mouse diagnostics show gap count, max gap duration, and blamed driver. One-click "Apply Fix" with before/after verification.</p>
+  </div>
+
+  <div class="card">
+    <h3>4. Expert Mode — Diagnostics Dashboard</h3>
+    <p>Full data view: DPC driver blame bars, CPU interrupt heatmap (4x4 grid for 16 logical CPUs), system health metrics, frame distribution, stutter detection, mouse input health, and a filterable 41-check audit table. History tab with experiment comparison.</p>
+  </div>
+</section>
+
+</div>
+
+<div class="footer">
+  LatencyGuard &mdash; Built by Louis Condreay &mdash; 2026<br>
+  Rust + PowerShell + ETW + Tauri v2
+</div>
+
+</body>
+</html>

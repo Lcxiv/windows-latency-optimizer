@@ -55,3 +55,4 @@ captures/experiments/
 
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv
+%windir%/

@@ -1,5 +1,6 @@
 use std::process::Command;
 use std::path::PathBuf;
+use tauri::Emitter;
 
 /// Find the scripts directory relative to the executable or CWD.
 /// Search order: LATENCYGUARD_SCRIPTS env var → exe ancestors → CWD ancestors → fallback.
@@ -444,4 +445,210 @@ pub async fn get_history() -> Result<Vec<serde_json::Value>, String> {
     }
 
     Ok(entries)
+}
+
+/// Emit a diagnostic progress event to the frontend
+fn emit_progress(app: &tauri::AppHandle, step: u32, total: u32, status: &str) {
+    let _ = app.emit("diagnostic-progress", serde_json::json!({
+        "step": step,
+        "total": total,
+        "status": status
+    }));
+}
+
+#[tauri::command]
+pub async fn run_diagnostic_chain(
+    symptom: String,
+    app_handle: tauri::AppHandle,
+) -> Result<serde_json::Value, String> {
+    let is_mouse = symptom == "MouseFreezing";
+    let total_steps: u32 = if is_mouse { 5 } else { 4 };
+
+    // Step 1: Run targeted audit
+    emit_progress(&app_handle, 0, total_steps, "Running targeted system audit...");
+
+    let scripts = scripts_dir();
+    let audit_path = scripts.join("audit.ps1");
+    if !audit_path.exists() {
+        return Err("audit.ps1 not found".to_string());
+    }
+
+    let output = Command::new("powershell")
+        .arg("-ExecutionPolicy").arg("Bypass")
+        .arg("-File").arg(&audit_path)
+        .arg("-Mode").arg("Deep")
+        .arg("-Symptom").arg(&symptom)
+        .arg("-Quiet")
+        .output()
+        .map_err(|e| format!("Failed to run audit: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Audit failed: {}", stderr));
+    }
+
+    // Step 2: Read audit results
+    emit_progress(&app_handle, 1, total_steps, "Reading audit results...");
+
+    let audits_dir = scripts.parent()
+        .unwrap_or(std::path::Path::new("."))
+        .join("captures").join("audits");
+
+    let audit_data = if audits_dir.exists() {
+        let mut json_files: Vec<_> = std::fs::read_dir(&audits_dir)
+            .map_err(|e| format!("Cannot read audits dir: {}", e))?
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.path().extension().map_or(false, |ext| ext == "json")
+                    && e.file_name().to_string_lossy().starts_with("audit_")
+            })
+            .collect();
+        json_files.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+        match json_files.first() {
+            Some(f) => read_json_file(&f.path()).ok(),
+            None => None,
+        }
+    } else {
+        None
+    };
+
+    // Step 3: Mouse diagnostic (if MouseFreezing)
+    let mouse_diag = if is_mouse {
+        emit_progress(&app_handle, 2, total_steps, "Running mouse input capture (10s)...");
+
+        let mouse_script = scripts.join("diagnose-mouse.ps1");
+        if mouse_script.exists() {
+            let mouse_out = Command::new("powershell")
+                .arg("-ExecutionPolicy").arg("Bypass")
+                .arg("-File").arg(&mouse_script)
+                .arg("-DurationSec").arg("10")
+                .output()
+                .map_err(|e| format!("Mouse diagnostic failed: {}", e))?;
+
+            if mouse_out.status.success() {
+                // Read latest mouse diagnostic
+                let project = scripts.parent().unwrap_or(std::path::Path::new("."));
+                let exp_dir = project.join("captures").join("experiments");
+                if exp_dir.exists() {
+                    let mut dirs: Vec<_> = std::fs::read_dir(&exp_dir)
+                        .ok()
+                        .map(|rd| rd.filter_map(|e| e.ok())
+                            .filter(|e| e.path().is_dir() && e.file_name().to_string_lossy().contains("MOUSE_DIAG"))
+                            .collect())
+                        .unwrap_or_default();
+                    dirs.sort_by_key(|e| std::cmp::Reverse(e.file_name().to_string_lossy().to_string()));
+                    dirs.first().and_then(|d| {
+                        let json_path = d.path().join("mouse_diagnostic.json");
+                        if json_path.exists() { read_json_file(&json_path).ok() } else { None }
+                    })
+                } else { None }
+            } else { None }
+        } else { None }
+    } else { None };
+
+    // Step 4: Build findings
+    let step_before_final = if is_mouse { 3 } else { 2 };
+    emit_progress(&app_handle, step_before_final, total_steps, "Analyzing results and building findings...");
+
+    let checks = audit_data.as_ref()
+        .and_then(|d| d["checks"].as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut findings = Vec::new();
+    let mut pass_count: u32 = 0;
+    let mut high_count: u32 = 0;
+    let mut medium_count: u32 = 0;
+    let mut low_count: u32 = 0;
+
+    for check in &checks {
+        let status = check["status"].as_str().unwrap_or("SKIP");
+        let name = check["name"].as_str().unwrap_or("");
+        let current = check["current"].as_str().unwrap_or("");
+        let expected = check["expected"].as_str().unwrap_or("");
+        let message = check["message"].as_str().unwrap_or("");
+        let fix = check["fix"].as_str().unwrap_or("");
+        let fix_note = check["fixNote"].as_str().unwrap_or("");
+        let severity_raw = check["severity"].as_str().unwrap_or("LOW");
+        let category = check["category"].as_str().unwrap_or("");
+
+        if status == "PASS" {
+            pass_count += 1;
+            continue;
+        }
+        if status == "SKIP" {
+            continue;
+        }
+
+        let severity = match severity_raw {
+            "CRITICAL" | "HIGH" => { high_count += 1; "high" },
+            "MEDIUM" => { medium_count += 1; "medium" },
+            _ => { low_count += 1; "low" },
+        };
+
+        let fix_type = if !fix.is_empty() { "auto" } else if !fix_note.is_empty() { "manual" } else { "info" };
+
+        findings.push(serde_json::json!({
+            "severity": severity,
+            "title": name,
+            "what": format!("Current: {}", current),
+            "why": message,
+            "expected": expected,
+            "fix": fix,
+            "fixNote": fix_note,
+            "fixType": fix_type,
+            "category": category,
+            "current": current,
+        }));
+    }
+
+    // Sort findings: high first, then medium, then low
+    findings.sort_by(|a, b| {
+        let order = |s: &str| match s { "high" => 0, "medium" => 1, _ => 2 };
+        let sa = a["severity"].as_str().unwrap_or("low");
+        let sb = b["severity"].as_str().unwrap_or("low");
+        order(sa).cmp(&order(sb))
+    });
+
+    // Final step
+    emit_progress(&app_handle, total_steps, total_steps, "Complete!");
+
+    Ok(serde_json::json!({
+        "symptom": symptom,
+        "findings": findings,
+        "mouseDiag": mouse_diag,
+        "auditData": audit_data,
+        "summary": {
+            "high": high_count,
+            "medium": medium_count,
+            "low": low_count,
+            "pass": pass_count,
+            "total": checks.len()
+        }
+    }))
+}
+
+#[tauri::command]
+pub async fn run_single_check(check_name: String) -> Result<serde_json::Value, String> {
+    let scripts = scripts_dir();
+    let checks_path = scripts.join("audit-checks.ps1");
+
+    let expr = format!(
+        ". '{}'; $allChecks = @(); \
+         $allChecks += Invoke-OsChecks; $allChecks += Invoke-NicChecks; \
+         $allChecks += Invoke-GpuChecks; $allChecks += Invoke-MemoryChecks; \
+         $allChecks += Invoke-PeripheralChecks; $allChecks += Invoke-NetworkChecks; \
+         $match = $allChecks | Where-Object {{ $_.name -eq '{}' }} | Select-Object -First 1; \
+         if ($match) {{ $match | ConvertTo-Json -Depth 4 }} else {{ '{{}}' }}",
+        checks_path.display(),
+        check_name.replace('\'', "''")
+    );
+
+    let output = run_ps_expression(&expr)?;
+    let clean = output.trim();
+    if clean.is_empty() || clean == "{}" {
+        return Err(format!("Check '{}' not found", check_name));
+    }
+    serde_json::from_str(clean)
+        .map_err(|e| format!("Failed to parse check result: {}", e))
 }
