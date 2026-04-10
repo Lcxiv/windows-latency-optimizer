@@ -49,20 +49,51 @@ const AppState = {
 };
 
 let baseline = null;
-let charts = {};
+
+// Chart lifecycle manager — encapsulates creation, destruction, and cleanup
+const ChartManager = {
+  _charts: {},
+  create(key, ctx, config) {
+    this.destroy(key);
+    this._charts[key] = new Chart(ctx, config);
+    return this._charts[key];
+  },
+  destroy(key) {
+    if (this._charts[key]) {
+      this._charts[key].destroy();
+      delete this._charts[key];
+    }
+  },
+  destroyAll() {
+    Object.keys(this._charts).forEach(k => this.destroy(k));
+  }
+};
+
+// Backwards-compatible alias for view files that reference charts[key]
+const charts = ChartManager._charts;
 
 // ============================================================
 // INIT
 // ============================================================
+// Validate experiment has minimum required fields for rendering
+function validateExperiment(exp) {
+  if (!exp || !exp.id) return false;
+  if (!exp.name && !exp.label) return false;
+  return true;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.EXPERIMENTS || !window.EXPERIMENTS.length) {
     document.body.innerHTML = '<div style="padding:40px;color:#ef4444">Error: experiments.js not loaded.</div>';
     return;
   }
 
+  // Filter out malformed experiments
+  window.EXPERIMENTS = window.EXPERIMENTS.filter(validateExperiment);
+
   if (window.EXPERIMENTS_GENERATED && window.EXPERIMENTS_GENERATED.length) {
     const existingIds = new Set(window.EXPERIMENTS.map(e => e.id));
-    window.EXPERIMENTS_GENERATED.forEach(e => {
+    window.EXPERIMENTS_GENERATED.filter(validateExperiment).forEach(e => {
       if (!existingIds.has(e.id)) window.EXPERIMENTS.push(e);
     });
   }
@@ -166,11 +197,11 @@ function makeNoData(msg, hint) {
 }
 
 function destroyChart(key) {
-  if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+  ChartManager.destroy(key);
 }
 
 function destroyAllCharts() {
-  Object.keys(charts).forEach(k => destroyChart(k));
+  ChartManager.destroyAll();
 }
 
 function deepMerge(base, override) {

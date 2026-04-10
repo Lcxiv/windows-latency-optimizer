@@ -8,9 +8,14 @@
     .\baseline_capture.ps1 -Label "PRE_CHANGE"
 #>
 #Requires -RunAsAdministrator
-param([string]$Label = "BASELINE")
+param(
+    [ValidateNotNullOrEmpty()]
+    [string]$Label = "BASELINE"
+)
 
-$outFile = Join-Path $PSScriptRoot ('..\captures\os_baseline_' + $Label + '.txt')
+. "$PSScriptRoot\config.ps1"
+
+$outFile = Join-Path $script:CaptureRoot ('os_baseline_' + $Label + '.txt')
 
 Write-Host "=== OS Performance Capture: $Label ==="
 Write-Host "Sampling for 10 seconds..."

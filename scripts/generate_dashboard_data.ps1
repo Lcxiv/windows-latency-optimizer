@@ -8,8 +8,8 @@
     .\generate_dashboard_data.ps1
 #>
 param(
-    [string]$ExperimentsDir = "$PSScriptRoot\..\captures\experiments",
-    [string]$OutFile        = "$PSScriptRoot\..\dashboard\data\experiments_generated.js"
+    [string]$ExperimentsDir = '',
+    [string]$OutFile        = ''
 )
 
 # =============================================================================
@@ -27,6 +27,12 @@ param(
 # =============================================================================
 
 $ErrorActionPreference = "Stop"
+
+# Load central config for paths and counter name map
+. "$PSScriptRoot\config.ps1"
+
+if ($ExperimentsDir -eq '') { $ExperimentsDir = $script:ExperimentsDir }
+if ($OutFile -eq '')        { $OutFile = Join-Path $script:DashboardData 'experiments_generated.js' }
 
 if (-not (Test-Path $ExperimentsDir)) {
     Write-Warning "No experiments directory found at: $ExperimentsDir"
@@ -59,27 +65,12 @@ Write-Host ""
 function Normalize-Performance($perf) {
     $out = @{}
 
-    # Map run_experiment.ps1 counter names to experiments.js field names
-    $fieldMap = @{
-        '% processor time[_total]' = 'ProcessorTimePct'
-        '% dpc time[_total]'       = 'DPCTimePct'
-        '% interrupt time[_total]' = 'InterruptTimePct'
-        'available mbytes'         = 'AvailableMemoryMB'
-        'pages/sec'                = 'PagesSec'
-        'page faults/sec'          = 'PageFaultsSec'
-        'avg. disk sec/read'       = 'DiskSecRead'
-        'avg. disk sec/write'      = 'DiskSecWrite'
-        'current disk queue length'= 'DiskQueueLength'
-        'context switches/sec'     = 'ContextSwitchesSec'
-        'processor queue length'   = 'ProcessorQueueLength'
-    }
-
     foreach ($rawKey in $perf.PSObject.Properties.Name) {
         $lk = $rawKey.ToLower()
         $mapped = $null
-        foreach ($pattern in $fieldMap.Keys) {
+        foreach ($pattern in $script:CounterNameMap.Keys) {
             # Use .Contains() instead of -like to avoid [] wildcard interpretation
-            if ($lk.Contains($pattern)) { $mapped = $fieldMap[$pattern]; break }
+            if ($lk.Contains($pattern)) { $mapped = $script:CounterNameMap[$pattern]; break }
         }
         if ($mapped) {
             $v = $perf.$rawKey
@@ -154,11 +145,29 @@ foreach ($file in $jsonFiles) {
         $gpuUtilJs = "{`n" + ($gpuLines -join ",`n") + "`n    }"
     }
 
-    # Build interruptTopology block
+    # Build interruptTopology block (handles both v3 flat and v4 groups format)
     $topoJs = 'null'
     if ($raw.interruptTopology) {
         $t = $raw.interruptTopology
-        $topoJs = "{ cpu0Share: $($t.cpu0Share), cpu23Share: $($t.cpu23Share), cpu47Share: $($t.cpu47Share) }"
+        # Always emit backwards-compat flat keys
+        $c0 = 0; $c23 = 0; $c47 = 0
+        if ($null -ne $t.cpu0Share) { $c0 = $t.cpu0Share }
+        if ($null -ne $t.cpu23Share) { $c23 = $t.cpu23Share }
+        if ($null -ne $t.cpu47Share) { $c47 = $t.cpu47Share }
+        $topoJs = '{ cpu0Share: ' + $c0 + ', cpu23Share: ' + $c23 + ', cpu47Share: ' + $c47
+
+        # Emit new groups array if present (schema v4+)
+        if ($t.groups) {
+            $groupEntries = @()
+            foreach ($g in $t.groups) {
+                $cpuList = ($g.cpus -join ',')
+                $groupEntries += '{ name: "' + $g.name + '", cpus: [' + $cpuList + '], share: ' + $g.share + ' }'
+            }
+            $topoJs += ', groups: [' + ($groupEntries -join ', ') + ']'
+            if ($t.totalLogicalCpus) { $topoJs += ', totalLogicalCpus: ' + $t.totalLogicalCpus }
+            if ($t.cpuModel) { $topoJs += ', cpuModel: "' + ($t.cpuModel -replace '"','\"') + '"' }
+        }
+        $topoJs += ' }'
     }
 
     $entry = @"

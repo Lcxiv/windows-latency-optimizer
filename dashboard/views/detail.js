@@ -48,7 +48,10 @@ function renderDetailView() {
   // CPU section
   html += '<div id="cpuSection">';
   html += '<div class="section-header"><h2>CPU Interrupt Distribution</h2><div class="section-line"></div>';
-  html += '<div class="section-badge">16 Logical Processors</div></div>';
+  var cpuCount = (exp.interruptTopology && exp.interruptTopology.totalLogicalCpus)
+    ? exp.interruptTopology.totalLogicalCpus
+    : (exp.cpuData ? exp.cpuData.length : '?');
+  html += '<div class="section-badge">' + cpuCount + ' Logical Processors</div></div>';
   html += '<div class="charts-grid">';
   html += '<div class="chart-card"><div class="chart-title">Interrupt Cycle Time per CPU</div>';
   html += '<div class="chart-subtitle">Total seconds spent in interrupt context per logical processor</div>';

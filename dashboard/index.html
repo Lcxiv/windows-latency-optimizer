@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Windows Latency Optimizer — Experiment Tracker</title>
-  <!-- Chart.js pinned to 4.4.0. jsDelivr does not support SRI for dynamically served files. -->
+  <!-- Chart.js pinned to 4.4.0. Local fallback for offline/file:// use. -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>window.Chart || document.write('<script src="lib/chart.umd.min.js"><\/script>')</script>
   <script src="data/experiments.js"></script>
   <script src="data/experiments_generated.js" onerror=""></script>
   <link rel="stylesheet" href="app.css">

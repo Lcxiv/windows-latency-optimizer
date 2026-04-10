@@ -13,11 +13,14 @@
 #Requires -RunAsAdministrator
 param(
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$Label,
 
     [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
     [string]$Description,
 
+    [ValidateRange(1, 3600)]
     [int]$DurationSec = 120,
 
     [switch]$SkipWPR,
@@ -182,9 +185,11 @@ $analysisResult = New-ExperimentAnalysis `
     -GpuUtilData $gpuUtilData -NetworkLatencyData $networkData `
     -WprStarted $wprStarted -EtlFile $etlFile
 
-$cpu0Share  = $analysisResult.cpu0Share
-$cpu23Share = $analysisResult.cpu23Share
-$cpu47Share = $analysisResult.cpu47Share
+$groupShares = $analysisResult.groupShares
+$topology    = $analysisResult.topology
+$cpu0Share   = $analysisResult.cpu0Share
+$cpu23Share  = $analysisResult.cpu23Share
+$cpu47Share  = $analysisResult.cpu47Share
 
 $analysisFile = Join-Path $outDir 'analysis.txt'
 $analysisResult.analysisLines | Out-File $analysisFile -Encoding UTF8
@@ -196,7 +201,7 @@ Save-ExperimentJson `
     -WprStarted $wprStarted -EtlFile $etlFile `
     -Registry $reg -Perf $perf -CpuData $cpuData `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
-    -Cpu0Share $cpu0Share -Cpu23Share $cpu23Share -Cpu47Share $cpu47Share `
+    -GroupShares $groupShares -Topology $topology `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
     -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData -BufferbloatData $bufferbloatData
 
@@ -217,7 +222,12 @@ if ($wprStarted -and (Test-Path $etlFile)) {
 }
 Log '  analysis.txt    - human-readable report'
 Log ''
-Log ('Topology: CPU0=' + $cpu0Share + '% | Input=' + $cpu23Share + '% | GPU/NIC=' + $cpu47Share + '%')
+$topoSummary = ''
+foreach ($gs in $groupShares) {
+    if ($topoSummary -ne '') { $topoSummary += ' | ' }
+    $topoSummary += $gs.label + '=' + $gs.share + '%'
+}
+Log ('Topology: ' + $topoSummary)
 if ($frameTimingData) {
     Log ('  FPS: ' + $frameTimingData.fps.avg + ' avg, ' + $frameTimingData.fps.p1Low + ' 1% low')
 }

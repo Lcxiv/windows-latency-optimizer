@@ -54,9 +54,9 @@ Describe 'Experiment JSON Schema Validation' {
                 $intKey | Should Not BeNullOrEmpty
             }
 
-            It 'has cpuData array with 16 entries (9800X3D)' {
+            It 'has cpuData array with entries' {
                 $json.cpuData | Should Not BeNullOrEmpty
-                $json.cpuData.Count | Should Be 16
+                $json.cpuData.Count | Should BeGreaterThan 0
             }
 
             It 'has cpuData with required fields per CPU' {

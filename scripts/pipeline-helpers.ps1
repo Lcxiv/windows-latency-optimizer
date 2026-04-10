@@ -6,6 +6,11 @@
 # All functions here expect $script:logLines to be initialized by the caller.
 # PowerShell 5.1 compatible — no ternary, no null-coalescing, no Join-String.
 
+# Load central config (tool paths, defaults, project paths)
+if (-not $script:ToolPaths) {
+    . "$PSScriptRoot\config.ps1"
+}
+
 function Log {
     param([string]$msg, [string]$level = 'INFO')
     $ts = Get-Date -Format 'HH:mm:ss'
@@ -208,24 +213,7 @@ function Invoke-PerfCounterCapture {
     Log ''
     Log ('=== Phase 3: Perf counter capture ' + $DurationSec + 's ===')
 
-    $counters = @(
-        '\Processor(*)\% Interrupt Time',
-        '\Processor(*)\% DPC Time',
-        '\Processor(*)\Interrupts/sec',
-        '\Processor(_Total)\% Processor Time',
-        '\Processor(_Total)\% DPC Time',
-        '\Processor(_Total)\% Interrupt Time',
-        '\Memory\Available MBytes',
-        '\Memory\Pages/sec',
-        '\Memory\Page Faults/sec',
-        '\PhysicalDisk(_Total)\Avg. Disk sec/Read',
-        '\PhysicalDisk(_Total)\Avg. Disk sec/Write',
-        '\PhysicalDisk(_Total)\Current Disk Queue Length',
-        '\System\Context Switches/sec',
-        '\System\Processor Queue Length'
-    )
-
-    $samples = Get-Counter -Counter $counters -SampleInterval 1 -MaxSamples $DurationSec
+    $samples = Get-Counter -Counter $script:PerfCounters -SampleInterval 1 -MaxSamples $DurationSec
 
     $counterData = @{}
     foreach ($sample in $samples) {
@@ -295,13 +283,7 @@ function Find-ForegroundGame {
     .OUTPUTS
         [string] Process name, or $null if no game found.
     #>
-    $knownGames = @(
-        'FortniteClient-Win64-Shipping', 'FPSAimTrainer', 'cs2',
-        'VALORANT-Win64-Shipping', 'r5apex', 'OverwatchOW',
-        'RocketLeague', 'PUBG-Win64-Shipping', 'destiny2', 'cod',
-        'GTA5', 'eldenring', 'Overwatch', 'VALORANT', 'Warzone'
-    )
-    foreach ($name in $knownGames) {
+    foreach ($name in $script:KnownGameProcesses) {
         $proc = Get-Process -Name $name -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($null -ne $proc) {
             Log ('Game detected: ' + $proc.ProcessName + ' (PID ' + $proc.Id + ', ' + [math]::Round($proc.WorkingSet64 / 1MB) + ' MB)') 'PASS'
@@ -337,20 +319,10 @@ function Invoke-ProcMonCapture {
 
     if ($SkipProcMon) { return $null }
 
-    $procmonPath = 'C:\Users\L\Desktop\ProcessMonitor\Procmon64.exe'
-    if (-not (Test-Path $procmonPath)) {
-        # Try common alternative locations
-        $altPaths = @(
-            'C:\Tools\Procmon64.exe',
-            'C:\SysinternalsSuite\Procmon64.exe'
-        )
-        foreach ($alt in $altPaths) {
-            if (Test-Path $alt) { $procmonPath = $alt; break }
-        }
-        if (-not (Test-Path $procmonPath)) {
-            Log 'Procmon64.exe not found — skipping ProcMon capture' 'INFO'
-            return $null
-        }
+    $procmonPath = $script:ToolPaths.ProcMon
+    if (-not $procmonPath -or -not (Test-Path $procmonPath)) {
+        Log 'Procmon64.exe not found — skipping ProcMon capture' 'INFO'
+        return $null
     }
 
     # Terminate any existing ProcMon instance
@@ -391,8 +363,8 @@ function Convert-ProcMonToCSV {
 
     if (-not (Test-Path $PmlFile)) { return $null }
 
-    $procmonPath = 'C:\Users\L\Desktop\ProcessMonitor\Procmon64.exe'
-    if (-not (Test-Path $procmonPath)) { return $null }
+    $procmonPath = $script:ToolPaths.ProcMon
+    if (-not $procmonPath -or -not (Test-Path $procmonPath)) { return $null }
 
     $csvFile = Join-Path $OutDir 'procmon_capture.csv'
     Log 'Converting ProcMon PML to CSV...'
@@ -834,7 +806,7 @@ function Invoke-PresentMonCapture {
         [switch]$SkipPresentMon
     )
 
-    $presentMonPath = 'C:\Program Files\NVIDIA Corporation\FrameView\bin\PresentMon_x64.exe'
+    $presentMonPath = $script:ToolPaths.PresentMon
     if ($SkipPresentMon -or $GameProcess -eq '' -or -not (Test-Path $presentMonPath)) {
         return $null
     }
@@ -917,9 +889,9 @@ function Stop-WprAndAnalyze {
 
     # Extract DPC/ISR via xperf
     if (Test-Path $EtlFile) {
-        $xperfPath = 'C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\xperf.exe'
+        $xperfPath = $script:ToolPaths.Xperf
 
-        if (Test-Path $xperfPath) {
+        if ($xperfPath -and (Test-Path $xperfPath)) {
             Log 'Running xperf DPC/ISR analysis...'
             $dpcIsrReport = Join-Path $OutDir 'dpcisr_report.txt'
             try {
@@ -1081,15 +1053,7 @@ function Get-RegistrySnapshot {
     $reg['HAGS_HwSchMode'] = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -ErrorAction SilentlyContinue).HwSchMode
 
     $affinities = @{}
-    $devChecks = @(
-        @{ Name = 'GPU';      Pattern = 'VEN_10DE' },
-        @{ Name = 'NIC';      Pattern = 'VEN_8086&DEV_125C' },
-        @{ Name = 'USB_15B6'; Pattern = 'VEN_1022&DEV_15B6' },
-        @{ Name = 'USB_15B7'; Pattern = 'VEN_1022&DEV_15B7' },
-        @{ Name = 'USB_43F7'; Pattern = 'VEN_1022&DEV_43F7' },
-        @{ Name = 'USB_15B8'; Pattern = 'VEN_1022&DEV_15B8' }
-    )
-    foreach ($dc in $devChecks) {
+    foreach ($dc in $script:AffinityDeviceChecks) {
         $dk = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
             Where-Object { $_.PSChildName -like ('*' + $dc.Pattern + '*') } | Select-Object -First 1
         if ($dk) {
@@ -1141,24 +1105,24 @@ function New-ExperimentAnalysis {
     $analysis += 'Duration: ' + $DurationSec + 's'
     $analysis += ''
 
+    # ── Dynamic topology-based interrupt distribution ──
+    $topo = Get-CpuTopology
+    $groupShares = @()
     $cpu0Share = 0; $cpu23Share = 0; $cpu47Share = 0
-    $totalIntr = 0
-    foreach ($c in $CpuData) { $totalIntr += $c.interruptPct }
-    if ($totalIntr -gt 0) {
-        $c0val = ($CpuData | Where-Object { $_.cpu -eq 0 }).interruptPct
-        $cpu0Share = [math]::Round($c0val / $totalIntr * 100, 1)
-        $c23val = 0; foreach ($c in ($CpuData | Where-Object { $_.cpu -in @(2,3) })) { $c23val += $c.interruptPct }
-        $cpu23Share = [math]::Round($c23val / $totalIntr * 100, 1)
-        $c47val = 0; foreach ($c in ($CpuData | Where-Object { $_.cpu -in @(4,5,6,7) })) { $c47val += $c.interruptPct }
-        $cpu47Share = [math]::Round($c47val / $totalIntr * 100, 1)
+    foreach ($g in $topo.groups) {
+        $share = Get-GroupShareFromCpuData -CpuData $CpuData -GroupCpus $g.cpus
+        $groupShares += @{ name = $g.name; cpus = $g.cpus; label = $g.label; share = $share }
+        if ($g.name -eq 'preferred') { $cpu0Share  = $share }
+        if ($g.name -eq 'input')     { $cpu23Share = $share }
+        if ($g.name -eq 'bulk')      { $cpu47Share = $share }
     }
 
-    $analysis += '--- Interrupt Distribution ---'
-    $analysis += 'CPU 0  preferred:    ' + $cpu0Share + '%'
-    $analysis += 'CPUs 2-3 input:      ' + $cpu23Share + '%'
-    $analysis += 'CPUs 4-7 GPU/NIC:    ' + $cpu47Share + '%'
-    $restShare = [math]::Round(100 - $cpu0Share - $cpu23Share - $cpu47Share, 1)
-    $analysis += 'CPUs 8-15 game:      ' + $restShare + '%'
+    $analysis += '--- Interrupt Distribution (' + $topo.cpuModel + ') ---'
+    foreach ($gs in $groupShares) {
+        $cpuRange = ($gs.cpus | Sort-Object | ForEach-Object { $_.ToString() }) -join ','
+        $padLabel = ($gs.label + ':').PadRight(16)
+        $analysis += 'CPUs ' + $cpuRange + '  ' + $padLabel + $gs.share + '%'
+    }
     $analysis += ''
 
     $analysis += '--- Targets ---'
@@ -1169,19 +1133,26 @@ function New-ExperimentAnalysis {
     $chk2 = if ($totalDpcAvg -lt 0.5) { 'PASS' } else { 'REVIEW' }
     $chk3 = if ($totalIntrAvg -lt 1.0) { 'PASS' } else { 'REVIEW' }
 
-    $analysis += '[' + $chk1 + '] CPU 0 share <10%: ' + $cpu0Share + '%'
+    $prefCpus = (($topo.groups | Where-Object { $_.name -eq 'preferred' }).cpus -join ',')
+    $analysis += '[' + $chk1 + '] Preferred (CPU ' + $prefCpus + ') share <10%: ' + $cpu0Share + '%'
     $analysis += '[' + $chk2 + '] Total DPC <0.5%: ' + $totalDpcAvg + '%'
     $analysis += '[' + $chk3 + '] Total Interrupt <1.0%: ' + $totalIntrAvg + '%'
 
-    Log ('CPU 0 share: ' + $cpu0Share + '%') $chk1
+    Log ('Preferred share: ' + $cpu0Share + '%') $chk1
     Log ('Total DPC: ' + $totalDpcAvg + '%') $chk2
     Log ('Total Interrupt: ' + $totalIntrAvg + '%') $chk3
+
+    # Build CPU-to-role lookup from topology groups
+    $cpuRoles = @{}
+    foreach ($g in $topo.groups) {
+        foreach ($cpuIdx in $g.cpus) { $cpuRoles[$cpuIdx] = ' <-' + $g.label }
+    }
 
     $analysis += ''
     $analysis += '--- Per-CPU ---'
     foreach ($c in ($CpuData | Sort-Object cpu)) {
         $role = ''
-        switch ($c.cpu) { 0 { $role = ' <-preferred' }; 2 { $role = ' <-input' }; 3 { $role = ' <-input' }; 4 { $role = ' <-GPU/NIC' }; 5 { $role = ' <-GPU/NIC' }; 6 { $role = ' <-GPU/NIC' }; 7 { $role = ' <-GPU/NIC' } }
+        if ($cpuRoles.ContainsKey($c.cpu)) { $role = $cpuRoles[$c.cpu] }
         $analysis += ('{0,-6} {1,10:N4} {2,10:N4} {3,12:N1}{4}' -f ('CPU' + $c.cpu), $c.interruptPct, $c.dpcPct, $c.intrPerSec, $role)
     }
 
@@ -1242,6 +1213,9 @@ function New-ExperimentAnalysis {
 
     return @{
         analysisLines = $analysis
+        groupShares   = $groupShares
+        topology      = $topo
+        # Backwards-compat keys
         cpu0Share     = $cpu0Share
         cpu23Share    = $cpu23Share
         cpu47Share    = $cpu47Share
@@ -1595,9 +1569,11 @@ function Save-ExperimentJson {
         [hashtable]$CpuInterrupt,
         [hashtable]$CpuDpc,
         [hashtable]$CpuIntrPerSec,
-        [double]$Cpu0Share,
-        [double]$Cpu23Share,
-        [double]$Cpu47Share,
+        [array]$GroupShares = @(),
+        $Topology = $null,
+        [double]$Cpu0Share = -1,
+        [double]$Cpu23Share = -1,
+        [double]$Cpu47Share = -1,
         $DpcIsrData,
         $FrameTimingData,
         $GpuUtilData,
@@ -1623,8 +1599,31 @@ function Save-ExperimentJson {
         $dpcIsrJson = @{ source = $src; dpcDrivers = $dpcD; isrDrivers = $isrD; dpcAlerts = $alerts }
     }
 
+    # Build interruptTopology with new groups format + backwards-compat keys
+    $topoData = [ordered]@{}
+    if ($GroupShares.Count -gt 0) {
+        $groupsArray = @()
+        foreach ($gs in $GroupShares) {
+            $groupsArray += [ordered]@{ name = $gs.name; cpus = $gs.cpus; share = $gs.share }
+        }
+        $topoData['cpu0Share']  = ($GroupShares | Where-Object { $_.name -eq 'preferred' }).share
+        $topoData['cpu23Share'] = ($GroupShares | Where-Object { $_.name -eq 'input' }).share
+        $topoData['cpu47Share'] = ($GroupShares | Where-Object { $_.name -eq 'bulk' }).share
+        $topoData['groups']     = $groupsArray
+        $topoModel = ''
+        $topoLogical = [int]$env:NUMBER_OF_PROCESSORS
+        if ($Topology) {
+            $topoModel   = $Topology.cpuModel
+            $topoLogical = $Topology.totalLogical
+        }
+        $topoData['totalLogicalCpus'] = $topoLogical
+        $topoData['cpuModel']         = $topoModel
+    } elseif ($Cpu0Share -ge 0) {
+        $topoData = @{ cpu0Share = $Cpu0Share; cpu23Share = $Cpu23Share; cpu47Share = $Cpu47Share }
+    }
+
     $result = [ordered]@{
-        schemaVersion     = 3
+        schemaVersion     = 4
         label             = $Label
         description       = $Description
         capturedAt        = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
@@ -1636,7 +1635,7 @@ function Save-ExperimentJson {
         performance       = $Perf
         cpuData           = $CpuData
         cpuTotal          = @{ interruptPct = $CpuInterrupt['_total'].avg; dpcPct = $CpuDpc['_total'].avg; intrPerSec = $CpuIntrPerSec['_total'].avg }
-        interruptTopology = @{ cpu0Share = $Cpu0Share; cpu23Share = $Cpu23Share; cpu47Share = $Cpu47Share }
+        interruptTopology = $topoData
         dpcIsrAnalysis    = $dpcIsrJson
         analysisFile      = 'analysis.txt'
         frameTiming       = $FrameTimingData
