@@ -5,10 +5,19 @@
     Orchestrates: WPR trace, perf counters, GPU utilization, xperf DPC/ISR
     analysis, registry snapshot, and dashboard data regeneration.
     Outputs experiment.json + analysis.txt to captures/experiments/.
+
+    Use -Mode to select a preset:
+      Quick    (30s)  - Perf counters + registry + GPU only. Under 1 minute.
+      Standard (120s) - WPR + perf + GPU + network. Recommended first run.
+      Deep     (300s) - Everything enabled. Full diagnostic.
+
+    Individual -Skip* flags override the preset.
+.EXAMPLE
+    .\pipeline.ps1 -Label "FIRST_RUN" -Description "Initial capture" -Mode Quick
 .EXAMPLE
     .\pipeline.ps1 -Label "EXP01_TEST" -Description "Test capture" -DurationSec 120 -SkipWPR
 .EXAMPLE
-    .\pipeline.ps1 -Label "GAMING" -Description "Fortnite session" -DurationSec 300 -GameProcess "FortniteClient-Win64-Shipping"
+    .\pipeline.ps1 -Label "GAMING" -Description "Fortnite session" -Mode Deep -GameProcess "FortniteClient-Win64-Shipping"
 #>
 #Requires -RunAsAdministrator
 param(
@@ -19,6 +28,9 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [string]$Description,
+
+    [ValidateSet('Quick','Standard','Deep')]
+    [string]$Mode = '',
 
     [ValidateRange(1, 3600)]
     [int]$DurationSec = 120,
@@ -45,6 +57,28 @@ param(
 # Helper functions are in pipeline-helpers.ps1, dot-sourced below.
 
 $ErrorActionPreference = 'Stop'
+
+# ── Apply mode presets (explicit -Skip* flags always override) ───────────────
+if ($Mode -ne '') {
+    # Only set flags the user did NOT explicitly specify
+    if ($Mode -eq 'Quick') {
+        if (-not $PSBoundParameters.ContainsKey('DurationSec'))            { $DurationSec = 30 }
+        if (-not $PSBoundParameters.ContainsKey('SkipWPR'))                { $SkipWPR = [switch]$true }
+        if (-not $PSBoundParameters.ContainsKey('SkipProcMon'))            { $SkipProcMon = [switch]$true }
+        if (-not $PSBoundParameters.ContainsKey('SkipDefenderRecording'))  { $SkipDefenderRecording = [switch]$true }
+        if (-not $PSBoundParameters.ContainsKey('SkipPktMon'))             { $SkipPktMon = [switch]$true }
+        if (-not $PSBoundParameters.ContainsKey('SkipBufferbloat'))        { $SkipBufferbloat = [switch]$true }
+    }
+    elseif ($Mode -eq 'Standard') {
+        if (-not $PSBoundParameters.ContainsKey('DurationSec'))            { $DurationSec = 120 }
+        if (-not $PSBoundParameters.ContainsKey('SkipProcMon'))            { $SkipProcMon = [switch]$true }
+        if (-not $PSBoundParameters.ContainsKey('SkipPktMon'))             { $SkipPktMon = [switch]$true }
+    }
+    elseif ($Mode -eq 'Deep') {
+        if (-not $PSBoundParameters.ContainsKey('DurationSec'))            { $DurationSec = 300 }
+        # Deep enables everything - no skips applied
+    }
+}
 $scriptRoot = $PSScriptRoot
 $projectRoot = (Resolve-Path (Join-Path $scriptRoot '..')).Path
 
@@ -59,9 +93,11 @@ $logLines = @()
 . "$PSScriptRoot\pipeline-helpers.ps1"
 
 # ── PHASE 1: Pre-flight ──────────────────────────────────────────────────────
-Log ('=== Pipeline Start: ' + $Label + ' ===')
+$modeLabel = 'Custom'
+if ($Mode -ne '') { $modeLabel = $Mode }
+Log ('=== Pipeline Start: ' + $Label + ' [' + $modeLabel + '] ===')
 Log ('Description: ' + $Description)
-Log ('Duration: ' + $DurationSec + 's | WPR: ' + (-not $SkipWPR) + ' | Profile: ' + $WPRProfile + '.' + $WPRDetail)
+Log ('Mode: ' + $modeLabel + ' | Duration: ' + $DurationSec + 's | WPR: ' + (-not $SkipWPR) + ' | ProcMon: ' + (-not $SkipProcMon) + ' | Network: ' + (-not $SkipNetworkLatency))
 Log ('Output: ' + $outDir)
 
 Test-SystemIdle | Out-Null

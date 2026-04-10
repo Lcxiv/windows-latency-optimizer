@@ -134,6 +134,9 @@ $script:PingTargets = @(
 # ─── CPU Topology (auto-discovered) ──────────────────────────────────────────
 . "$PSScriptRoot\topology.ps1"
 
+# ─── GPU Vendor Detection ────────────────────────────────────────────────────
+. "$PSScriptRoot\gpu-vendor.ps1"
+
 # ─── Interrupt Affinity Device Checks (DEPRECATED - use Get-CpuTopology) ─────
 # Kept for backwards compatibility; will be removed in a future version.
 $script:AffinityDeviceChecks = @(

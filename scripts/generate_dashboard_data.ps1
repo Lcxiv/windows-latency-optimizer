@@ -170,6 +170,20 @@ foreach ($file in $jsonFiles) {
         $topoJs += ' }'
     }
 
+    # Build systemInfo block
+    $sysInfoJs = 'null'
+    if ($raw.systemInfo) {
+        $si = $raw.systemInfo
+        $siParts = @()
+        if ($si.hostname) { $siParts += 'hostname: "' + ($si.hostname -replace '"','\"') + '"' }
+        if ($si.cpu)      { $siParts += 'cpu: "' + ($si.cpu -replace '"','\"') + '"' }
+        if ($si.cores)    { $siParts += 'cores: "' + $si.cores + '"' }
+        if ($si.ram)      { $siParts += 'ram: "' + $si.ram + '"' }
+        if ($si.os)       { $siParts += 'os: "' + ($si.os -replace '"','\"') + '"' }
+        if ($si.gpu)      { $siParts += 'gpu: "' + ($si.gpu -replace '"','\"') + '"' }
+        $sysInfoJs = '{ ' + ($siParts -join ', ') + ' }'
+    }
+
     $entry = @"
   {
     id: "$id",
@@ -178,6 +192,7 @@ foreach ($file in $jsonFiles) {
     date: "$($raw.capturedAt)",
     description: "$($raw.description -replace '"','\"')",
     tags: ["generated"],
+    systemInfo: $sysInfoJs,
     registry: {},
     performance: {
 $($perfLines -join ",`n")

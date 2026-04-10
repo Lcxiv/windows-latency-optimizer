@@ -99,9 +99,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   baseline = window.EXPERIMENTS.find(e => e.id === BASELINE_ID) || window.EXPERIMENTS[0];
+  renderSystemInfo();
   handleRoute();
   window.addEventListener('hashchange', handleRoute);
 });
+
+function renderSystemInfo() {
+  var el = document.getElementById('sysInfo');
+  if (!el) return;
+
+  // Find system info from the most recent experiment
+  var sorted = window.EXPERIMENTS.slice().sort(function(a, b) {
+    return (b.date || '').localeCompare(a.date || '');
+  });
+  var si = null;
+  for (var i = 0; i < sorted.length; i++) {
+    if (sorted[i].systemInfo) { si = sorted[i].systemInfo; break; }
+  }
+
+  // Fallback: derive from topology or experiment data
+  if (!si) {
+    var latest = sorted[0];
+    if (!latest) { el.innerHTML = '<div class="sys-chip">Run a capture to see system info</div>'; return; }
+    si = {};
+    if (latest.hostname) si.hostname = latest.hostname;
+    if (latest.interruptTopology && latest.interruptTopology.cpuModel) si.cpu = latest.interruptTopology.cpuModel;
+    if (latest.cpuData) si.cores = latest.cpuData.length + 'T';
+  }
+
+  var chips = [];
+  if (si.hostname) chips.push('<div class="sys-chip"><strong>' + escHtml(si.hostname) + '</strong></div>');
+  if (si.cpu) {
+    var cpuLabel = escHtml(si.cpu);
+    if (si.cores) cpuLabel += ' ' + escHtml(si.cores);
+    chips.push('<div class="sys-chip"><strong>' + cpuLabel + '</strong></div>');
+  }
+  if (si.ram) chips.push('<div class="sys-chip"><strong>' + escHtml(si.ram) + '</strong> RAM</div>');
+  if (si.gpu) chips.push('<div class="sys-chip"><strong>' + escHtml(si.gpu) + '</strong></div>');
+  if (si.os) chips.push('<div class="sys-chip">' + escHtml(si.os) + '</div>');
+  if (chips.length === 0) chips.push('<div class="sys-chip">Run a capture to see system info</div>');
+  el.innerHTML = chips.join('');
+}
 
 // ============================================================
 // ROUTING

@@ -124,19 +124,9 @@ function Get-RegistrySnapshot {
         $reg['ExclusionProcessCount'] = $excProcs
     } catch { $reg['Defender_Error'] = $_.Exception.Message }
 
-    $nvKeys = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
-        Where-Object { $_.PSChildName -like 'VEN_10DE*' }
-    if ($nvKeys) {
-        $nvKey = $nvKeys | Select-Object -First 1
-        $msiPath = Join-Path $nvKey.PSPath 'Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
-        if (Test-Path $msiPath) {
-            $msi = Get-ItemProperty $msiPath -ErrorAction SilentlyContinue
-            $reg['GPU_MSISupported'] = $msi.MSISupported
-            $reg['GPU_MessageNumberLimit'] = $msi.MessageNumberLimit
-        }
-        $reg['GPU_PerfLevelSrc'] = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak' -ErrorAction SilentlyContinue).PerfLevelSrc
-    }
-    $reg['HAGS_HwSchMode'] = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -ErrorAction SilentlyContinue).HwSchMode
+    # GPU registry snapshot (vendor-agnostic via gpu-vendor.ps1)
+    $gpuReg = Get-GpuRegistrySnapshot
+    foreach ($k in $gpuReg.Keys) { $reg[$k] = $gpuReg[$k] }
 
     $affinities = @{}
     foreach ($dc in $script:AffinityDeviceChecks) {
@@ -385,6 +375,31 @@ function Save-ExperimentJson {
         $topoData = @{ cpu0Share = $Cpu0Share; cpu23Share = $Cpu23Share; cpu47Share = $Cpu47Share }
     }
 
+    # Build systemInfo from WMI + topology
+    $sysInfo = [ordered]@{
+        hostname = $env:COMPUTERNAME
+    }
+    try {
+        $topo = Get-CpuTopology
+        $sysInfo['cpu'] = $topo.cpuModel
+        $sysInfo['cores'] = $topo.totalCores.ToString() + 'C/' + $topo.totalLogical.ToString() + 'T'
+    } catch {
+        $sysInfo['cpu'] = 'Unknown'
+        $sysInfo['cores'] = $env:NUMBER_OF_PROCESSORS + 'T'
+    }
+    try {
+        $ramBytes = (Get-WmiObject Win32_ComputerSystem -ErrorAction Stop).TotalPhysicalMemory
+        $sysInfo['ram'] = [math]::Round($ramBytes / 1GB).ToString() + ' GB'
+    } catch { $sysInfo['ram'] = 'Unknown' }
+    try {
+        $osInfo = Get-WmiObject Win32_OperatingSystem -ErrorAction Stop
+        $sysInfo['os'] = $osInfo.Caption.Trim() + ' Build ' + $osInfo.BuildNumber
+    } catch { $sysInfo['os'] = 'Windows' }
+    try {
+        $gpu = Get-WmiObject Win32_VideoController -ErrorAction Stop | Where-Object { $_.Name -notmatch 'Basic Display' } | Select-Object -First 1
+        if ($gpu) { $sysInfo['gpu'] = $gpu.Name }
+    } catch { }
+
     $result = [ordered]@{
         schemaVersion     = 4
         label             = $Label
@@ -392,6 +407,7 @@ function Save-ExperimentJson {
         capturedAt        = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ss')
         durationSec       = $DurationSec
         hostname          = $env:COMPUTERNAME
+        systemInfo        = $sysInfo
         wprProfile        = $wprProf
         wprEtlFile        = $wprEtl
         registry          = $Registry
