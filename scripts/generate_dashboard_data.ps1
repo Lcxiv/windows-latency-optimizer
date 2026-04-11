@@ -170,6 +170,21 @@ foreach ($file in $jsonFiles) {
         $topoJs += ' }'
     }
 
+    # Build smiAnalysis block
+    $smiAnalysisJs = 'null'
+    if ($raw.smiAnalysis) {
+        $s = $raw.smiAnalysis
+        $sParts = @()
+        if ($s.source)              { $sParts += 'source: "' + $s.source + '"' }
+        if ($null -ne $s.verdict)   { $sParts += 'verdict: "' + $s.verdict + '"' }
+        if ($null -ne $s.highLatencyDpcCount) { $sParts += 'highLatencyDpcCount: ' + $s.highLatencyDpcCount }
+        if ($null -ne $s.maxBucketUs)         { $sParts += 'maxBucketUs: ' + $s.maxBucketUs }
+        if ($null -ne $s.driversWithHighDpc)  { $sParts += 'driversWithHighDpc: ' + $s.driversWithHighDpc }
+        if ($null -ne $s.correlationScore)    { $sParts += 'correlationScore: ' + $s.correlationScore }
+        if ($null -ne $s.captureDurationSec)  { $sParts += 'captureDurationSec: ' + $s.captureDurationSec }
+        $smiAnalysisJs = '{ ' + ($sParts -join ', ') + ' }'
+    }
+
     # Build systemInfo block
     $sysInfoJs = 'null'
     if ($raw.systemInfo) {
@@ -194,6 +209,7 @@ foreach ($file in $jsonFiles) {
     tags: ["generated"],
     systemInfo: $sysInfoJs,
     registry: {},
+    smiAnalysis: $smiAnalysisJs,
     performance: {
 $($perfLines -join ",`n")
     },

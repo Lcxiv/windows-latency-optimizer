@@ -176,6 +176,23 @@ function renderDetailCards(exp) {
       '<div class="card-sub">max: ' + safeNum(exp.gpuUtilization['3D'].max, 1) + '%</div></div>');
   }
 
+  // SMI health card
+  if (exp.smiAnalysis) {
+    var smi = exp.smiAnalysis;
+    var smiVerdict = smi.verdict || 'PASS';
+    var smiColor = smiVerdict === 'PASS' ? 'green' : (smiVerdict === 'REVIEW' ? 'amber' : 'red');
+    var smiBadge = smiVerdict === 'PASS' ? 'badge-pass' : 'badge-warn';
+    var smiLabel = smiVerdict === 'PASS' ? 'No SMI blackouts' :
+      (smiVerdict === 'REVIEW' ? smi.highLatencyDpcCount + ' high-latency DPCs' :
+      smi.driversWithHighDpc + ' driver(s) stalled >1ms');
+    var smiSub = 'max bucket: ' + safeNum(smi.maxBucketUs, 0) + 'us';
+    if (smi.correlationScore > 0) { smiSub += ' | corr: ' + smi.correlationScore; }
+    cards.push('<div class="card ' + smiColor + '"><div class="card-label">SMI Health</div>' +
+      '<div class="card-value">' + escHtml(smiVerdict) + '</div>' +
+      '<div class="card-sub">' + smiSub + '</div>' +
+      '<div class="card-badge ' + smiBadge + '">' + smiLabel + '</div></div>');
+  }
+
   // Network latency card (best ping)
   if (exp.networkLatency) {
     var bestPing = getBestPingValue(exp);

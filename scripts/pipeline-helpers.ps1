@@ -17,3 +17,4 @@ if (-not $script:ToolPaths) {
 . "$PSScriptRoot\helpers\capture-core.ps1"
 . "$PSScriptRoot\helpers\capture-tools.ps1"
 . "$PSScriptRoot\helpers\network.ps1"
+. "$PSScriptRoot\helpers\smi-detect.ps1"

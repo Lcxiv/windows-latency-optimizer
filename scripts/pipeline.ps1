@@ -168,6 +168,15 @@ if (-not $SkipBufferbloat -and -not $SkipNetworkLatency) {
     $bufferbloatData = Test-Bufferbloat
 }
 
+# ── PHASE 3F: SMI health check ──────────────────────────────────────────────
+$smiData = $null
+if (-not $SkipWPR -and $wprStarted) {
+    # WPR holds the kernel logger - cannot run separate xperf session
+    Log 'SMI check skipped (WPR active)' 'INFO'
+} elseif ($script:ToolPaths.Xperf -and (Test-Path $script:ToolPaths.Xperf)) {
+    $smiData = Invoke-SmiGapCapture -OutDir $outDir -DurationSec 10
+}
+
 # ── PHASE 4: Stop WPR + xperf analysis ───────────────────────────────────────
 $dpcIsrData = $null
 if ($wprStarted) {
@@ -230,6 +239,11 @@ $cpu47Share  = $analysisResult.cpu47Share
 $analysisFile = Join-Path $outDir 'analysis.txt'
 $analysisResult.analysisLines | Out-File $analysisFile -Encoding UTF8
 
+# Add SMI correlation from perf counter data
+if ($smiData -and $cpuData) {
+    $smiData['correlationScore'] = Get-SmiCorrelation -CpuData $cpuData
+}
+
 # ── PHASE 7: Save JSON ───────────────────────────────────────────────────────
 Save-ExperimentJson `
     -OutDir $outDir -Label $Label -Description $Description -DurationSec $DurationSec `
@@ -239,7 +253,8 @@ Save-ExperimentJson `
     -CpuInterrupt $cpuInterrupt -CpuDpc $cpuDpc -CpuIntrPerSec $cpuIntrPerSec `
     -GroupShares $groupShares -Topology $topology `
     -DpcIsrData $dpcIsrData -FrameTimingData $frameTimingData -GpuUtilData $gpuUtilData `
-    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData -BufferbloatData $bufferbloatData
+    -NetworkLatencyData $networkData -ProcMonData $procmonData -DefenderData $defenderData -PktMonData $pktmonData -BufferbloatData $bufferbloatData `
+    -SmiData $smiData
 
 # ── PHASE 8: Dashboard update ────────────────────────────────────────────────
 Update-DashboardData -ScriptRoot $scriptRoot -SkipDashboardUpdate:$SkipDashboardUpdate

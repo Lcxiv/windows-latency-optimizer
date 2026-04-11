@@ -334,7 +334,8 @@ function Save-ExperimentJson {
         $ProcMonData = $null,
         $DefenderData = $null,
         $PktMonData = $null,
-        $BufferbloatData = $null
+        $BufferbloatData = $null,
+        $SmiData = $null
     )
 
     Log ''
@@ -420,7 +421,7 @@ function Save-ExperimentJson {
         frameTiming       = $FrameTimingData
         gpuUtilization    = $GpuUtilData
         networkLatency    = $NetworkLatencyData
-        cswitchAnalysis   = $null
+        smiAnalysis       = $SmiData
         procmonAnalysis   = $ProcMonData
         defenderAnalysis  = $DefenderData
         networkCapture    = $PktMonData
