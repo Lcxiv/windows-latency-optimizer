@@ -1,0 +1,61 @@
+﻿============================================
+  RAZER STARTUP DISABLE
+  2026-04-15 09:55:35
+============================================
+
+=== CURRENT RAZER PROCESSES ===
+  Found 11 Razer processes:
+    GameManagerService3 (PID: 11064)
+    razer_elevation_service (PID: 9944)
+    RazerAppEngine (PID: 1736)
+    RazerAppEngine (PID: 3748)
+    RazerAppEngine (PID: 3752)
+    RazerAppEngine (PID: 8456)
+    RazerAppEngine (PID: 9900)
+    RazerAppEngine (PID: 10472)
+    RazerAppEngine (PID: 10484)
+    RazerAppEngine (PID: 10864)
+    RazerAppEngine (PID: 10872)
+
+=== DISABLING RAZER SERVICES ===
+  DISABLED: Razer Elevation Service (was: Manual)
+    Stopped service
+  DISABLED: Razer Game Manager Service 3 (was: Manual)
+    Stopped service
+  NOT FOUND: Razer Synapse Service (skipped)
+  NOT FOUND: RzActionSvc (skipped)
+  NOT FOUND: Razer Chroma SDK Server (skipped)
+  NOT FOUND: Razer Chroma SDK Service (skipped)
+  NOT FOUND: Razer Chroma Stream Server (skipped)
+
+=== DISABLING RAZER SCHEDULED TASKS ===
+  No Razer scheduled tasks found
+
+=== DISABLING RAZER STARTUP REGISTRY ===
+  REMOVED: HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\RazerAppEngine
+    Backup: RazerAppEngine_DISABLED = "C:\Program Files\Razer\RazerAppEngine\RazerAppEngine.exe" --url-params=apps=synapse --launch-force-hidden=synapse --autoStart=1
+
+=== CHECKING STARTUP FOLDERS ===
+  No Razer shortcuts in: C:\Users\L\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+  No Razer shortcuts in: C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+
+=== KILLING RAZER PROCESSES ===
+  Killed: RazerAppEngine (PID: 1736)
+  Killed: RazerAppEngine (PID: 3748)
+  Killed: RazerAppEngine (PID: 3752)
+  Killed: RazerAppEngine (PID: 8456)
+  Killed: RazerAppEngine (PID: 9900)
+  Killed: RazerAppEngine (PID: 10472)
+  Killed: RazerAppEngine (PID: 10484)
+  Killed: RazerAppEngine (PID: 10864)
+  Killed: RazerAppEngine (PID: 10872)
+
+=== VERIFICATION ===
+  All Razer processes: DEAD
+  All Razer services: DISABLED
+
+============================================
+  RAZER STARTUP DISABLED
+  To re-enable: set services back to Automatic
+  and re-run Razer Synapse installer
+============================================

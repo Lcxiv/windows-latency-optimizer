@@ -1,0 +1,140 @@
+﻿============================================
+  AUDIO DIAGNOSTIC SCAN
+  2026-04-14 16:36:14
+============================================
+
+=== AUDIO DRIVERS ===
+  Device:  NVIDIA Virtual Audio Device (Wave Extensible) (WDM)
+  Driver:  4.65.0.12
+  Date:    20250513000000.******+***
+  Status:  
+
+  Device:  High Definition Audio Device
+  Driver:  10.0.26100.8036
+  Date:    20260304000000.******+***
+  Status:  
+
+  Device:  High Definition Audio Controller
+  Driver:  10.0.26100.7920
+  Date:    20260216000000.******+***
+  Status:  
+
+  Device:  Audio Endpoint
+  Driver:  10.0.26100.1
+  Date:    20240331000000.******+***
+  Status:  
+
+  Device:  USB Audio 2.0
+  Driver:  10.0.26100.1150
+  Date:    20240703000000.******+***
+  Status:  
+
+  Device:  Audio Endpoint
+  Driver:  10.0.26100.1
+  Date:    20240331000000.******+***
+  Status:  
+
+  Device:  Audio Endpoint
+  Driver:  10.0.26100.1
+  Date:    20240331000000.******+***
+  Status:  
+
+  Device:  NVIDIA High Definition Audio
+  Driver:  1.4.5.7
+  Date:    20251201000000.******+***
+  Status:  
+
+  Device:  High Definition Audio Controller
+  Driver:  10.0.26100.7920
+  Date:    20260216000000.******+***
+  Status:  
+
+=== SOUND DEVICES ===
+  Name:   High Definition Audio Device
+  Status: OK
+
+  Name:   USB Audio 2.0
+  Status: OK
+
+  Name:   NVIDIA Virtual Audio Device (Wave Extensible) (WDM)
+  Status: OK
+
+  Name:   NVIDIA High Definition Audio
+  Status: OK
+
+=== NVIDIA GPU ===
+  driver_version, name, temperature.gpu, power.draw [W], clocks.current.graphics [MHz], clocks.current.memory [MHz], 
+utilization.gpu [%]
+  595.97, NVIDIA GeForce RTX 5070 Ti, 40, 68.32 W, 2835 MHz, 14001 MHz, 14 %
+
+=== MMCSS (Multimedia Scheduler) ===
+  SystemResponsiveness:   0
+  NetworkThrottlingIndex: 4294967295
+  NoLazyMode:            
+  Audio Priority:         1
+  Audio Scheduling:       High
+  Audio SFIO Priority:    High
+
+=== AUDIO SERVICES ===
+  AudioEndpointBuilder: Running (Automatic)
+  Audiosrv: Running (Automatic)
+
+=== KNOWN DPC LATENCY OFFENDERS (Running) ===
+  FOUND: razer_elevation_service (PID: 9876)
+  FOUND: RazerAppEngine (PID: 1696)
+  FOUND: RazerAppEngine (PID: 4516)
+  FOUND: RazerAppEngine (PID: 8128)
+  FOUND: RazerAppEngine (PID: 9496)
+  FOUND: RazerAppEngine (PID: 9720)
+  FOUND: RazerAppEngine (PID: 9728)
+  FOUND: RazerAppEngine (PID: 9752)
+  FOUND: RazerAppEngine (PID: 10132)
+  FOUND: RazerAppEngine (PID: 10420)
+  FOUND: RazerAppEngine (PID: 10432)
+  FOUND: RazerAppEngine (PID: 10568)
+  FOUND: RazerAppEngine (PID: 11020)
+  FOUND: GameManagerService3 (PID: 10628)
+
+=== LIVE DPC/INTERRUPT COUNTERS (3 samples, 1s each) ===
+  16:36:16 | % dpc time: 0.59
+  16:36:16 | % interrupt time: 0.49
+  16:36:16 | dpcs queued/sec: 5670.18
+  ---
+  16:36:17 | % dpc time: 0.39
+  16:36:17 | % interrupt time: 1.17
+  16:36:17 | dpcs queued/sec: 5546.1
+  ---
+  16:36:18 | % dpc time: 0.2
+  16:36:18 | % interrupt time: 0.49
+  16:36:18 | dpcs queued/sec: 5580.59
+  ---
+
+=== TOP INTERRUPT-GENERATING DEVICES ===
+  Per-CPU Interrupt + DPC load:
+  CPU  0: Intr=     0%  DPC=  1.56%
+  CPU  1: Intr=     0%  DPC=     0%
+  CPU  2: Intr=     0%  DPC=     0%
+  CPU  3: Intr=     0%  DPC=     0%
+  CPU  4: Intr=  3.12%  DPC=     0%
+  CPU  5: Intr=     0%  DPC=     0%
+  CPU  6: Intr=     0%  DPC=     0%
+  CPU  7: Intr=  3.12%  DPC=     0%
+  CPU  8: Intr=  1.56%  DPC=     0%
+  CPU  9: Intr=     0%  DPC=     0%
+  CPU 10: Intr=     0%  DPC=     0%
+  CPU 11: Intr=     0%  DPC=     0%
+  CPU 12: Intr=     0%  DPC=     0%
+  CPU 13: Intr=     0%  DPC=     0%
+  CPU 14: Intr=     0%  DPC=     0%
+  CPU 15: Intr=     0%  DPC=     0%
+
+=== POWER PLAN ===
+  Power Scheme GUID: 99999999-9999-9999-9999-999999999999  (Ultimate Performance)
+
+=== WINDOWS DEFENDER ===
+  Real-time Protection: True
+  Exclusion Paths:      13
+
+============================================
+  SCAN COMPLETE
+============================================

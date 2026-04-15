@@ -1,0 +1,115 @@
+﻿============================================
+  AUDIO FIX + AUDIT
+  2026-04-14 16:04:25
+  Running as: DESKTOP-V5BN4SC\L
+============================================
+
+=== PHASE 1: MMCSS AUDIO PRIORITY FIX ===
+  [Backup] Current MMCSS values:
+    Audio Priority:      1
+    Audio Scheduling:    High
+    Audio SFIO:          High
+    Audio Background:    False
+
+  [Fix] Applying optimized MMCSS settings...
+    SystemResponsiveness -> 0 (minimum system reserve)
+    NetworkThrottlingIndex -> 0xFFFFFFFF (disabled)
+    Audio Priority -> 1 (highest)
+    Audio Scheduling -> High
+    Audio SFIO -> High
+    Audio Background Only -> False
+
+  [Info] Games task settings:
+    Games Priority:      6
+    Games Scheduling:    High
+
+  [Verify] New MMCSS values:
+    Audio Priority:      1
+    Audio Scheduling:    High
+    Audio SFIO:          High
+    Audio Background:    False
+
+  NOTE: Changes take effect immediately for new audio sessions.
+  Restart your audio player/game to pick up the new priority.
+
+=== PHASE 2: INTERRUPT AFFINITY CHECK ===
+  --- NVIDIA GPU ---
+    Device: NVIDIA GeForce RTX 5070 Ti
+    DeviceID: PCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1\253C1C6A232DB04800
+
+  --- NVIDIA Audio ---
+    Device: XG27ACDNG (NVIDIA High Definition Audio)
+    DeviceID: SWD\MMDEVAPI\{0.0.0.00000000}.{5A8EBFF2-C274-417A-93F8-D7626F39D130}
+
+    Device: NVIDIA Virtual Audio Device (Wave Extensible) (WDM)
+    DeviceID: ROOT\UNNAMED_DEVICE\0000
+
+    Device: AVT GC570-D (NVIDIA High Definition Audio)
+    DeviceID: SWD\MMDEVAPI\{0.0.0.00000000}.{F50C6286-D129-4DB6-9AC6-0FFB3E2C3942}
+
+    Device: NVIDIA High Definition Audio
+    DeviceID: HDAUDIO\FUNC_01&VEN_10DE&DEV_00AB&SUBSYS_10DE0000&REV_1001\5&18741804&0&0001
+
+  --- Intel NIC ---
+    Device: Intel(R) Ethernet Controller I226-V
+    DeviceID: PCI\VEN_8086&DEV_125C&SUBSYS_88671043&REV_06\60CF84FFFF629DF700
+
+  --- USB Controllers ---
+    Device: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+    DeviceID: PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0441
+
+    Device: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+    DeviceID: PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\8&14937218&0&006000400011
+
+    Device: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+    DeviceID: PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0341
+
+    Device: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+    DeviceID: PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2AF91C3C&0&00600011
+
+    Device: AMD USB 2.0 eXtensible Host Controller - 1.20 (Microsoft)
+    DeviceID: PCI\VEN_1022&DEV_15B8&SUBSYS_88771043&REV_00\4&89701DF&0&0043
+
+  --- HD Audio Controller ---
+    Device: High Definition Audio Controller
+    DeviceID: PCI\VEN_1002&DEV_1640&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0141
+
+    Device: High Definition Audio Controller
+    DeviceID: PCI\VEN_10DE&DEV_22E9&SUBSYS_000010DE&REV_A1\4&1BABDF5B&0&0109
+
+  --- Per-CPU Interrupt Distribution (2s sample) ---
+  CPU  | Intr/sec  | Intr%   | DPC%    | Notes
+  -----|-----------|---------|---------|------
+    0  |    11728  |   6.25% |   3.12% | ! ELEVATED
+    1  |     5454  |      0% |      0% | 
+    2  |     7505  |      0% |   1.56% | 
+    3  |     6493  |      0% |      0% | 
+    4  |     7954  |      0% |      0% | 
+    5  |     9915  |      0% |      0% | 
+    6  |     6724  |      0% |      0% | 
+    7  |     8046  |      0% |      0% | 
+    8  |     9008  |      0% |      0% | 
+    9  |     7665  |   0.78% |      0% | 
+   10  |     7412  |      0% |      0% | 
+   11  |     6018  |      0% |      0% | 
+   12  |     8716  |      0% |      0% | 
+   13  |     7353  |      0% |      0% | 
+   14  |     3701  |      0% |      0% | 
+   15  |    10817  |      0% |      0% | 
+
+=== PHASE 3: DPC/ISR TRACE CAPTURE ===
+  Starting 10-second DPC/ISR trace...
+  (Keep your game running during capture for accurate results)
+  Capturing for 10 seconds...
+  Trace saved: C:\Users\L\AppData\Local\Temp\audio_dpc_trace.etl (50 MB)
+
+  --- Top DPC Contributors (by module) ---
+
+  --- Top ISR Contributors (by module) ---
+
+  Full trace at: C:\Users\L\AppData\Local\Temp\audio_dpc_trace.etl
+  Open with WPA for detailed analysis: wpa.exe C:\Users\L\AppData\Local\Temp\audio_dpc_trace.etl
+
+============================================
+  AUDIT COMPLETE
+============================================

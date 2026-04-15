@@ -1,26 +1,28 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    EXP12: Post-Driver-Update NIC Re-tuning
+    EXP12: Post-Driver-Update NIC Re-tuning (Nagle + Wake settings)
 .DESCRIPTION
     After I226-V driver update from 1.1.4.42 (Win10) to 2.1.5.7 (Win11),
     the driver created a new interface GUID, wiping per-interface Nagle
-    disable and interrupt affinity settings. TCP global settings survived.
+    disable settings. TCP global settings survived.
 
     This script:
-    1. Captures a baseline with the new driver (pre-tweak)
+    1. Captures current NIC state for backup
     2. Re-applies Nagle disable (TcpAckFrequency=1, TCPNoDelay=1)
-    3. Re-applies NIC interrupt affinity (CPUs 4-7, mask=0xF0)
-    4. Disables WakeOnMagicPacketFromS5
-    5. Captures a post-tweak measurement
+    3. Disables WakeOnMagicPacketFromS5
+
+    NOTE: NIC interrupt affinity is now managed by fix_gpu_affinity.ps1 -Apply.
+    This script only handles Nagle and Wake settings.
 
     Settings preserved by driver update (no action needed):
     - EEE=Off, FlowControl=Disabled, InterruptModeration=Disabled
     - Speed=1Gbps, LSO=Disabled, IPv6=Disabled
     - TCP global: auto-tuning=restricted, timestamps=disabled, RSC=disabled, InitialRTO=300
 .NOTES
-    Reboot: YES — interrupt affinity requires reboot
+    Reboot: NO (Nagle + Wake take effect immediately)
     Rollback: Run the rollback commands in the backup file
+    For NIC interrupt affinity: use fix_gpu_affinity.ps1 -Apply (requires reboot)
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -60,20 +62,15 @@ $lines += ('# Rollback: Remove-ItemProperty "' + $ifPath + '" -Name TcpAckFreque
 $lines += ('# Rollback: Remove-ItemProperty "' + $ifPath + '" -Name TCPNoDelay -ErrorAction SilentlyContinue')
 $lines += ''
 
-$lines += '# --- Interrupt Affinity ---'
-$lines += ('# PnP ID: ' + $nicPnp)
+$lines += '# --- Interrupt Affinity (informational) ---'
+$lines += '# NOTE: NIC affinity is managed by fix_gpu_affinity.ps1'
+$affinityPath = 'HKLM:\SYSTEM\CurrentControlSet\Enum\' + $nicPnp + '\Device Parameters\Interrupt Management\Affinity Policy'
 if (Test-Path $affinityPath) {
     $affProps = Get-ItemProperty $affinityPath -ErrorAction SilentlyContinue
-    $lines += ('# DevicePolicy: ' + $affProps.DevicePolicy)
-    $hexBytes = ''
-    if ($affProps.AssignmentSetOverride) {
-        $hexBytes = ($affProps.AssignmentSetOverride | ForEach-Object { '{0:X2}' -f $_ }) -join ' '
-    }
-    $lines += ('# AssignmentSetOverride: ' + $hexBytes)
+    $lines += ('# Current DevicePolicy: ' + $affProps.DevicePolicy)
 } else {
-    $lines += '# (affinity path does not exist — using defaults)'
+    $lines += '# (no affinity policy set - run fix_gpu_affinity.ps1 -Apply)'
 }
-$lines += ('# Rollback: Remove-Item "' + $affinityPath + '" -Recurse -ErrorAction SilentlyContinue')
 $lines += ''
 
 $lines += '# --- WakeOnMagicPacketFromS5 ---'
@@ -107,22 +104,9 @@ $verify = Get-ItemProperty $ifPath -ErrorAction SilentlyContinue
 Write-Host ('  Verify TcpAckFrequency: ' + $verify.TcpAckFrequency)
 Write-Host ('  Verify TCPNoDelay: ' + $verify.TCPNoDelay)
 
-# --- 2. Re-apply Interrupt Affinity (CPUs 4-7) ---
+# --- 2. Disable WakeOnMagicPacketFromS5 ---
 Write-Host ''
-Write-Host '[2/3] Re-applying NIC interrupt affinity (CPUs 4-7, mask=0xF0)...' -ForegroundColor Yellow
-Write-Host '  NOTE: Requires reboot to take effect'
-
-if (-not (Test-Path $affinityPath)) {
-    New-Item -Path $affinityPath -Force | Out-Null
-}
-Set-ItemProperty -Path $affinityPath -Name DevicePolicy -Value 4 -Type DWord
-Set-ItemProperty -Path $affinityPath -Name AssignmentSetOverride -Value ([byte[]](0xF0, 0x00)) -Type Binary
-Write-Host '  DevicePolicy = 4 (IrqPolicySpecifiedProcessors)' -ForegroundColor Green
-Write-Host '  AssignmentSetOverride = F0 00 (CPUs 4-7)' -ForegroundColor Green
-
-# --- 3. Disable WakeOnMagicPacketFromS5 ---
-Write-Host ''
-Write-Host '[3/3] Disabling WakeOnMagicPacketFromS5...' -ForegroundColor Yellow
+Write-Host '[2/2] Disabling WakeOnMagicPacketFromS5...' -ForegroundColor Yellow
 
 $wakeS5Prop = Get-NetAdapterAdvancedProperty -Name 'Ethernet' -RegistryKeyword 'WakeOnMagicPacketFromS5' -ErrorAction SilentlyContinue
 if ($wakeS5Prop) {
@@ -140,14 +124,13 @@ Write-Host '=== EXP12 Applied ===' -ForegroundColor Cyan
 Write-Host ''
 Write-Host 'Changes applied:' -ForegroundColor White
 Write-Host '  [1] Nagle disable re-applied (TcpAckFrequency=1, TCPNoDelay=1)'
-Write-Host '  [2] NIC interrupt affinity re-applied (CPUs 4-7, REBOOT REQUIRED)'
-Write-Host '  [3] WakeOnMagicPacketFromS5 disabled'
+Write-Host '  [2] WakeOnMagicPacketFromS5 disabled'
 Write-Host ''
 Write-Host 'Settings already correct (no changes):' -ForegroundColor DarkGray
 Write-Host '  EEE=Off, FlowControl=Disabled, InterruptModeration=Disabled'
 Write-Host '  Speed=1Gbps, LSO=Disabled, IPv6=Disabled'
 Write-Host '  TCP global: auto-tuning=restricted, timestamps=disabled, RSC=disabled, InitialRTO=300'
 Write-Host ''
-Write-Host 'REBOOT REQUIRED for interrupt affinity change.' -ForegroundColor Yellow
+Write-Host 'For NIC interrupt affinity: fix_gpu_affinity.ps1 -Apply (requires reboot)' -ForegroundColor DarkGray
 Write-Host ''
 Write-Host ('Rollback: see ' + $backupFile) -ForegroundColor DarkGray

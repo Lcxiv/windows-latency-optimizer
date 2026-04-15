@@ -1,0 +1,78 @@
+﻿============================================
+  GPU INTERRUPT AFFINITY FIX
+  2026-04-14 16:10:35
+============================================
+
+=== FINDING DEVICES ===
+  GPU:       NVIDIA GeForce RTX 5070 Ti
+             PCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1\253C1C6A232DB04800
+  NIC:       Intel(R) Ethernet Controller I226-V
+             PCI\VEN_8086&DEV_125C&SUBSYS_88671043&REV_06\60CF84FFFF629DF700
+  Audio Ctrl: High Definition Audio Controller
+             PCI\VEN_1002&DEV_1640&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0141
+  Audio Ctrl: High Definition Audio Controller
+             PCI\VEN_10DE&DEV_22E9&SUBSYS_000010DE&REV_A1\4&1BABDF5B&0&0109
+  USB:       AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+             PCI\VEN_1022&DEV_15B7&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0441
+  USB:       AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+             PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\8&14937218&0&006000400011
+  USB:       AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+             PCI\VEN_1022&DEV_15B6&SUBSYS_88771043&REV_00\4&1EBE6A9C&0&0341
+  USB:       AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+             PCI\VEN_1022&DEV_43F7&SUBSYS_11421B21&REV_01\6&2AF91C3C&0&00600011
+  USB:       AMD USB 2.0 eXtensible Host Controller - 1.20 (Microsoft)
+             PCI\VEN_1022&DEV_15B8&SUBSYS_88771043&REV_00\4&89701DF&0&0043
+
+=== CURRENT AFFINITY STATE ===
+  GPU: NVIDIA GeForce RTX 5070 Ti
+    Policy: Unknown ()
+    Affinity Mask: Not set (OS default)
+    MSI Supported: 1
+    Message Limit: 1
+
+  NIC: Intel(R) Ethernet Controller I226-V
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0xF000
+    CPUs: 4, 5, 6, 7
+    MSI Supported: 1
+    Message Limit: 5
+
+  NVIDIA Audio Controller: High Definition Audio Controller
+    Policy: Unknown ()
+    Affinity Mask: Not set (OS default)
+    MSI Supported: 1
+
+  USB: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0x0C00000000000000
+    CPUs: 2, 3
+    MSI Supported: 1
+
+  USB: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0xF000000000000000
+    CPUs: 4, 5, 6, 7
+    MSI Supported: 1
+
+  USB: AMD USB 3.10 eXtensible Host Controller - 1.20 (Microsoft)
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0x0C00000000000000
+    CPUs: 2, 3
+    MSI Supported: 1
+
+  USB: AMD USB 3.20 eXtensible Host Controller - 1.10 (Microsoft)
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0x0C00000000000000
+    CPUs: 2, 3
+    MSI Supported: 1
+
+  USB: AMD USB 2.0 eXtensible Host Controller - 1.20 (Microsoft)
+    Policy: Spread Messages Across All Processors
+    Affinity Mask: 0xF000000000000000
+    CPUs: 4, 5, 6, 7
+    MSI Supported: 1
+
+
+============================================
+  COMPLETE
+============================================

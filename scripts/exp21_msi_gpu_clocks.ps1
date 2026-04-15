@@ -1,13 +1,13 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    EXP21: Re-enable MSI interrupts for GPU + lock GPU clocks to reduce DPC latency.
+    EXP21: Lock GPU clocks to reduce P-state transition DPC latency.
 .DESCRIPTION
-    NVIDIA driver updates silently reset MSISupported to 0, forcing shared IRQ line-based
-    interrupts. Shared lines add latency (CPU polls "was this mine?") to every GPU interrupt.
-    MSI uses dedicated interrupt vectors — no sharing, no polling overhead.
     GPU clock locking prevents P-state transition DPCs that stall input processing.
-    MSI change requires reboot. Clock lock is immediate but resets on reboot/driver restart.
+    Clock lock is immediate but resets on reboot/driver restart.
+
+    NOTE: MSI interrupts are now managed by fix_gpu_affinity.ps1 -Apply.
+    This script only handles GPU clock locking.
 .EXAMPLE
     .\exp21_msi_gpu_clocks.ps1
     .\exp21_msi_gpu_clocks.ps1 -WhatIf
@@ -20,38 +20,35 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $backupDir = Join-Path (Split-Path (Split-Path $MyInvocation.MyCommand.Path -Parent) -Parent) 'captures'
-$backupFile = Join-Path $backupDir ('backup_pre_exp21_msi_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.txt')
+$backupFile = Join-Path $backupDir ('backup_pre_exp21_clocks_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.txt')
 
 Write-Host ''
-Write-Host '=== EXP21: GPU MSI Interrupts + Clock Lock ===' -ForegroundColor Cyan
+Write-Host '=== EXP21: GPU Clock Lock ===' -ForegroundColor Cyan
 
-# --- Find GPU PCI device ---
+# --- Check MSI status (informational only) ---
 $gpuPciKey = Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI' -ErrorAction SilentlyContinue |
     Where-Object { $_.PSChildName -like '*VEN_10DE*' } | Select-Object -First 1
-if (-not $gpuPciKey) {
+if ($gpuPciKey) {
+    $gpuInstKey = Get-ChildItem $gpuPciKey.PSPath | Select-Object -First 1
+    $msiPath = Join-Path $gpuInstKey.PSPath 'Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
+    $currentMSI = 0
+    if (Test-Path $msiPath) {
+        $currentMSI = (Get-ItemProperty $msiPath -ErrorAction SilentlyContinue).MSISupported
+    }
+    $msiStatus = 'Enabled'
+    if ($currentMSI -ne 1) { $msiStatus = 'DISABLED - run fix_gpu_affinity.ps1 -Apply to enable' }
+    Write-Host ('  GPU: ' + $gpuPciKey.PSChildName)
+    Write-Host ('  MSI: ' + $msiStatus)
+} else {
     Write-Host '  ERROR: No NVIDIA GPU found in PCI registry' -ForegroundColor Red
     return
 }
-$gpuInstKey = Get-ChildItem $gpuPciKey.PSPath | Select-Object -First 1
-$msiPath = Join-Path $gpuInstKey.PSPath 'Device Parameters\Interrupt Management\MessageSignaledInterruptProperties'
-
-# Read current MSI state
-$currentMSI = 0
-if (Test-Path $msiPath) {
-    $currentMSI = (Get-ItemProperty $msiPath -ErrorAction SilentlyContinue).MSISupported
-}
-$msiDesc = if ($currentMSI -eq 1) { 'Enabled' } else { 'Disabled' }
-Write-Host ('  GPU: ' + $gpuPciKey.PSChildName)
-Write-Host ('  MSI: ' + $currentMSI + ' (' + $msiDesc + ')')
 
 # --- Revert ---
 if ($Revert) {
     Write-Host ''
-    Write-Host '  Reverting MSI to disabled (0)...' -ForegroundColor Yellow
+    Write-Host '  Unlocking GPU clocks...' -ForegroundColor Yellow
     if (-not $WhatIf) {
-        Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 0 -Type DWord
-        Write-Host '  MSI reverted to 0. Reboot required.' -ForegroundColor Green
-        # Unlock clocks
         $nvsmi = 'C:\Windows\System32\nvidia-smi.exe'
         if (Test-Path $nvsmi) {
             & $nvsmi -rgc 2>&1 | Out-Null
@@ -59,48 +56,24 @@ if ($Revert) {
             Write-Host '  GPU clocks unlocked.' -ForegroundColor Green
         }
     } else {
-        Write-Host '  [WhatIf] Would set MSISupported = 0 and unlock clocks' -ForegroundColor Yellow
+        Write-Host '  [WhatIf] Would unlock GPU core and memory clocks' -ForegroundColor Yellow
     }
     return
 }
 
-if ($currentMSI -eq 1) {
-    Write-Host '  MSI already enabled — skipping registry change.' -ForegroundColor Green
-} else {
-    # Backup
-    Write-Host ''
-    Write-Host '  Backing up current values...' -ForegroundColor Yellow
-    $backupContent = @(
-        '# EXP21 Backup — GPU MSI + Clock Lock'
-        '# Created: ' + (Get-Date).ToString('o')
-        '# Rollback: .\scripts\exp21_msi_gpu_clocks.ps1 -Revert'
-        ''
-        '# MSI was: ' + $currentMSI + ' (' + $msiDesc + ')'
-        '# Registry: ' + $msiPath.Replace('Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE','HKLM:')
-        ''
-        '# Manual revert:'
-        '# Set-ItemProperty -Path "' + $msiPath.Replace('Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE','HKLM:') + '" -Name MSISupported -Value 0 -Type DWord'
-        '# nvidia-smi -rgc   # unlock core clocks'
-        '# nvidia-smi -rmc   # unlock memory clocks'
-    )
-    if (-not $WhatIf) {
-        $backupContent | Out-File -FilePath $backupFile -Encoding UTF8
-        Write-Host ('  Backup: ' + $backupFile) -ForegroundColor Green
-    }
-
-    # Apply MSI
-    Write-Host ''
-    if ($WhatIf) {
-        Write-Host '  [WhatIf] Would set MSISupported = 1' -ForegroundColor Yellow
-    } else {
-        Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 1 -Type DWord
-        $verify = (Get-ItemProperty $msiPath).MSISupported
-        if ($verify -eq 1) {
-            Write-Host '  Applied: MSISupported = 1 (Enabled)' -ForegroundColor Green
-        } else {
-            Write-Host '  ERROR: MSI value did not change' -ForegroundColor Red
-        }
-    }
+# --- Backup ---
+$backupContent = @(
+    '# EXP21 Backup - GPU Clock Lock',
+    ('# Created: ' + (Get-Date).ToString('o')),
+    '# Rollback: .\scripts\exp21_msi_gpu_clocks.ps1 -Revert',
+    '',
+    '# Manual revert:',
+    '# nvidia-smi -rgc   # unlock core clocks',
+    '# nvidia-smi -rmc   # unlock memory clocks'
+)
+if (-not $WhatIf) {
+    $backupContent | Out-File -FilePath $backupFile -Encoding UTF8
+    Write-Host ('  Backup: ' + $backupFile) -ForegroundColor Green
 }
 
 # --- GPU Clock Lock ---
@@ -121,13 +94,10 @@ if (Test-Path $nvsmi) {
 }
 
 Write-Host ''
-if ($currentMSI -ne 1) {
-    Write-Host '  IMPORTANT: Reboot required for MSI change.' -ForegroundColor Red
-}
 Write-Host '  GPU clock lock is immediate but resets on reboot.' -ForegroundColor Yellow
-Write-Host '  After reboot, re-run clock lock and mouse diagnostic:' -ForegroundColor Cyan
+Write-Host '  After reboot, re-run clock lock:' -ForegroundColor Cyan
 Write-Host '    nvidia-smi -lgc 2820,2820' -ForegroundColor Cyan
-Write-Host '    .\scripts\diagnose-mouse.ps1 -DurationSec 10' -ForegroundColor Cyan
 Write-Host ''
 Write-Host '  To revert: .\scripts\exp21_msi_gpu_clocks.ps1 -Revert' -ForegroundColor Yellow
+Write-Host '  For MSI/affinity: .\scripts\fix_gpu_affinity.ps1 -Apply' -ForegroundColor DarkGray
 Write-Host ''

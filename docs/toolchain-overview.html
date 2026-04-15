@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Latency Optimizer — Toolchain Overview</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --text-muted: #8b949e; --text-bright: #f0f6fc;
+    --accent: #58a6ff; --green: #3fb950; --yellow: #d29922;
+    --red: #f85149; --purple: #bc8cff; --orange: #db6d28;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.6 'Segoe UI', system-ui, sans-serif; padding: 2rem; max-width: 1400px; margin: 0 auto; }
+  h1 { color: var(--text-bright); font-size: 2rem; margin-bottom: 0.25rem; }
+  h1 small { font-size: 0.9rem; color: var(--text-muted); font-weight: normal; }
+  h2 { color: var(--accent); font-size: 1.4rem; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h3 { color: var(--purple); font-size: 1.1rem; margin: 1.5rem 0 0.75rem; }
+  p, li { color: var(--text); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Nav */
+  .nav { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.5rem 0 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+  .nav a { font-size: 0.85rem; padding: 0.25rem 0.5rem; border-radius: 4px; }
+  .nav a:hover { background: #21262d; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1rem; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0 1.5rem; font-size: 0.88rem; }
+  th { background: #21262d; color: var(--text-bright); text-align: left; padding: 0.6rem 0.75rem; border: 1px solid var(--border); font-weight: 600; position: sticky; top: 0; }
+  td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #1c2128; }
+  .mono { font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; color: var(--green); }
+  .tag { display: inline-block; font-size: 0.72rem; padding: 0.1rem 0.45rem; border-radius: 10px; margin: 0.1rem; font-weight: 600; }
+  .tag-admin { background: #f8514922; color: var(--red); border: 1px solid #f8514944; }
+  .tag-nonadmin { background: #3fb95022; color: var(--green); border: 1px solid #3fb95044; }
+  .tag-tool { background: #58a6ff22; color: var(--accent); border: 1px solid #58a6ff44; }
+  .tag-reboot { background: #d2992222; color: var(--yellow); border: 1px solid #d2992244; }
+  .tag-cat { background: #bc8cff22; color: var(--purple); border: 1px solid #bc8cff44; }
+
+  /* Flow diagram */
+  .flow { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; font-family: 'Cascadia Code', monospace; font-size: 0.82rem; line-height: 1.5; white-space: pre; overflow-x: auto; color: var(--text-muted); }
+  .flow .hl { color: var(--accent); }
+  .flow .grn { color: var(--green); }
+  .flow .ylw { color: var(--yellow); }
+  .flow .rd { color: var(--red); }
+  .flow .prp { color: var(--purple); }
+
+  /* Sections */
+  .metric { display: inline-block; background: #21262d; padding: 0.2rem 0.6rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin: 0.15rem; }
+  .stat-row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0.75rem 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 1rem; text-align: center; min-width: 120px; }
+  .stat .num { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat .lbl { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Collapsible */
+  details { margin: 0.5rem 0; }
+  summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: 0.4rem 0; }
+  summary:hover { color: var(--text-bright); }
+
+  /* Footer */
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; text-align: center; }
+  .warn { background: #d2992215; border: 1px solid #d2992244; border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; color: var(--yellow); }
+  .info { background: #58a6ff15; border: 1px solid #58a6ff44; border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+  ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.25rem 0; }
+  code { background: #21262d; padding: 0.15rem 0.4rem; border-radius: 3px; font-family: 'Cascadia Code', monospace; font-size: 0.85em; color: var(--green); }
+</style>
+</head>
+<body>
+
+<h1>Windows Latency Optimizer <small>Toolchain Overview</small></h1>
+<p style="color:var(--text-muted); margin-top:0.25rem">Generated 2026-04-15 &mdash; 40+ scripts, 7 helper modules, interactive dashboard</p>
+
+<div class="stat-row">
+  <div class="stat"><div class="num">40+</div><div class="lbl">Scripts</div></div>
+  <div class="stat"><div class="num">7</div><div class="lbl">Helper Modules</div></div>
+  <div class="stat"><div class="num">17</div><div class="lbl">Experiments</div></div>
+  <div class="stat"><div class="num">39</div><div class="lbl">Captures</div></div>
+  <div class="stat"><div class="num">3</div><div class="lbl">Dashboard Views</div></div>
+</div>
+
+<nav class="nav">
+  <a href="#pipeline">Pipeline</a>
+  <a href="#helpers">Helper Modules</a>
+  <a href="#experiments">Experiment Scripts</a>
+  <a href="#analysis">Analysis &amp; Diagnostics</a>
+  <a href="#audio">Audio Tools</a>
+  <a href="#utility">Utilities</a>
+  <a href="#dashboard">Dashboard</a>
+  <a href="#dataflow">Data Flow</a>
+  <a href="#external">External Tools</a>
+  <a href="#workflows">Workflows</a>
+  <a href="#optimization">Optimization Recommendations</a>
+</nav>
+
+<!-- ============ PIPELINE ============ -->
+<h2 id="pipeline">1. Pipeline &amp; Capture Scripts</h2>
+<p>The core capture infrastructure. <code>pipeline.ps1</code> is the master orchestrator; everything else is a lighter alternative.</p>
+
+<table>
+<tr>
+  <th style="width:22%">Script</th>
+  <th style="width:25%">Parameters</th>
+  <th>Purpose</th>
+  <th style="width:12%">Tags</th>
+</tr>
+<tr>
+  <td class="mono">pipeline.ps1</td>
+  <td><code>-Label</code> <code>-Description</code> <code>-DurationSec</code> (120) <code>-GameProcess</code> <code>-SkipWPR</code> <code>-SkipPresentMon</code></td>
+  <td><strong>Master orchestrator.</strong> 8-phase capture: WPR trace &rarr; perf counters (11 metrics) &rarr; PresentMon frames &rarr; GPU (nvidia-smi) &rarr; network latency &rarr; xperf dpcisr &rarr; registry snapshot &rarr; experiment.json &rarr; dashboard update. Supports Quick (30s), Standard (120s), Deep (300s) modes.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-tool">WPR</span> <span class="tag tag-tool">xperf</span></td>
+</tr>
+<tr>
+  <td class="mono">run_experiment.ps1</td>
+  <td><code>-Label</code> <code>-Description</code> <code>-DurationSec</code> (120) <code>-OutDir</code></td>
+  <td><strong>Lightweight experiment.</strong> Perf counters + registry snapshot only. No WPR/xperf. Faster for quick A/B comparisons.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">baseline_capture.ps1</td>
+  <td><code>-Label</code> (default "BASELINE")</td>
+  <td><strong>Quick 10s snapshot.</strong> Perf counters (processor, DPC, interrupt, memory, disk, context switches) + MMCSS/Defender registry. Outputs formatted text file.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">reboot_capture.ps1</td>
+  <td><code>-Phase Before|After</code> <code>-DurationSec</code> (10)</td>
+  <td><strong>Unified reboot A/B capture.</strong> Both phases: Razer status + GPU status + per-CPU counters + xperf DPC/ISR trace. <code>-Phase After</code> also verifies GPU affinity registry + finds latest baseline for comparison. <em>Replaces separate before/after scripts.</em></td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-tool">xperf</span></td>
+</tr>
+<tr>
+  <td class="mono">health-check.ps1</td>
+  <td>None</td>
+  <td><strong>60s health check.</strong> 7-component weighted score (0-100): DPC 25pts, bloat 20pts, SMI 15pts, memory 15pts, VRAM 10pts, BIOS 10pts, Defender 5pts. Generates self-contained HTML report and opens browser.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-tool">xperf</span></td>
+</tr>
+</table>
+
+<div class="info">
+  <strong>Which capture script to use?</strong>
+  <ul>
+    <li><strong>Full experiment:</strong> <code>pipeline.ps1 -Label X -Description Y</code> (120s, all metrics)</li>
+    <li><strong>Quick smoke test:</strong> <code>pipeline.ps1 -Label X -SkipWPR -DurationSec 5</code></li>
+    <li><strong>Fast A/B test:</strong> <code>run_experiment.ps1 -Label X</code> (no WPR/xperf)</li>
+    <li><strong>10s snapshot:</strong> <code>baseline_capture.ps1</code></li>
+    <li><strong>Before/after reboot:</strong> <code>before_reboot_capture.ps1</code> &rarr; reboot &rarr; <code>after_reboot_capture.ps1</code></li>
+    <li><strong>Overall health:</strong> <code>health-check.ps1</code> (HTML report)</li>
+  </ul>
+</div>
+
+<!-- ============ HELPERS ============ -->
+<h2 id="helpers">2. Helper Modules (scripts/helpers/)</h2>
+<p>Sourced by pipeline.ps1 and other scripts. Not run directly.</p>
+
+<table>
+<tr><th>Module</th><th>Key Functions</th><th>Purpose</th></tr>
+<tr>
+  <td class="mono">logging.ps1</td>
+  <td><code>Get-Stats</code>, timestamp formatting, level-based coloring</td>
+  <td>Core logging infrastructure (PASS/FAIL/WARN/INFO). <code>Get-Stats</code> computes avg/min/max/stdev on arrays.</td>
+</tr>
+<tr>
+  <td class="mono">capture-core.ps1</td>
+  <td><code>Start-WprCapture</code>, <code>Invoke-PerfCounterCapture</code>, <code>Find-ForegroundGame</code>, <code>Invoke-PresentMonCapture</code>, <code>Invoke-GpuCapture</code>, <code>Stop-WprAndAnalyze</code></td>
+  <td>All capture logic: WPR traces, per-CPU perf counter sampling, PresentMon frame timing, GPU utilization, xperf dpcisr/cswitch analysis.</td>
+</tr>
+<tr>
+  <td class="mono">capture-tools.ps1</td>
+  <td><code>Invoke-ProcMonCapture</code>, <code>Analyze-ProcMonCSV</code>, <code>Start-PktMonCapture</code>, <code>Start-DefenderRecording</code></td>
+  <td>Extended capture tools: ProcMon (file I/O), PktMon/tshark (network), Defender performance recording.</td>
+</tr>
+<tr>
+  <td class="mono">experiment.ps1</td>
+  <td><code>Parse-FrameCSV</code>, <code>Get-RegistrySnapshot</code>, <code>Save-ExperimentJson</code>, <code>Update-DashboardData</code></td>
+  <td>Data assembly: parses all capture outputs into unified experiment.json (schema v4), updates dashboard JS.</td>
+</tr>
+<tr>
+  <td class="mono">network.ps1</td>
+  <td><code>Invoke-NetworkLatencyCapture</code>, <code>Test-Bufferbloat</code>, <code>Get-ConnectionQualityScore</code></td>
+  <td>Network diagnostics: 60 ping samples to Epic/Cloudflare servers, bufferbloat test, quality scoring (0-100).</td>
+</tr>
+<tr>
+  <td class="mono">smi-detect.ps1</td>
+  <td><code>Invoke-SmiGapCapture</code>, <code>Find-SmiBlackouts</code>, <code>Get-SmiCorrelation</code></td>
+  <td>Detects System Management Interrupts: 10s xperf trace, looks for &gt;1024us DPC buckets, per-CPU coefficient of variation.</td>
+</tr>
+<tr>
+  <td class="mono">topology.ps1</td>
+  <td><code>ConvertTo-AffinityMask</code>, <code>Get-CpuTopology</code></td>
+  <td>CPU topology detection: hybrid P/E-core aware, 9800X3D optimized 4-group layout (preferred/input/bulk/game).</td>
+</tr>
+<tr>
+  <td class="mono">gpu-vendor.ps1</td>
+  <td><code>Get-GpuInfo</code>, <code>Get-GpuRegistrySnapshot</code>, <code>Get-GpuDpcAlertDrivers</code></td>
+  <td>GPU vendor detection (NVIDIA/AMD/Intel), MSI mode check, driver module watchlist.</td>
+</tr>
+<tr>
+  <td class="mono">config.ps1</td>
+  <td>Global variables: <code>$ExperimentsDir</code>, <code>$CaptureRoot</code>, <code>$ToolPaths</code>, <code>$CounterNameMap</code></td>
+  <td>Central configuration: paths, perf counter name mappings (11 counters).</td>
+</tr>
+</table>
+
+<!-- ============ EXPERIMENTS ============ -->
+<h2 id="experiments">3. Experiment Apply Scripts</h2>
+<p>Each applies a specific optimization. All create rollback backups in <code>captures/backup_pre_*.txt</code>.</p>
+
+<table>
+<tr><th>Script</th><th>What It Changes</th><th>Tags</th></tr>
+<tr>
+  <td class="mono">exp05_nvidia_apply.ps1</td>
+  <td>NVCP Low Latency Ultra, Shader Cache Unlimited, NVIDIA Reflex setup. <em>Manual steps only — cannot automate NVCP.</em></td>
+  <td><span class="tag tag-nonadmin">MANUAL</span></td>
+</tr>
+<tr>
+  <td class="mono">exp07_cstates_guide.ps1</td>
+  <td>BIOS: Enable Global C-states (CBS &rarr; CPU Common). <em>Manual BIOS entry required.</em></td>
+  <td><span class="tag tag-nonadmin">MANUAL</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp08_tcp_tuning_apply.ps1</td>
+  <td>TCP: autotuninglevel=restricted, timestamps=disabled, RSC=disabled, initialRto=300ms via netsh.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">exp09_hpet_apply.ps1</td>
+  <td>Disables HPET: <code>bcdedit /deletevalue useplatformclock</code>. Forces TSC (zero PCIe round-trip).</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp10_memcompression_apply.ps1</td>
+  <td>Disables memory compression: <code>Disable-MMAgent -MemoryCompression</code>. Reduces DPC from decompression.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp11_stutter_fixes_apply.ps1</td>
+  <td>5-part KB5077181 stutter fix: FSO disable, MPO disable, Hyper-V off, CFG off for Fortnite, shader cache clear.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp12_nic_retuning_apply.ps1</td>
+  <td>Re-applies Nagle disable + NIC interrupt affinity (CPUs 4-7) after driver GUID wipe.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp12_nic_framepacing_apply.ps1</td>
+  <td>I226-V: force 1Gbps Full Duplex, disable Selective Suspend, idle timeout 60s, disable IPv6.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">exp13_fso_mitigation_apply.ps1</td>
+  <td>Batch FSO disable for all detected games (Fortnite, CS2, VALORANT, Apex, etc.).</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">exp15_latency_mitigations_apply.ps1</td>
+  <td>Disables autologgers (LwtNetLog, DiagTrack), Defender exclusions (games, DWM, NVIDIA), GPU PerfLevelSrc=0x2222.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp16_dns_optimize_apply.ps1</td>
+  <td>DNS to Cloudflare (1.1.1.1), benchmarks before/after, pre-resolves game hostnames.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">exp19_defender_gaming_exclusions.ps1</td>
+  <td>Defender process/path exclusions for Fortnite, EAC, Epic Launcher, etc.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">exp20_disable_hags.ps1</td>
+  <td>Disables HAGS (HwSchMode=1). Supports <code>-Revert</code> and <code>-WhatIf</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">exp21_msi_gpu_clocks.ps1</td>
+  <td>Enables GPU MSI interrupts + locks GPU core/memory clocks. <code>-Revert</code> / <code>-WhatIf</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">fix_gpu_affinity.ps1</td>
+  <td>GPU/NIC/USB/Audio interrupt affinity: GPU&rarr;CPUs 4-7, NIC&rarr;4-5, Audio&rarr;6, USB&rarr;2-3. <code>-Apply</code> / <code>-CheckOnly</code> / <code>-KillRazer</code> / <code>-Revert</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span></td>
+</tr>
+<tr>
+  <td class="mono">optimize-bios.ps1</td>
+  <td>6-phase BIOS optimization via SCEWIN: C-states, PBO, Curve Optimizer, FCLK, RAM timings. <code>-Audit</code> / <code>-Apply</code> / <code>-Restore</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span> <span class="tag tag-reboot">REBOOT</span> <span class="tag tag-tool">SCEWIN</span></td>
+</tr>
+<tr>
+  <td class="mono">optimize-game.ps1</td>
+  <td>Game-specific optimizations (process priority, affinity, timer resolution).</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">disable_razer_startup.ps1</td>
+  <td>Permanently disables Razer services, scheduled tasks, startup registry entries. Kills all processes.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">fix_razer_polling.ps1</td>
+  <td>Configures Razer mouse polling rate (separate from disabling).</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+</table>
+
+<!-- ============ ANALYSIS ============ -->
+<h2 id="analysis">4. Analysis &amp; Diagnostic Scripts</h2>
+
+<table>
+<tr><th>Script</th><th>Input</th><th>Output</th><th>Purpose</th></tr>
+<tr>
+  <td class="mono">audit.ps1</td>
+  <td>System state (registry, WMI)</td>
+  <td><code>audit_*.json</code>, <code>audit_*.html</code>, <code>fix_*.ps1</code>, <code>history.csv</code></td>
+  <td><strong>32-check system audit.</strong> Modes: Quick / Deep. Symptom targeting: MouseFreezing, FrameDrops, GeneralSluggishness. Auto-generates fix script for FAIL/WARN items. Tracks history for sparkline trending.</td>
+</tr>
+<tr>
+  <td class="mono">analyze-input-latency.ps1</td>
+  <td>ETL trace file</td>
+  <td><code>input_latency_analysis.json</code></td>
+  <td>4-stage input pipeline: DPC/ISR histogram, per-provider event counts (Win32k, DWM, DxgKrnl, HID, USB), DWM frame timing, stutter-to-DPC correlation, HID input gap detection.</td>
+</tr>
+<tr>
+  <td class="mono">analyze-dpc-deep.ps1</td>
+  <td>dpcisr_report.txt (+ optional input gaps JSON)</td>
+  <td><code>dpc_deep_analysis.json</code></td>
+  <td>Per-CPU DPC heatmap, per-module latency histogram (&gt;512us flagged), input gap correlation. Optional GPUView capture.</td>
+</tr>
+<tr>
+  <td class="mono">diagnose-mouse.ps1</td>
+  <td>10s ETW trace (auto-captured)</td>
+  <td><code>mouse_diagnostic.json</code></td>
+  <td>Mouse-specific: detects model (Razer/Logitech/SteelSeries), captures HID events, calls analyze-input-latency for gap metrics.</td>
+</tr>
+<tr>
+  <td class="mono">analyze_procmon.ps1</td>
+  <td>ProcMon CSV export</td>
+  <td>Terminal output</td>
+  <td>File I/O analysis: top processes, file hotspots, Defender activity, failed operations.</td>
+</tr>
+<tr>
+  <td class="mono">profile-nsight.ps1</td>
+  <td>Game process (15s capture)</td>
+  <td><code>nsight_profile.json</code>, SQLite DB, .nsys-rep</td>
+  <td>NVIDIA Nsight Systems profiling: WDDM+DX12+ISR traces, GPU utilization, opens visual timeline.</td>
+</tr>
+<tr>
+  <td class="mono">parse_xperf_trace.ps1</td>
+  <td>ETL trace file</td>
+  <td>DPC/ISR module summary</td>
+  <td>Standalone xperf dpcisr analysis for offline trace parsing.</td>
+</tr>
+</table>
+
+<!-- ============ AUDIO ============ -->
+<h2 id="audio">5. Audio-Specific Tools</h2>
+<p>Created during the audio buzzing investigation (2026-04-14).</p>
+
+<table>
+<tr><th>Script</th><th>What It Does</th><th>Admin?</th></tr>
+<tr>
+  <td class="mono">audio_diag.ps1</td>
+  <td><strong>Quick audio triage.</strong> Checks: audio drivers (WMI), sound devices, GPU status, MMCSS settings, audio services, known DPC offenders (Razer, Nahimic, SteelSeries, iCUE), 3 live DPC/interrupt samples, per-CPU distribution, power plan, Defender status.</td>
+  <td><span class="tag tag-nonadmin">NO</span></td>
+</tr>
+<tr>
+  <td class="mono">audio_fix_and_audit.ps1</td>
+  <td><strong>Three-phase admin tool.</strong> <code>-FixMMCSS</code>: sets SystemResponsiveness=0, NetworkThrottlingIndex=0xFFFFFFFF, Audio Priority=1/High/SFIO=High. <code>-CheckAffinity</code>: finds GPU/NIC/USB/Audio controllers, reads affinity policy, shows per-CPU interrupts. <code>-RunCapture</code>: xperf DPC/ISR trace. <code>-All</code>: runs all three phases.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+</table>
+
+<!-- ============ UTILITY ============ -->
+<h2 id="utility">6. Utility Scripts</h2>
+
+<table>
+<tr><th>Script</th><th>Purpose</th></tr>
+<tr>
+  <td class="mono">rollback.ps1</td>
+  <td>Restores from backup files. Validates cmdlets against allowlist (security). <code>-BackupFile</code> <code>-WhatIf</code>.</td>
+</tr>
+<tr>
+  <td class="mono">generate_dashboard_data.ps1</td>
+  <td>Scans all experiment.json files, normalizes perf counter names, generates <code>experiments_generated.js</code>.</td>
+</tr>
+<tr>
+  <td class="mono">cleanup-captures.ps1</td>
+  <td>Compresses old ETL files, optionally deletes originals. <code>-DaysOld</code> (30) <code>-RemoveOldEtl</code> <code>-WhatIf</code>.</td>
+</tr>
+<tr>
+  <td class="mono">test-all.ps1</td>
+  <td>Smoke tests: PS parser validation on all .ps1 files, XML validation on .wprp profiles, optional <code>cargo check</code>.</td>
+</tr>
+<tr>
+  <td class="mono">invoke-elevated.ps1</td>
+  <td><strong>Universal elevation wrapper.</strong> Runs any script as admin with output capture. <code>-Script &lt;path&gt;</code> <code>-Arguments &lt;string&gt;</code> <code>-OutputFile &lt;path&gt;</code>. Auto-generates timestamped output filename. <em>Replaces 5 separate run_*.ps1 wrappers.</em></td>
+</tr>
+</table>
+
+<!-- ============ DASHBOARD ============ -->
+<h2 id="dashboard">7. Dashboard</h2>
+<p>Self-contained HTML + vanilla JS. Works from <code>file://</code> — no server needed.</p>
+
+<div class="card-grid">
+<div class="card">
+  <h3>Table View</h3>
+  <p>All experiments in sortable table. Tag filter bar, checkbox selection for compare, metric timeline chart (line graph, switchable metric).</p>
+  <p><strong>Columns:</strong> Name, Date, Tags, DPC%, Interrupt%, FPS, Frame Time p99, CPU%, Ping, Status</p>
+</div>
+<div class="card">
+  <h3>Detail View</h3>
+  <p>Single experiment deep dive. Summary cards, DPC/ISR bar charts, per-CPU interrupt distribution, frame timing, GPU utilization, network latency, registry snapshot.</p>
+  <p><strong>Charts:</strong> 10+ Chart.js instances per experiment</p>
+</div>
+<div class="card">
+  <h3>Compare View</h3>
+  <p>Side-by-side comparison of 2+ experiments. Grouped bar charts for per-CPU metrics, frame time percentiles, FPS. Registry diff table.</p>
+</div>
+</div>
+
+<h3>Data Sources</h3>
+<table>
+<tr><th>File</th><th>Source</th><th>Purpose</th></tr>
+<tr>
+  <td class="mono">dashboard/data/experiments.js</td>
+  <td>Hand-curated</td>
+  <td>Baseline + early experiments (exp00-exp07). <code>window.EXPERIMENTS</code></td>
+</tr>
+<tr>
+  <td class="mono">dashboard/data/experiments_generated.js</td>
+  <td>Auto-generated by <code>generate_dashboard_data.ps1</code></td>
+  <td>All pipeline captures. <code>window.EXPERIMENTS_GENERATED</code></td>
+</tr>
+</table>
+<p>Both arrays are merged into a single <code>window.EXPERIMENTS</code> at load time. Schema v3 with 47+ fields including optional <code>frameTiming</code>, <code>networkLatency</code>, <code>smiAnalysis</code>.</p>
+
+<!-- ============ DATA FLOW ============ -->
+<h2 id="dataflow">8. Data Flow</h2>
+
+<div class="flow"><span class="hl">pipeline.ps1</span> (Master Orchestrator)
+  |
+  |-- Phase 2: <span class="ylw">WPR.exe</span> &rarr; trace.etl
+  |-- Phase 3: <span class="grn">Perf Counters</span> (11 metrics x 10s samples)
+  |             <span class="grn">nvidia-smi</span> &rarr; GPU utilization
+  |             <span class="grn">PresentMon</span> &rarr; frames.csv &rarr; frameTiming
+  |             <span class="grn">Ping</span> &rarr; networkLatency
+  |-- Phase 4: <span class="ylw">xperf -a dpcisr</span> &rarr; dpcisr_report.txt
+  |             <span class="ylw">xperf -a cswitch</span> &rarr; cswitch_report.txt
+  |-- Phase 5: <span class="prp">Registry snapshot</span> (MMCSS, Defender, GPU, affinity)
+  |-- Phase 6: <span class="prp">Analysis</span> (topology groups, SMI detection)
+  |-- Phase 7: <span class="grn">Save</span> &rarr; experiment.json
+  |
+  v
+<span class="hl">captures/experiments/{timestamp}_{Label}/</span>
+  |- experiment.json     (schema v3, 47+ fields)
+  |- trace.etl           (WPR binary trace)
+  |- dpcisr_report.txt   (xperf DPC/ISR analysis)
+  |- cswitch_report.txt  (context switch analysis)
+  |- analysis.txt        (human-readable summary)
+  |- pipeline.log        (execution log)
+  |
+  v
+<span class="hl">generate_dashboard_data.ps1</span>
+  |- Scan all experiment.json files
+  |- Normalize perf counter names (11 mappings via CounterNameMap)
+  |- Build JS objects with generated IDs
+  |
+  v
+<span class="hl">dashboard/data/experiments_generated.js</span>
+  window.EXPERIMENTS_GENERATED = [...]
+  |
+  v
+<span class="hl">dashboard/index.html</span>
+  |- Load experiments.js (curated) + experiments_generated.js (auto)
+  |- Merge into window.EXPERIMENTS
+  |- Render via app.js + views/ (table | detail | compare)</div>
+
+<h3>Analysis Branch (Post-Capture)</h3>
+<div class="flow"><span class="hl">trace.etl</span> (from pipeline Phase 2)
+  |
+  |-- <span class="ylw">analyze-input-latency.ps1</span>
+  |     |- DPC/ISR histogram
+  |     |- Per-provider event counts (Win32k, DWM, DxgKrnl, HID, USB)
+  |     |- DWM frame timing extraction
+  |     |- Stutter-to-DPC correlation
+  |     |- HID input gap detection (&gt;4ms = flag)
+  |     &rarr; input_latency_analysis.json
+  |
+  |-- <span class="ylw">analyze-dpc-deep.ps1</span>
+  |     |- Per-CPU DPC heatmap
+  |     |- Per-module latency histogram (&gt;512us flagged)
+  |     |- Correlate input gaps with DPC drivers
+  |     &rarr; dpc_deep_analysis.json
+  |
+  |-- <span class="ylw">diagnose-mouse.ps1</span> (wraps analyze-input-latency)
+        |- Detect mouse model via USB VID
+        |- 10s WPR trace &rarr; HID gap analysis
+        &rarr; mouse_diagnostic.json</div>
+
+<!-- ============ EXTERNAL TOOLS ============ -->
+<h2 id="external">9. External Tool Dependencies</h2>
+
+<table>
+<tr><th>Tool</th><th>Source</th><th>Used By</th><th>Required?</th></tr>
+<tr>
+  <td class="mono">xperf.exe</td>
+  <td>Windows ADK (Performance Toolkit)</td>
+  <td>pipeline, before/after_reboot, audio_fix, analyze-input-latency, analyze-dpc-deep, smi-detect, health-check</td>
+  <td><strong>Yes</strong> — core DPC/ISR analysis</td>
+</tr>
+<tr>
+  <td class="mono">WPR.exe</td>
+  <td>Windows built-in</td>
+  <td>pipeline (Phase 2), diagnose-mouse</td>
+  <td>Yes (unless <code>-SkipWPR</code>)</td>
+</tr>
+<tr>
+  <td class="mono">nvidia-smi.exe</td>
+  <td>NVIDIA Driver</td>
+  <td>pipeline, before/after_reboot, audio_diag, health-check</td>
+  <td>Yes (for NVIDIA GPUs)</td>
+</tr>
+<tr>
+  <td class="mono">PresentMon.exe</td>
+  <td>Microsoft (via FrameView)</td>
+  <td>pipeline (optional)</td>
+  <td>Optional — frame timing only</td>
+</tr>
+<tr>
+  <td class="mono">Procmon64.exe</td>
+  <td>Sysinternals</td>
+  <td>pipeline (optional), analyze_procmon</td>
+  <td>Optional — file I/O analysis</td>
+</tr>
+<tr>
+  <td class="mono">tshark.exe</td>
+  <td>Wireshark</td>
+  <td>capture-tools (PktMon analysis)</td>
+  <td>Optional — network packet analysis</td>
+</tr>
+<tr>
+  <td class="mono">SCEWIN_64.exe</td>
+  <td>AMD BIOS Tweaks (CatGamerOP)</td>
+  <td>optimize-bios</td>
+  <td>Optional — BIOS from Windows</td>
+</tr>
+<tr>
+  <td class="mono">nsys.exe</td>
+  <td>NVIDIA Nsight Systems (free)</td>
+  <td>profile-nsight</td>
+  <td>Optional — GPU profiling</td>
+</tr>
+</table>
+
+<!-- ============ WORKFLOWS ============ -->
+<h2 id="workflows">10. Common Workflows</h2>
+
+<h3>A) Full Experiment (Measure an Optimization)</h3>
+<div class="flow">1. <span class="grn">pipeline.ps1 -Label "BEFORE" -Description "Pre-change baseline"</span>
+2. Apply change (run exp##_*.ps1 or manual)
+3. Reboot if needed
+4. <span class="grn">pipeline.ps1 -Label "AFTER" -Description "Post-change measurement"</span>
+5. Open dashboard &rarr; Compare View &rarr; select both experiments
+6. <span class="prp">generate_dashboard_data.ps1</span> (auto-called by pipeline)</div>
+
+<h3>B) Audio Debugging</h3>
+<div class="flow">1. <span class="grn">audio_diag.ps1</span> (quick triage, no admin)
+2. <span class="ylw">invoke-elevated.ps1 -Script audio_fix_and_audit.ps1 -Arguments '-All'</span>
+3. <span class="ylw">fix_gpu_affinity.ps1 -Apply -KillRazer</span> (route GPU off CPU 0)
+4. <span class="grn">invoke-elevated.ps1 -Script reboot_capture.ps1 -Arguments '-Phase Before'</span>
+5. Reboot
+6. <span class="grn">invoke-elevated.ps1 -Script reboot_capture.ps1 -Arguments '-Phase After'</span>
+7. Compare CPU 0 DPC% before vs after</div>
+
+<h3>C) Quick Health Check</h3>
+<div class="flow">1. <span class="grn">health-check.ps1</span> (60s, opens HTML report)
+   OR
+1. <span class="grn">audit.ps1 -Mode Quick</span> (32 checks, generates fix script)</div>
+
+<h3>D) Mouse Stutter Investigation</h3>
+<div class="flow">1. <span class="ylw">diagnose-mouse.ps1</span> (10s HID capture)
+2. <span class="ylw">analyze-input-latency.ps1 -EtlFile trace.etl</span> (full pipeline)
+3. <span class="ylw">analyze-dpc-deep.ps1</span> (correlate DPC drivers with input gaps)
+4. Fix identified driver &rarr; re-test</div>
+
+<h3>E) Razer Cleanup + Affinity Fix</h3>
+<div class="flow">1. <span class="rd">invoke-elevated.ps1 -Script disable_razer_startup.ps1</span>
+2. <span class="ylw">fix_gpu_affinity.ps1 -Apply</span> (interrupt routing)
+3. Reboot
+4. <span class="grn">invoke-elevated.ps1 -Script reboot_capture.ps1 -Arguments '-Phase After'</span></div>
+
+<!-- ============ OPTIMIZATION ============ -->
+<h2 id="optimization">11. Optimization Recommendations</h2>
+
+<div class="info">
+<strong>Consolidations Applied (2026-04-15)</strong>
+<ul>
+  <li><s><code>before_reboot_capture.ps1</code> + <code>after_reboot_capture.ps1</code></s> &rarr; <strong><code>reboot_capture.ps1 -Phase Before|After</code></strong></li>
+  <li><s>5 x <code>run_*.ps1</code> wrappers</s> &rarr; <strong><code>invoke-elevated.ps1 -Script &lt;path&gt;</code></strong></li>
+  <li>Old scripts moved to <code>scripts/_deprecated/</code> with migration notes</li>
+</ul>
+</div>
+<div class="info">
+<strong>Also Deduplicated</strong>
+<ul>
+  <li><code>exp21_msi_gpu_clocks.ps1</code>: MSI section removed (now info-only check). Only does GPU clock locking. MSI managed by <code>fix_gpu_affinity.ps1</code></li>
+  <li><code>exp12_nic_retuning_apply.ps1</code>: NIC affinity section removed. Only does Nagle + WakeOnMagicPacket. Affinity managed by <code>fix_gpu_affinity.ps1</code></li>
+</ul>
+</div>
+<div class="warn">
+<strong>Remaining Minor Overlap</strong>
+<ul>
+  <li><code>audio_fix_and_audit.ps1 -CheckAffinity</code> reads affinity registry (read-only) &mdash; overlaps with <code>fix_gpu_affinity.ps1 -CheckOnly</code>. Both are useful: audio_fix is audio-focused triage, fix_gpu is comprehensive. Low priority to merge.</li>
+</ul>
+</div>
+
+<div class="info">
+<strong>Efficiency Improvements</strong>
+<ul>
+  <li><strong>Merge reboot captures</strong> into a single <code>reboot_capture.ps1 -Phase Before|After</code> to reduce duplication</li>
+  <li><strong>Single elevation wrapper</strong>: Replace 5 <code>run_*.ps1</code> scripts with <code>Invoke-Elevated.ps1 -Script &lt;path&gt;</code></li>
+  <li><strong>Pipeline quick mode</strong> already exists: <code>pipeline.ps1 -SkipWPR -DurationSec 5</code> — use this instead of separate baseline_capture.ps1 when you want dashboard integration</li>
+  <li><strong>Audit + Pipeline combo</strong>: <code>audit.ps1</code> already loads the latest experiment.json if &lt;24h old. Run pipeline first, then audit, and the HTML report includes experiment data automatically</li>
+  <li><strong>Dashboard auto-update</strong>: pipeline.ps1 Phase 8 calls <code>generate_dashboard_data.ps1</code> automatically. No need to run it separately unless editing curated experiments.js</li>
+</ul>
+</div>
+
+<h3>Recommended Capture Sequence for Testing a Change</h3>
+<div class="flow"><span class="rd">MOST EFFICIENT WORKFLOW</span>
+
+1. <span class="grn">pipeline.ps1 -Label "BEFORE_X" -SkipWPR -DurationSec 30</span>
+   (Quick capture: perf + GPU + network + xperf + registry + dashboard update)
+
+2. Apply your change (run exp script)
+
+3. Reboot if needed
+
+4. <span class="grn">pipeline.ps1 -Label "AFTER_X" -SkipWPR -DurationSec 30</span>
+   (Same capture for A/B comparison)
+
+5. Open dashboard &rarr; Compare &rarr; done
+
+<span class="ylw">WHY THIS IS BETTER:</span>
+- One script handles everything (no separate baseline + generate_dashboard + etc.)
+- Results automatically appear in dashboard
+- 30s is enough for DPC/ISR + perf counters
+- Skip WPR unless you need ETL deep-dive later
+- Skip PresentMon unless measuring frame timing</div>
+
+<div class="footer">
+  Windows Latency Optimizer &mdash; Toolchain Overview<br>
+  System: AMD Ryzen 7 9800X3D &bull; NVIDIA RTX 5070 Ti &bull; Intel I226-V &bull; Windows 11 Build 26200
+</div>
+
+</body>
+</html>
