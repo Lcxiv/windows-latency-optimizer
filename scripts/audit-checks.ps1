@@ -495,18 +495,18 @@ function Invoke-NicChecks {
         if ($null -ne $affSet -and $affSet.Count -ge 2) {
             $maskHex        = '0x' + (($affSet[1..0] | ForEach-Object { $_.ToString('X2') }) -join '')
             $affinityDetail = 'DevicePolicy=' + $devPolicy + ', Mask=' + $maskHex
-            if ($devPolicy -eq 4) { $affinityStatus = 'PASS' } else { $affinityStatus = 'WARN' }
+            if ($devPolicy -eq 3 -or $devPolicy -eq 4) { $affinityStatus = 'PASS' } else { $affinityStatus = 'WARN' }
         } else {
             $affinityStatus = 'WARN'
             $affinityDetail = 'No affinity policy set (default: CPU 0 handles all NIC interrupts)'
         }
     } catch {
         $affinityStatus = 'WARN'
-        $affinityDetail = 'Affinity key not found — default CPU 0 handling'
+        $affinityDetail = 'Affinity key not found - default CPU 0 handling'
     }
     if ($affinityStatus -eq 'PASS') {
         $results += New-CheckResult -Name 'NIC Interrupt Affinity' -Category 'NIC' -Tier 'Quick' -Severity 'HIGH' `
-            -Status 'PASS' -Current $affinityDetail -Expected 'DevicePolicy=4 (SpecifiedProcessors)'
+            -Status 'PASS' -Current $affinityDetail -Expected 'DevicePolicy=3 or 4 with affinity mask'
     } else {
         $pnpId   = $nic.PnPDeviceID
         $affPath = 'HKLM:\SYSTEM\CurrentControlSet\Enum\' + $pnpId + '\Device Parameters\Interrupt Management\Affinity Policy'
@@ -587,18 +587,18 @@ function Invoke-GpuChecks {
         $gpuAff    = Get-ItemProperty $gpuAffPath -ErrorAction Stop
         $gpuPolicy = $gpuAff.DevicePolicy
         $gpuSet    = $gpuAff.AssignmentSetOverride
-        if ($null -ne $gpuSet -and $gpuSet.Count -ge 2 -and $gpuPolicy -eq 4) {
+        if ($null -ne $gpuSet -and $gpuSet.Count -ge 2 -and ($gpuPolicy -eq 3 -or $gpuPolicy -eq 4)) {
             $maskHex      = '0x' + (($gpuSet[1..0] | ForEach-Object { $_.ToString('X2') }) -join '')
-            $gpuAffDetail = 'DevicePolicy=4, Mask=' + $maskHex
+            $gpuAffDetail = 'DevicePolicy=' + $gpuPolicy + ', Mask=' + $maskHex
             $gpuAffStatus = 'PASS'
         } elseif ($null -ne $gpuPolicy) {
-            $gpuAffDetail = 'DevicePolicy=' + $gpuPolicy + ' (not SpecifiedProcessors)'
+            $gpuAffDetail = 'DevicePolicy=' + $gpuPolicy + ' (no affinity mask set)'
         }
     } catch {}
 
     if ($gpuAffStatus -eq 'PASS') {
         $results += New-CheckResult -Name 'GPU Interrupt Affinity' -Category 'GPU' -Tier 'Quick' -Severity 'MEDIUM' `
-            -Status 'PASS' -Current $gpuAffDetail -Expected 'DevicePolicy=4 (SpecifiedProcessors)'
+            -Status 'PASS' -Current $gpuAffDetail -Expected 'DevicePolicy=3 or 4 with affinity mask'
     } else {
         $results += New-CheckResult -Name 'GPU Interrupt Affinity' -Category 'GPU' -Tier 'Quick' -Severity 'MEDIUM' `
             -Status 'WARN' -Current $gpuAffDetail -Expected 'DevicePolicy=4, CPUs 4-7 (mask 0xF0)' `
