@@ -75,13 +75,13 @@
 <body>
 
 <h1>Windows Latency Optimizer <small>Toolchain Overview</small></h1>
-<p style="color:var(--text-muted); margin-top:0.25rem">Generated 2026-04-15 &mdash; 40+ scripts, 7 helper modules, interactive dashboard</p>
+<p style="color:var(--text-muted); margin-top:0.25rem">Generated 2026-04-16 &mdash; 46+ scripts, 7 helper modules, interactive dashboard</p>
 
 <div class="stat-row">
-  <div class="stat"><div class="num">40+</div><div class="lbl">Scripts</div></div>
+  <div class="stat"><div class="num">46+</div><div class="lbl">Scripts</div></div>
   <div class="stat"><div class="num">7</div><div class="lbl">Helper Modules</div></div>
   <div class="stat"><div class="num">17</div><div class="lbl">Experiments</div></div>
-  <div class="stat"><div class="num">39</div><div class="lbl">Captures</div></div>
+  <div class="stat"><div class="num">40</div><div class="lbl">Captures</div></div>
   <div class="stat"><div class="num">3</div><div class="lbl">Dashboard Views</div></div>
 </div>
 
@@ -357,12 +357,19 @@
   <td>DPC/ISR module summary</td>
   <td>Standalone xperf dpcisr analysis for offline trace parsing.</td>
 </tr>
+<tr>
+  <td class="mono">analyze_affinity_overlap.ps1</td>
+  <td>Live registry (GPU, NIC, HDMI audio, USB, HID)</td>
+  <td>Terminal: affinity map + overlap analysis</td>
+  <td><strong>Affinity topology analyzer.</strong> Decodes <code>KAFFINITY</code> masks (little-endian byte array) for GPU/NIC/audio/input/USB. Computes GPU&cap;NIC overlap. Cross-references against latest pipeline per-CPU DPC load to highlight contention risks.</td>
+</tr>
 </table>
 
 <!-- ============ AUDIO ============ -->
 <h2 id="audio">5. Audio-Specific Tools</h2>
-<p>Created during the audio buzzing investigation (2026-04-14).</p>
+<p>Audio buzzing investigation (2026-04-14) + audio pitch-warble root cause (2026-04-16).</p>
 
+<h3 style="margin-top:0.5rem">Phase 1 tools — Audio buzzing / DPC latency (crackling)</h3>
 <table>
 <tr><th>Script</th><th>What It Does</th><th>Admin?</th></tr>
 <tr>
@@ -376,6 +383,49 @@
   <td><span class="tag tag-admin">ADMIN</span></td>
 </tr>
 </table>
+
+<h3>Phase 2 tools — Audio pitch-warble / clock drift (NEW 2026-04-16)</h3>
+<p style="color:var(--text-muted); font-size:0.9em">Pitch warble under gaming + network load = clock drift (not DPC latency). Different symptom, different fix set.</p>
+<table>
+<tr><th>Script</th><th>What It Does</th><th>Admin?</th></tr>
+<tr>
+  <td class="mono">diagnose_audio_clock.ps1</td>
+  <td><strong>Pitch-warble diagnostic.</strong> 6 checks: NVIDIA HDMI Audio MSI state, PCIe ASPM, GPU P-state + PerfLevelSrc registry, I226-V EEE/interrupt moderation/flow control/power mgmt, Windows audio device sample rates, Razer process residue.</td>
+  <td><span class="tag tag-nonadmin">NO</span></td>
+</tr>
+<tr>
+  <td class="mono">fix_audio_warble.ps1</td>
+  <td><strong>Master fix script.</strong> Enables MSI on NVIDIA HDMI Audio, applies persistent <code>PerfLevelSrc=0x2222</code> (GPU P0 lock), disables NIC power mgmt (registry path, not cmdlet), kills all Razer runaway processes + removes respawn Run key. Writes rollback log to <code>captures/backup_audio_warble_&lt;ts&gt;.txt</code>. <code>-WhatIf</code> / <code>-SkipRazer</code> / <code>-SkipPhantom</code> flags. <span class="tag tag-reboot">REBOOT</span> required for MSI and PerfLevelSrc.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">fix_nic_power_mgmt.ps1</td>
+  <td><strong>Targeted NIC power-mgmt fix.</strong> Windows 11's <code>Set-NetAdapterPowerManagement</code> lacks <code>-AllowComputerToTurnOffDevice</code>; this writes <code>PnPCapabilities=0x18</code> + <code>*SelectiveSuspend=0</code> directly to the NIC's driver class key. Resolves PNP device from WMI <code>Win32_NetworkAdapter.PNPDeviceID</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">apply_deconflict_affinity.ps1</td>
+  <td><strong>GPU/NIC/audio deconflict.</strong> Target: GPU on 4-5 exclusively, NIC + HDMI audio on 6-7. Applies 3 changes: HDMI audio <code>Policy=3, mask 0xC0</code>; NIC moved 0x30 &rarr; 0xC0; AMD HD Audio disabled (unused legacy-IRQ device). <span class="tag tag-reboot">REBOOT</span> required for affinity re-read.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+<tr>
+  <td class="mono">post_reboot_verify_audio.ps1</td>
+  <td><strong>One-command verification.</strong> 9 registry + runtime checks confirming all Phase 2 fixes landed after reboot: MSI active, PerfLevelSrc persistent, HDMI audio&harr;NIC pinned to 6-7, AMD audio disabled, Razer dead, NIC up, internet reachable. Optional 15s pipeline capture labeled <code>POST_REBOOT_AUDIO_FIX</code>.</td>
+  <td><span class="tag tag-admin">ADMIN</span></td>
+</tr>
+</table>
+
+<div class="info" style="margin-top:1rem">
+  <strong>Phase 2 workflow:</strong>
+  <ol style="margin-top:0.5rem; padding-left:1.5rem">
+    <li><code>diagnose_audio_clock.ps1</code> &rarr; identify smoking guns</li>
+    <li><code>fix_audio_warble.ps1</code> &rarr; apply MSI + PerfLevelSrc + Razer cleanup</li>
+    <li><code>apply_deconflict_affinity.ps1</code> &rarr; pin HDMI audio / NIC to 6-7</li>
+    <li><strong>Reboot</strong></li>
+    <li><code>post_reboot_verify_audio.ps1</code> &rarr; confirm all active</li>
+    <li>Stress-test: real gaming + network simultaneously for 2-3 min, listen for warble</li>
+  </ol>
+</div>
 
 <!-- ============ UTILITY ============ -->
 <h2 id="utility">6. Utility Scripts</h2>
