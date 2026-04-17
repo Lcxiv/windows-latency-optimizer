@@ -1,53 +1,124 @@
+/* ============================================================
+   LatencyGuard — Design Tokens (v2 Instrument palette)
+   Source of truth: latencyguard/design/project/LatencyGuard
+                    Wireframes v2.html
+   Replaces the prior "gamer-optimizer" dark-navy-and-cyan system
+   that the design roast called out. Single accent (systemRed)
+   reserved for measurement emphasis. Apple system greens, blues,
+   and yellows used ONLY when semantically meaningful.
+   ============================================================ */
+
 :root {
-  /* Colors */
-  --bg: #060d1b;
-  --surface: rgba(15,23,42,0.6);
-  --surface-solid: #0f172a;
-  --surface2: rgba(30,41,59,0.5);
-  --border: rgba(56,89,138,0.25);
-  --border-glow: rgba(96,165,250,0.12);
-  --text: #e2e8f0;
-  --muted: #8b9db5;
-  --green: #10b981;
-  --amber: #f59e0b;
-  --red: #ef4444;
-  --blue: #60a5fa;
-  --blue-bg: #2563eb;
-  --purple: #a855f7;
-  --cyan: #06b6d4;
-  /* Color opacity variants */
-  --green-10: rgba(16,185,129,0.1);
-  --green-15: rgba(16,185,129,0.15);
-  --green-20: rgba(16,185,129,0.2);
-  --amber-12: rgba(245,158,11,0.12);
-  --amber-25: rgba(245,158,11,0.25);
-  --red-12: rgba(239,68,68,0.12);
-  --red-25: rgba(239,68,68,0.25);
-  --blue-04: rgba(59,130,246,0.04);
-  --blue-10: rgba(59,130,246,0.1);
-  --blue-15: rgba(59,130,246,0.15);
-  --blue-tag: rgba(96,165,250,0.15);
-  --border-30: rgba(30,58,95,0.3);
-  --border-20: rgba(30,58,95,0.2);
+  /* === v2-native token names (preferred for new code) === */
+  --bg: #fbfbfd;              /* Apple off-white */
+  --paper: #fbfbfd;
+  --ink: #0b0b0f;             /* near-black, never #000 */
+  --ink-2: #1d1d1f;
+  --ink-3: #6e6e73;           /* muted body */
+  --ink-4: #a1a1a6;           /* tertiary / kickers */
+  --hair: rgba(0,0,0,.08);    /* hairline rules */
+  --hair-2: rgba(0,0,0,.16);  /* slightly stronger hairlines */
+  --wash: #f5f5f7;            /* chip / pill fill */
+
+  --accent: #FF3B30;          /* systemRed — reserved for measurement emphasis */
+  --accent-2: #30D158;        /* systemGreen — pass state */
+  --accent-3: #0A84FF;        /* systemBlue — links / CTAs */
+  --accent-4: #FFD60A;        /* systemYellow — warn */
+
+  /* === v1 aliases (legacy code still references these) === */
+  /* These map the OLD token names to the NEW palette so existing
+     component CSS continues to work until each view is rewritten.
+     Remove these as each view migrates. */
+  --surface: rgba(255,255,255,.72);
+  --surface-solid: #ffffff;
+  --surface2: rgba(245,245,247,.8);
+  --border: rgba(0,0,0,.08);
+  --border-glow: rgba(10,132,255,.12);
+  --text: #0b0b0f;
+  --muted: #6e6e73;
+  --green: #30D158;
+  --amber: #FFD60A;
+  --red: #FF3B30;
+  --blue: #0A84FF;
+  --blue-bg: #0A84FF;
+  --purple: #0A84FF;          /* purple collapses into single accent system */
+  --cyan: #0A84FF;            /* cyan collapses — no more four-color chaos */
+
+  /* Color opacity variants (kept for API compatibility) */
+  --green-10: rgba(48,209,88,.1);
+  --green-15: rgba(48,209,88,.15);
+  --green-20: rgba(48,209,88,.2);
+  --amber-12: rgba(255,214,10,.12);
+  --amber-25: rgba(255,214,10,.25);
+  --red-12: rgba(255,59,48,.12);
+  --red-25: rgba(255,59,48,.25);
+  --blue-04: rgba(10,132,255,.04);
+  --blue-10: rgba(10,132,255,.1);
+  --blue-15: rgba(10,132,255,.15);
+  --blue-tag: rgba(10,132,255,.15);
+  --border-30: rgba(0,0,0,.12);
+  --border-20: rgba(0,0,0,.08);
+
   /* Glass */
-  --glass-bg: rgba(15,23,42,0.55);
-  --glass-border: rgba(148,163,184,0.08);
-  --glass-shine: rgba(255,255,255,0.03);
-  --glass-blur: 16px;
-  --glass-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 0 0 1px rgba(148,163,184,0.06);
-  /* Spacing */
+  --glass-bg: rgba(251,251,253,.72);
+  --glass-border: rgba(0,0,0,.08);
+  --glass-shine: rgba(255,255,255,.6);
+  --glass-blur: 20px;
+  --glass-shadow: 0 1px 1px rgba(0,0,0,.05), 0 10px 30px -10px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+  /* Spacing (unchanged, unitless ladder) */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
   --space-lg: 16px;
   --space-xl: 24px;
   --space-2xl: 32px;
-  /* Radii */
+
+  /* Radii (v2 ladder — 18px is baseline, not 12px) */
+  --r: 18px;
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-full: 999px;
+
   /* Typography */
-  --font-mono: 'Consolas', 'SF Mono', 'Fira Code', monospace;
+  --font: 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-text: 'Inter', 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Fira Code', ui-monospace, monospace;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-base: 220ms;
+  --dur-slow: 320ms;
+}
+
+/* OS-dark-mode variant (v2 has this block — see Wireframes v2.html body.dark) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0b0f;
+    --paper: #0b0b0f;
+    --ink: #f5f5f7;
+    --ink-2: #e5e5e7;
+    --ink-3: #98989d;
+    --ink-4: #636366;
+    --hair: rgba(255,255,255,.08);
+    --hair-2: rgba(255,255,255,.18);
+    --wash: #1c1c1e;
+    --surface: rgba(28,28,30,.72);
+    --surface-solid: #1c1c1e;
+    --surface2: rgba(44,44,46,.8);
+    --border: rgba(255,255,255,.08);
+    --text: #f5f5f7;
+    --muted: #98989d;
+    --glass-bg: rgba(11,11,15,.72);
+    --glass-border: rgba(255,255,255,.08);
+    --glass-shine: rgba(255,255,255,.06);
+    --glass-shadow: 0 10px 30px -10px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06);
+  }
 }
 
 /* Accessibility */
@@ -57,48 +128,111 @@
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 :focus-visible {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 :focus:not(:focus-visible) { outline: none; }
+
+/* Skip-to-main link — first focusable, hidden until focused via keyboard */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  transform: translateY(-120%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  z-index: 100;
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.skip-link:focus {
+  transform: translateY(8px);
+}
+
+/* Respect reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font);
   background: var(--bg);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.05) 0%, transparent 60%);
-  background-attachment: fixed;
-  color: var(--text);
+  /* No radial gradients — v2 is a flat paper surface. The old
+     cyan+purple radials were the "gamer-optimizer clichés" the
+     design roast called out. */
+  color: var(--ink);
   line-height: 1.5;
+  letter-spacing: -0.005em;
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11", "tnum";
 }
 
-/* Header — glass bar */
+/* Header — Apple-style translucent bar (v2 .nav) */
 .app-header {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
-  background: rgba(15,23,42,0.7);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-bottom: 1px solid var(--glass-border);
-  box-shadow: 0 1px 0 var(--glass-shine), 0 4px 16px rgba(0,0,0,0.2);
-  gap: 12px;
+  padding: 12px 28px;
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hair);
+  box-shadow: none; /* no hard bottom shadow — hairline does the work */
+  gap: 22px;
   -webkit-app-region: drag;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 .app-logo {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
-  font-weight: 700;
-  color: var(--blue);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
   -webkit-app-region: no-drag;
 }
+.app-logo svg {
+  /* v2 uses a squared-off ink dot, not a circle + polyline */
+  display: none;
+}
+.app-logo::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--ink);
+  position: relative;
+  display: inline-block;
+}
+.app-logo::after {
+  /* small inner notch — see v2 .brand .dot::after */
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin-left: 3px;
+  margin-top: 3px;
+  border: 1.2px solid var(--bg);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
 .sys-chips {
   display: flex;
   gap: 6px;
@@ -106,40 +240,73 @@ body {
   flex-wrap: wrap;
 }
 .sys-chip {
-  font-size: 10px;
-  color: var(--muted);
-  background: rgba(30,41,59,0.4);
-  border: 1px solid var(--glass-border);
-  padding: 2px 10px;
-  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  background: transparent;
+  border: 1px solid var(--hair);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.04em;
 }
+
+/* Mode toggle — pill tabs (v2 .tabs) */
 .mode-toggle {
-  background: rgba(30,41,59,0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 3px;
+  background: var(--wash);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-full);
+  padding: 4px;
   display: flex;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
   -webkit-app-region: no-drag;
 }
 .mode-toggle button {
-  padding: 5px 16px;
-  border-radius: 14px;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  color: var(--muted);
-  transition: all 0.2s;
+  color: var(--ink-3);
+  transition: color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
   border: none;
   background: none;
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
+  letter-spacing: -0.005em;
+}
+.mode-toggle button:hover {
+  color: var(--ink);
 }
 .mode-toggle button.active {
-  background: linear-gradient(135deg, var(--blue-bg), #3b82f6);
-  color: white;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 0 0 .5px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  .mode-toggle button.active {
+    background: #2a2a2d;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 0 0 .5px rgba(255,255,255,.08);
+  }
+}
+
+/* Export button in header — v2 style (text link, not pill) */
+.header-export {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  background: transparent;
+  border: 0;
+  padding: 7px 12px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  letter-spacing: -0.005em;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+.header-export:hover {
+  color: var(--ink);
 }
 
 /* Main content */

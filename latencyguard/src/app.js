@@ -89,13 +89,35 @@ function announce(msg) {
 window.setMode = setMode;
 
 // --- Render ---
+// v2 handoff mode map (see plan: ~/.claude/plans/latencyguard-design-handoff-v2.md):
+//   'simple'   -> Instrument (symptom picker + finding)
+//   'timeline' -> Timeline   (history = home)    — Phase 3, placeholder for now
+//   'expert'   -> Command    (dense canvas)
 function render() {
   const app = document.getElementById('app');
   if (state.mode === 'simple') {
     renderSimple(app);
+  } else if (state.mode === 'timeline') {
+    renderTimelinePlaceholder(app);
   } else {
     renderExpert(app);
   }
+}
+
+// Phase 1 placeholder — Phase 3 will replace this with the full Timeline view
+// from design/project/LatencyGuard Wireframes v2.html #p3.
+function renderTimelinePlaceholder(app) {
+  app.innerHTML =
+    '<section style="max-width:980px;margin:60px auto;padding:40px 32px;' +
+    'border:1px solid var(--hair);border-radius:var(--r);background:#fff;text-align:center">' +
+    '<div class="mono" style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;' +
+    'text-transform:uppercase;color:var(--ink-3);margin-bottom:8px">Timeline · coming soon</div>' +
+    '<h2 style="font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1.05;margin:4px 0 12px">' +
+    '20 days. <span style="color:var(--ink-3);font-weight:500">One chart.</span></h2>' +
+    '<p style="color:var(--ink-3);font-size:16px;max-width:520px;margin:0 auto;line-height:1.5;letter-spacing:-.005em">' +
+    'Experiment history lands in Phase 3 of the v2 design handoff. ' +
+    'Until then use the <b>Instrument</b> tab for live diagnostics or <b>Command</b> for dense expert view.</p>' +
+    '</section>';
 }
 
 // --- Category mapping ---

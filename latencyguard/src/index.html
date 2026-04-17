@@ -3,27 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>LatencyGuard</title>
+
+  <!-- Fonts: Inter (text) + JetBrains Mono (numerics, chips, ids).
+       v2 Design handoff uses these; no SF Pro since target is Windows. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
+  <!-- Skip link for keyboard users — first focusable -->
+  <a href="#app" class="skip-link">Skip to main content</a>
+
   <header class="app-header">
     <div class="app-logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-      </svg>
       <span>LatencyGuard</span>
     </div>
     <div id="sys-chips" class="sys-chips"></div>
     <button class="header-export" onclick="exportReport()" aria-label="Export HTML report">Export</button>
+
+    <!-- v2 mode toggle: 3 directions.
+         - Instrument: measurement-first daily driver (was old "Simple")
+         - Timeline:   experiment history (new, replaces separate history view)
+         - Command:    dense expert canvas (was old "Expert")
+         Back-compat data-mode values: "simple" -> Instrument, "expert" -> Command,
+         plus NEW "timeline" between them. app.js handles the mapping. -->
     <div class="mode-toggle" id="mode-toggle" role="tablist" aria-label="View mode">
-      <button class="active" role="tab" aria-selected="true" data-mode="simple" onclick="setMode('simple')">Simple</button>
-      <button role="tab" aria-selected="false" data-mode="expert" onclick="setMode('expert')">Expert</button>
+      <button class="active" role="tab" aria-selected="true"  data-mode="simple"   onclick="setMode('simple')">Instrument</button>
+      <button              role="tab" aria-selected="false" data-mode="timeline" onclick="setMode('timeline')">Timeline</button>
+      <button              role="tab" aria-selected="false" data-mode="expert"   onclick="setMode('expert')">Command</button>
     </div>
   </header>
+
   <main id="app" role="main"></main>
   <div id="toasts" aria-live="polite"></div>
   <div id="a11y-announce" class="sr-only" aria-live="polite"></div>
+
   <script src="views/diagnostics.js"></script>
   <script src="views/history.js"></script>
   <script src="views/advanced.js"></script>
