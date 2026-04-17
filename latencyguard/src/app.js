@@ -104,7 +104,12 @@ function render() {
       renderSimple(app);
     }
   } else if (state.mode === 'timeline') {
-    renderTimelinePlaceholder(app);
+    // Prefer v2 Timeline view (views/timeline.js). Falls back to placeholder.
+    if (typeof window.renderTimeline === 'function') {
+      window.renderTimeline(app);
+    } else {
+      renderTimelinePlaceholder(app);
+    }
   } else {
     renderExpert(app);
   }

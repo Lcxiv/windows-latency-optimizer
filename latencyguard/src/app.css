@@ -1422,3 +1422,168 @@ main {
   .inst-empty-h { font-size: 32px; }
   .inst-scan-pct { font-size: 56px; }
 }
+
+/* =====================================================================
+   TIMELINE view (v2 Direction 03) — src/views/timeline.js
+   Source: latencyguard/design/project/LatencyGuard Wireframes v2.html #p3
+   ===================================================================== */
+
+.tl-shell {
+  max-width: 1200px;
+  margin: 32px auto 60px;
+  padding: 0 28px;
+}
+
+.tl-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 28px 32px 14px;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.tl-h {
+  margin: 6px 0 0;
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  max-width: 620px;
+  color: var(--ink);
+}
+.tl-h .inst-alt { color: var(--ink-3); font-weight: 500; }
+
+.tl-seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--wash);
+  border-radius: 999px;
+  border: 1px solid var(--hair);
+}
+.tl-seg button {
+  background: transparent;
+  border: 0;
+  padding: 5px 12px;
+  font: 500 12px var(--font);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink-3);
+  transition: color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
+  letter-spacing: -0.005em;
+}
+.tl-seg button:hover { color: var(--ink); }
+.tl-seg button.on {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  .tl-seg button.on { background: #2a2a2d; color: #fff; }
+}
+
+.tl-chart {
+  padding: 10px 22px 20px;
+}
+.tl-chart-empty {
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.tl-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 20px 32px;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  gap: 0;
+}
+.tl-stat {
+  padding-right: 20px;
+  border-right: 1px solid var(--hair);
+}
+.tl-stat:last-child { border-right: 0; padding-right: 0; }
+.tl-stat-k {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tl-stat-v {
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 34px;
+  letter-spacing: -0.025em;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+}
+.tl-stat-v small {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  font-weight: 400;
+  margin-left: 2px;
+}
+.tl-stat-d {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent-2);
+  margin-top: 8px;
+}
+
+.tl-log {
+  padding: 22px 32px 28px;
+}
+.tl-log h5 {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 150px 90px;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--hair);
+  align-items: center;
+}
+.tl-row:last-child { border-bottom: 1px solid var(--hair); }
+.tl-row-id {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.tl-row-t {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+.tl-row-delta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-2);
+}
+.tl-row-d {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+/* Stack at narrow widths */
+@media (max-width: 900px) {
+  .tl-stats { grid-template-columns: repeat(2, 1fr); gap: 14px 0; }
+  .tl-stat { border-right: 0; padding-right: 0; }
+  .tl-row { grid-template-columns: 80px 1fr; gap: 10px; }
+  .tl-row-delta, .tl-row-d { display: none; }
+  .tl-h { font-size: 30px; }
+}
