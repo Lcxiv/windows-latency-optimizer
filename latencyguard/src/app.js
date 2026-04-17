@@ -90,13 +90,19 @@ window.setMode = setMode;
 
 // --- Render ---
 // v2 handoff mode map (see plan: ~/.claude/plans/latencyguard-design-handoff-v2.md):
-//   'simple'   -> Instrument (symptom picker + finding)
-//   'timeline' -> Timeline   (history = home)    — Phase 3, placeholder for now
-//   'expert'   -> Command    (dense canvas)
+//   'simple'   -> Instrument (symptom picker + finding)   ← Phase 2 LANDED
+//   'timeline' -> Timeline   (history = home)             — Phase 3, placeholder
+//   'expert'   -> Command    (dense canvas)               — Phase 4, uses old renderExpert for now
 function render() {
   const app = document.getElementById('app');
   if (state.mode === 'simple') {
-    renderSimple(app);
+    // Prefer v2 Instrument view when available (views/instrument.js).
+    // Fall back to legacy renderSimple only if instrument.js didn't load.
+    if (typeof window.renderInstrument === 'function') {
+      window.renderInstrument(app);
+    } else {
+      renderSimple(app);
+    }
   } else if (state.mode === 'timeline') {
     renderTimelinePlaceholder(app);
   } else {
