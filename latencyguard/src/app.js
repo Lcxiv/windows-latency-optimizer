@@ -111,7 +111,14 @@ function render() {
       renderTimelinePlaceholder(app);
     }
   } else {
-    renderExpert(app);
+    // Prefer v2 Command view (views/command.js). Falls back to legacy
+    // renderExpert (diagnostics/history/advanced/live tabs) only if
+    // command.js didn't load.
+    if (typeof window.renderCommand === 'function') {
+      window.renderCommand(app);
+    } else {
+      renderExpert(app);
+    }
   }
 }
 
