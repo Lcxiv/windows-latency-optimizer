@@ -1,0 +1,573 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>Baseline Report â€” BASELINE_POST_REBOOT_CLEAN_20260422-100418</title>
+<style>:root {
+  --bg:         #0b1120;
+  --surface:    #111827;
+  --surface2:   #1c2840;
+  --surface3:   #243050;
+  --border:     #1e3a5f;
+  --text:       #e2e8f0;
+  --muted:      #7a8fa8;
+  --blue:       #3b82f6;
+  --blue-dim:   #1d4ed8;
+  --green:      #10b981;
+  --amber:      #f59e0b;
+  --red:        #ef4444;
+  --purple:     #a855f7;
+  --cyan:       #06b6d4;
+  --grid-line:  rgba(30, 58, 95, 0.6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* â”€â”€ Header â”€â”€ */
+header {
+  background: linear-gradient(135deg, #0d1b2e 0%, #112244 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f0f6ff;
+  letter-spacing: 0.3px;
+}
+header h1 span { color: var(--blue); }
+.sys-info {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.sys-chip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.sys-chip strong { color: var(--text); }
+
+/* â”€â”€ Nav bar â”€â”€ */
+.nav-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.nav-bar a, .nav-bar button {
+  background: none;
+  border: none;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  text-decoration: none;
+  padding: 0;
+}
+.nav-bar a:hover, .nav-bar button:hover { text-decoration: underline; }
+.nav-breadcrumb { color: var(--muted); }
+.nav-breadcrumb-active { color: var(--text); font-weight: 500; }
+.nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--blue);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-family: inherit;
+}
+.nav-back:hover { text-decoration: underline; }
+
+/* â”€â”€ Tag pills â”€â”€ */
+.tag-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.tag-bar-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-right: 4px;
+}
+.tag-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.tag-pill:hover { border-color: var(--blue); color: var(--text); }
+.tag-pill.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--blue);
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+/* â”€â”€ Main content â”€â”€ */
+main { padding: 20px 24px; max-width: 1600px; }
+
+/* â”€â”€ Experiment table â”€â”€ */
+.exp-table-wrap { overflow-x: auto; margin-bottom: 24px; }
+.exp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.exp-table thead { position: sticky; top: 0; z-index: 1; }
+.exp-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 2px solid var(--border);
+  background: var(--surface);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.exp-table th:hover { color: var(--text); }
+.exp-table th.sorted-asc::after { content: ' \u25B2'; font-size: 8px; }
+.exp-table th.sorted-desc::after { content: ' \u25BC'; font-size: 8px; }
+.exp-table th.no-sort { cursor: default; }
+.exp-table th.no-sort:hover { color: var(--muted); }
+.exp-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(30,58,95,0.4);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.exp-table tbody tr:nth-child(even) td { background: rgba(17,24,39,0.5); }
+.exp-table tbody tr:hover td { background: rgba(59,130,246,0.06); }
+.exp-table .name-link {
+  color: var(--blue);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+.exp-table .name-link:hover { text-decoration: underline; }
+.exp-table .tag-cell .tag-pill {
+  font-size: 10px;
+  padding: 1px 6px;
+  cursor: default;
+  margin-right: 3px;
+  display: inline-block;
+}
+.exp-table .cb-cell { width: 30px; text-align: center; }
+.exp-table input[type="checkbox"] {
+  accent-color: var(--blue);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.status-pass { background: rgba(16,185,129,0.15); color: var(--green); }
+.status-review { background: rgba(245,158,11,0.15); color: var(--amber); }
+.status-na { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+/* Compare button */
+.compare-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.compare-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.compare-btn:hover { opacity: 0.85; }
+.compare-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.compare-count { font-size: 11px; color: var(--muted); }
+
+/* Metric timeline */
+.metric-timeline-section { margin-top: 24px; }
+.metric-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.metric-select:focus { border-color: var(--blue); }
+.metric-select option { background: var(--surface2); color: var(--text); }
+
+/* â”€â”€ Summary cards â”€â”€ */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.card.blue::before   { background: var(--blue); }
+.card.green::before  { background: var(--green); }
+.card.amber::before  { background: var(--amber); }
+.card.red::before    { background: var(--red); }
+.card.purple::before { background: var(--purple); }
+.card.cyan::before   { background: var(--cyan); }
+.card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.card-value { font-size: 24px; font-weight: 700; color: var(--text); line-height: 1.1; }
+.card-unit  { font-size: 12px; color: var(--muted); margin-left: 2px; }
+.card-sub   { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.card-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+.badge-pass { background: rgba(16,185,129,0.15); color: var(--green); }
+.badge-warn { background: rgba(245,158,11,0.15); color: var(--amber); }
+.badge-na   { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+/* â”€â”€ Section header â”€â”€ */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 12px;
+}
+.section-header h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.section-badge {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+/* â”€â”€ Charts grid â”€â”€ */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.chart-subtitle {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.chart-wrap { position: relative; }
+
+/* â”€â”€ No-data overlay â”€â”€ */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--muted);
+  gap: 6px;
+}
+.no-data-icon { font-size: 28px; opacity: 0.4; }
+.no-data-text { font-size: 12px; }
+.no-data-hint { font-size: 10px; opacity: 0.7; }
+
+/* â”€â”€ Registry table â”€â”€ */
+.reg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.reg-table th {
+  text-align: left;
+  padding: 6px 10px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 1px solid var(--border);
+}
+.reg-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(30,58,95,0.4);
+  vertical-align: top;
+}
+.reg-table tr:last-child td { border-bottom: none; }
+.reg-table tr:hover td { background: rgba(59,130,246,0.04); }
+.reg-key { font-family: 'Consolas', monospace; color: #7dd3fc; font-size: 11px; }
+.reg-val { font-family: 'Consolas', monospace; font-size: 11px; }
+.reg-val.baseline { color: var(--muted); }
+.reg-val.exp { color: var(--text); }
+.reg-changed { color: var(--amber); }
+.reg-improved { color: var(--green); }
+.reg-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.tag-changed  { background: rgba(245,158,11,0.15); color: var(--amber); }
+.tag-same     { background: rgba(100,116,139,0.15); color: var(--muted); }
+
+/* â”€â”€ Perf comparison table â”€â”€ */
+.perf-delta-pos { color: var(--green); }
+.perf-delta-neg { color: var(--red); }
+.perf-delta-neu { color: var(--muted); }
+
+/* â”€â”€ Compare grid â”€â”€ */
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.compare-col-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--border);
+}
+
+/* Detail header */
+.detail-header {
+  margin-bottom: 20px;
+}
+.detail-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.detail-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.detail-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* â”€â”€ Compare header â”€â”€ */
+.compare-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+/* â”€â”€ Diff highlight â”€â”€ */
+.diff-highlight { background: rgba(245,158,11,0.1); }
+
+/* â”€â”€ Hidden â”€â”€ */
+.hidden { display: none !important; }
+
+/* â”€â”€ Footer â”€â”€ */
+footer {
+  margin-top: 32px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+footer a { color: var(--blue); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .chart-card.full { grid-column: 1; }
+  .compare-grid { grid-template-columns: 1fr; }
+}
+
+body { font-family: -apple-system, Segoe UI, sans-serif; margin: 2rem; max-width: 1200px; }
+section.phase { border: 1px solid #ddd; border-radius: 6px; padding: 1rem 1.5rem; margin: 1rem 0; }
+section.phase h2 { margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+table { border-collapse: collapse; margin: 0.5rem 0; }
+table th, table td { border: 1px solid #ccc; padding: 0.25rem 0.75rem; text-align: left; }
+table th { background: #f5f5f5; }
+.skipped { color: #888; font-style: italic; }
+.badge { display: inline-block; background: #fa3; color: white; padding: 0.1rem 0.5rem; border-radius: 3px; font-size: 0.85em; }
+pre.manifest, pre.latmon { background: #f8f8f8; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.85em; max-height: 400px; overflow-y: auto; }</style>
+</head><body>
+<h1>Baseline Capture Report</h1>
+<p><strong>Run:</strong> BASELINE_POST_REBOOT_CLEAN_20260422-100418<br/>
+<strong>Generated:</strong> 2026-04-22 10:31:33</p>
+<section class="phase"><h2>Pre-freeze audit</h2><iframe src="10_prefreeze/audit_deep.html" style="width:100%;height:600px;border:1px solid #ccc;"></iframe></section>
+<section class="phase"><h2>Idle baseline</h2>
+<h3>Perf counters</h3><table class="perf">
+<tr><th>Counter</th><th>Avg</th><th>Min</th><th>Max</th><th>Stdev</th></tr>
+<tr><td>DPC Time %</td><td>0.5685</td><td>0</td><td>2.0467</td><td>0.4511</td></tr>
+<tr><td>Interrupt Time %</td><td>0.6139</td><td>0.0975</td><td>2.0465</td><td>0.4484</td></tr>
+<tr><td>Interrupts/sec total</td><td>32959.1189</td><td>21297.6933</td><td>59991.0656</td><td>11610.5973</td></tr>
+</table>
+<h3>Top 15 modules by total CPU usec</h3><table class="drivers">
+<tr><th>Module</th><th>Total usec (sum 16 CPUs)</th><th>Total %</th></tr>
+<tr><td>dxgkrnl.sys</td><td>4968090</td><td>8.17</td></tr>
+<tr><td>nvlddmkm.sys</td><td>4418642</td><td>7.27</td></tr>
+<tr><td>dxgkrnl.sys</td><td>2298264</td><td>3.76</td></tr>
+<tr><td>USBXHCI.SYS</td><td>132878</td><td>0.22</td></tr>
+<tr><td>ntoskrnl.exe</td><td>105262</td><td>0.15</td></tr>
+<tr><td>storport.sys</td><td>87526</td><td>0.13</td></tr>
+<tr><td>tcpip.sys</td><td>17069</td><td>0</td></tr>
+<tr><td>e2fn.sys</td><td>16802</td><td>0.02</td></tr>
+<tr><td>storport.sys</td><td>8597</td><td>0</td></tr>
+<tr><td>USBXHCI.SYS</td><td>5318</td><td>0</td></tr>
+<tr><td>e2fn.sys</td><td>3689</td><td>0</td></tr>
+<tr><td>symcryptk.dll</td><td>1533</td><td>0</td></tr>
+<tr><td>dxgmms2.sys</td><td>807</td><td>0</td></tr>
+<tr><td>afd.sys</td><td>575</td><td>0</td></tr>
+<tr><td>Ntfs.sys</td><td>51</td><td>0</td></tr>
+</table>
+<p class="skipped"><span class="badge">LatencyMon skipped</span> (CLI preflight failed or disabled)</p>
+<h3>ProcMon event rate</h3>
+<p>Total events: <strong>733490</strong> over 60s = 12224.8 events/sec</p>
+</section>
+
+<section class="phase"><h2>Under-load baseline</h2>
+<h3>Perf counters</h3><table class="perf">
+<tr><th>Counter</th><th>Avg</th><th>Min</th><th>Max</th><th>Stdev</th></tr>
+<tr><td>DPC Time %</td><td>0.6976</td><td>0</td><td>2.5302</td><td>0.4957</td></tr>
+<tr><td>Interrupt Time %</td><td>0.9004</td><td>0.2921</td><td>2.4329</td><td>0.4162</td></tr>
+<tr><td>Interrupts/sec total</td><td>34647.0627</td><td>23767.0927</td><td>56162.0466</td><td>9609.9534</td></tr>
+</table>
+<h3>Top 15 modules by total CPU usec</h3><table class="drivers">
+<tr><th>Module</th><th>Total usec (sum 16 CPUs)</th><th>Total %</th></tr>
+<tr><td>dxgkrnl.sys</td><td>8409606</td><td>12.51</td></tr>
+<tr><td>nvlddmkm.sys</td><td>5831666</td><td>8.67</td></tr>
+<tr><td>dxgkrnl.sys</td><td>3972704</td><td>5.91</td></tr>
+<tr><td>ntoskrnl.exe</td><td>405746</td><td>0.63</td></tr>
+<tr><td>USBXHCI.SYS</td><td>369452</td><td>0.55</td></tr>
+<tr><td>storport.sys</td><td>111685</td><td>0.18</td></tr>
+<tr><td>e2fn.sys</td><td>21690</td><td>0.02</td></tr>
+<tr><td>USBXHCI.SYS</td><td>13578</td><td>0.02</td></tr>
+<tr><td>storport.sys</td><td>12550</td><td>0.01</td></tr>
+<tr><td>e2fn.sys</td><td>4339</td><td>0</td></tr>
+<tr><td>symcryptk.dll</td><td>4226</td><td>0</td></tr>
+<tr><td>tcpip.sys</td><td>2268</td><td>0</td></tr>
+<tr><td>dxgmms2.sys</td><td>2119</td><td>0</td></tr>
+<tr><td>afd.sys</td><td>1183</td><td>0</td></tr>
+<tr><td>Ntfs.sys</td><td>83</td><td>0</td></tr>
+</table>
+<p class="skipped"><span class="badge">LatencyMon skipped</span> (CLI preflight failed or disabled)</p>
+<h3>ProcMon event rate</h3>
+<p>Total events: <strong>2748275</strong> over 60s = 45804.6 events/sec</p>
+</section>
+
+<section class="phase"><h2>Delta: Idle vs Loaded</h2>
+<table class="delta"><tr><th>Metric</th><th>Idle</th><th>Loaded</th><th>Delta</th></tr>
+<tr><td>DPC %</td><td>0.5685</td><td>0.6976</td><td>0.129</td></tr>
+<tr><td>Interrupt %</td><td>0.6139</td><td>0.9004</td><td>0.286</td></tr>
+<tr><td>Interrupts/sec</td><td>32959.1189</td><td>34647.0627</td><td>1687.9</td></tr>
+</table></section>
+
+<section class="phase"><h2>Manifest</h2>
+<pre class="manifest">{
+    &quot;capture_sec&quot;:  60,
+    &quot;skip_load&quot;:  false,
+    &quot;dashboard_entry&quot;:  &quot;C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418\\40_aggregate\\experiment_entry.json&quot;,
+    &quot;presentmon_skipped&quot;:  false,
+    &quot;started_at&quot;:  &quot;2026-04-22T10:25:51&quot;,
+    &quot;label&quot;:  &quot;BASELINE_POST_REBOOT_CLEAN&quot;,
+    &quot;run_dir&quot;:  &quot;C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418&quot;,
+    &quot;latmon_skipped&quot;:  false,
+    &quot;procmon_skipped&quot;:  false,
+    &quot;master_html&quot;:  &quot;C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418\\MASTER.html&quot;,
+    &quot;latmon_sec&quot;:  300
+}</pre>
+</section>
+
+</body></html>

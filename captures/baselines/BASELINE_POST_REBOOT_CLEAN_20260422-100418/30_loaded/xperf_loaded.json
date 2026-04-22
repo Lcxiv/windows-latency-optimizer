@@ -1,0 +1,83 @@
+﻿{
+    "phase":  "loaded",
+    "total_isrs":  null,
+    "top_drivers":  [
+                        {
+                            "driver":  "dxgkrnl.sys",
+                            "total_usec":  8409606,
+                            "total_pct":  12.51
+                        },
+                        {
+                            "driver":  "nvlddmkm.sys",
+                            "total_usec":  5831666,
+                            "total_pct":  8.67
+                        },
+                        {
+                            "driver":  "dxgkrnl.sys",
+                            "total_usec":  3972704,
+                            "total_pct":  5.91
+                        },
+                        {
+                            "driver":  "ntoskrnl.exe",
+                            "total_usec":  405746,
+                            "total_pct":  0.63
+                        },
+                        {
+                            "driver":  "USBXHCI.SYS",
+                            "total_usec":  369452,
+                            "total_pct":  0.55
+                        },
+                        {
+                            "driver":  "storport.sys",
+                            "total_usec":  111685,
+                            "total_pct":  0.18
+                        },
+                        {
+                            "driver":  "e2fn.sys",
+                            "total_usec":  21690,
+                            "total_pct":  0.02
+                        },
+                        {
+                            "driver":  "USBXHCI.SYS",
+                            "total_usec":  13578,
+                            "total_pct":  0.02
+                        },
+                        {
+                            "driver":  "storport.sys",
+                            "total_usec":  12550,
+                            "total_pct":  0.01
+                        },
+                        {
+                            "driver":  "e2fn.sys",
+                            "total_usec":  4339,
+                            "total_pct":  0
+                        },
+                        {
+                            "driver":  "symcryptk.dll",
+                            "total_usec":  4226,
+                            "total_pct":  0
+                        },
+                        {
+                            "driver":  "tcpip.sys",
+                            "total_usec":  2268,
+                            "total_pct":  0
+                        },
+                        {
+                            "driver":  "dxgmms2.sys",
+                            "total_usec":  2119,
+                            "total_pct":  0
+                        },
+                        {
+                            "driver":  "afd.sys",
+                            "total_usec":  1183,
+                            "total_pct":  0
+                        },
+                        {
+                            "driver":  "Ntfs.sys",
+                            "total_usec":  83,
+                            "total_pct":  0
+                        }
+                    ],
+    "parse_source":  "CPU Usage Summing By Module",
+    "total_dpcs":  null
+}

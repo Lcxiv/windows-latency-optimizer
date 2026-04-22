@@ -1,0 +1,17 @@
+﻿{
+    "interrupts_per_sec":  {
+                               "loaded":  34647.0627,
+                               "idle":  32959.1189,
+                               "delta":  1687.9
+                           },
+    "interrupt_pct":  {
+                          "loaded":  0.9004,
+                          "idle":  0.6139,
+                          "delta":  0.286
+                      },
+    "dpc_pct":  {
+                    "loaded":  0.6976,
+                    "idle":  0.5685,
+                    "delta":  0.129
+                }
+}

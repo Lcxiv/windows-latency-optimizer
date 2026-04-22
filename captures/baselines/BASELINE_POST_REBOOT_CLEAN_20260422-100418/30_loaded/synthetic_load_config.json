@@ -1,0 +1,15 @@
+﻿{
+    "cpu":  {
+                "pid":  16724,
+                "exe":  "C:\\Users\\L\\Desktop\\windows-latency-optimizer\\p95v3019b20.win64\\prime95.exe",
+                "threads":  16,
+                "mode":  "prime95",
+                "fft_range":  "4-32 (SmallFFT)"
+            },
+    "disk":  {
+                 "path":  "C:\\temp\\burn\\burn_fixed.bin",
+                 "size_mb":  512,
+                 "job_id":  25
+             },
+    "started_at":  "2026-04-22T10:13:35"
+}

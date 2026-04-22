@@ -1,0 +1,58 @@
+﻿{
+    "phase":  "loaded",
+    "top_processes":  [
+                          {
+                              "pct":  87.29,
+                              "name":  "powershell.exe",
+                              "count":  2398933
+                          },
+                          {
+                              "pct":  2.6,
+                              "name":  "bash.exe",
+                              "count":  71457
+                          },
+                          {
+                              "pct":  2.22,
+                              "name":  "Explorer.EXE",
+                              "count":  60884
+                          },
+                          {
+                              "pct":  2.19,
+                              "name":  "svchost.exe",
+                              "count":  60137
+                          },
+                          {
+                              "pct":  1.31,
+                              "name":  "git.exe",
+                              "count":  35957
+                          },
+                          {
+                              "pct":  1.16,
+                              "name":  "MsMpEng.exe",
+                              "count":  31756
+                          },
+                          {
+                              "pct":  1.03,
+                              "name":  "node.exe",
+                              "count":  28398
+                          },
+                          {
+                              "pct":  0.4,
+                              "name":  "Conhost.exe",
+                              "count":  10883
+                          },
+                          {
+                              "pct":  0.29,
+                              "name":  "ctfmon.exe",
+                              "count":  7944
+                          },
+                          {
+                              "pct":  0.27,
+                              "name":  "chrome.exe",
+                              "count":  7470
+                          }
+                      ],
+    "events_per_sec":  45804.6,
+    "duration_sec":  60,
+    "total_events":  2748275
+}

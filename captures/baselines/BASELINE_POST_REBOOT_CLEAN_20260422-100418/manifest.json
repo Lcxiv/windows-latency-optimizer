@@ -1,0 +1,13 @@
+﻿{
+    "capture_sec":  60,
+    "skip_load":  false,
+    "dashboard_entry":  "C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418\\40_aggregate\\experiment_entry.json",
+    "presentmon_skipped":  false,
+    "started_at":  "2026-04-22T10:25:51",
+    "label":  "BASELINE_POST_REBOOT_CLEAN",
+    "run_dir":  "C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418",
+    "latmon_skipped":  false,
+    "procmon_skipped":  false,
+    "master_html":  "C:\\Users\\L\\Desktop\\windows-latency-optimizer\\captures\\baselines\\BASELINE_POST_REBOOT_CLEAN_20260422-100418\\MASTER.html",
+    "latmon_sec":  300
+}

@@ -1,0 +1,242 @@
+﻿{
+    "performance":  {
+                        "InterruptTimePct":  {
+                                                 "stdev":  0.4484,
+                                                 "min":  0.0975,
+                                                 "max":  2.0465,
+                                                 "avg":  0.6139
+                                             },
+                        "DPCTimePct":  {
+                                           "stdev":  0.4511,
+                                           "min":  0,
+                                           "max":  2.0467,
+                                           "avg":  0.5685
+                                       },
+                        "InterruptsPerSec":  {
+                                                 "stdev":  11610.5973,
+                                                 "min":  21297.6933,
+                                                 "max":  59991.0656,
+                                                 "avg":  32959.1189
+                                             }
+                    },
+    "id":  "gen_20260422100418_BASELINE_POST_REBOOT_CLEAN",
+    "smiAnalysis":  {
+                        "maxBucketUs":  0,
+                        "driversWithHighDpc":  0,
+                        "source":  "baseline-full-capture",
+                        "verdict":  "BASELINE",
+                        "captureDurationSec":  60,
+                        "highLatencyDpcCount":  0,
+                        "correlationScore":  100
+                    },
+    "dpcIsrAnalysis":  {
+                           "totalDpcs":  null,
+                           "topDrivers":  [
+                                              {
+                                                  "driver":  "dxgkrnl.sys",
+                                                  "total_usec":  4968090,
+                                                  "total_pct":  8.17
+                                              },
+                                              {
+                                                  "driver":  "nvlddmkm.sys",
+                                                  "total_usec":  4418642,
+                                                  "total_pct":  7.27
+                                              },
+                                              {
+                                                  "driver":  "dxgkrnl.sys",
+                                                  "total_usec":  2298264,
+                                                  "total_pct":  3.76
+                                              },
+                                              {
+                                                  "driver":  "USBXHCI.SYS",
+                                                  "total_usec":  132878,
+                                                  "total_pct":  0.22
+                                              },
+                                              {
+                                                  "driver":  "ntoskrnl.exe",
+                                                  "total_usec":  105262,
+                                                  "total_pct":  0.15
+                                              },
+                                              {
+                                                  "driver":  "storport.sys",
+                                                  "total_usec":  87526,
+                                                  "total_pct":  0.13
+                                              },
+                                              {
+                                                  "driver":  "tcpip.sys",
+                                                  "total_usec":  17069,
+                                                  "total_pct":  0
+                                              },
+                                              {
+                                                  "driver":  "e2fn.sys",
+                                                  "total_usec":  16802,
+                                                  "total_pct":  0.02
+                                              },
+                                              {
+                                                  "driver":  "storport.sys",
+                                                  "total_usec":  8597,
+                                                  "total_pct":  0
+                                              },
+                                              {
+                                                  "driver":  "USBXHCI.SYS",
+                                                  "total_usec":  5318,
+                                                  "total_pct":  0
+                                              }
+                                          ],
+                           "totalIsrs":  null
+                       },
+    "interruptTopology":  null,
+    "tags":  [
+                 "baseline",
+                 "generated",
+                 "full-suite"
+             ],
+    "name":  "BASELINE_POST_REBOOT_CLEAN",
+    "shortName":  "BASELINE_POST_REBOOT_CLEAN",
+    "registry":  {
+
+                 },
+    "description":  "Full-suite baseline capture (idle + Prime95 SmallFFT load).",
+    "cpuData":  [
+                    {
+                        "interruptStdev":  6.7487,
+                        "dpcStdev":  7.0676,
+                        "dpcPct":  8.238,
+                        "interruptPct":  6.3925,
+                        "intrPerSec":  6099.0001,
+                        "cpu":  0
+                    },
+                    {
+                        "interruptStdev":  0.4718,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.1559,
+                        "intrPerSec":  1148.2641,
+                        "cpu":  1
+                    },
+                    {
+                        "interruptStdev":  0.5049,
+                        "dpcStdev":  0.2824,
+                        "dpcPct":  0.052,
+                        "interruptPct":  0.182,
+                        "intrPerSec":  2088.3139,
+                        "cpu":  2
+                    },
+                    {
+                        "interruptStdev":  0.5857,
+                        "dpcStdev":  0.2013,
+                        "dpcPct":  0.026,
+                        "interruptPct":  0.2597,
+                        "intrPerSec":  1815.4857,
+                        "cpu":  3
+                    },
+                    {
+                        "interruptStdev":  0.7086,
+                        "dpcStdev":  0.3923,
+                        "dpcPct":  0.104,
+                        "interruptPct":  0.4418,
+                        "intrPerSec":  2465.8358,
+                        "cpu":  4
+                    },
+                    {
+                        "interruptStdev":  0.8519,
+                        "dpcStdev":  0.4471,
+                        "dpcPct":  0.078,
+                        "interruptPct":  0.312,
+                        "intrPerSec":  2432.3549,
+                        "cpu":  5
+                    },
+                    {
+                        "interruptStdev":  0.6525,
+                        "dpcStdev":  0.5211,
+                        "dpcPct":  0.13,
+                        "interruptPct":  0.2599,
+                        "intrPerSec":  2821.0172,
+                        "cpu":  6
+                    },
+                    {
+                        "interruptStdev":  0.673,
+                        "dpcStdev":  0.4347,
+                        "dpcPct":  0.13,
+                        "interruptPct":  0.2859,
+                        "intrPerSec":  2193.8891,
+                        "cpu":  7
+                    },
+                    {
+                        "interruptStdev":  0.6476,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.3377,
+                        "intrPerSec":  2548.9503,
+                        "cpu":  8
+                    },
+                    {
+                        "interruptStdev":  0.5612,
+                        "dpcStdev":  0.3428,
+                        "dpcPct":  0.078,
+                        "interruptPct":  0.2338,
+                        "intrPerSec":  1885.9945,
+                        "cpu":  9
+                    },
+                    {
+                        "interruptStdev":  0.6064,
+                        "dpcStdev":  0.648,
+                        "dpcPct":  0.182,
+                        "interruptPct":  0.2077,
+                        "intrPerSec":  1812.9052,
+                        "cpu":  10
+                    },
+                    {
+                        "interruptStdev":  0.5043,
+                        "dpcStdev":  0.2013,
+                        "dpcPct":  0.026,
+                        "interruptPct":  0.1818,
+                        "intrPerSec":  1408.989,
+                        "cpu":  11
+                    },
+                    {
+                        "interruptStdev":  0.4713,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.1558,
+                        "intrPerSec":  1368.573,
+                        "cpu":  12
+                    },
+                    {
+                        "interruptStdev":  0.4861,
+                        "dpcStdev":  0.2013,
+                        "dpcPct":  0.026,
+                        "interruptPct":  0.104,
+                        "intrPerSec":  987.2353,
+                        "cpu":  13
+                    },
+                    {
+                        "interruptStdev":  0.5048,
+                        "dpcStdev":  0.2013,
+                        "dpcPct":  0.026,
+                        "interruptPct":  0.1819,
+                        "intrPerSec":  985.0525,
+                        "cpu":  14
+                    },
+                    {
+                        "interruptStdev":  0.5208,
+                        "dpcStdev":  0,
+                        "dpcPct":  0,
+                        "interruptPct":  0.1299,
+                        "intrPerSec":  897.2583,
+                        "cpu":  15
+                    }
+                ],
+    "systemInfo":  {
+                       "cores":  "1C/16T",
+                       "gpu":  "NVIDIA GeForce RTX 5070 Ti",
+                       "hostname":  "DESKTOP-V5BN4SC",
+                       "ram":  "32 GB",
+                       "os":  "Microsoft Windows 11 Pro Build 26200",
+                       "cpu":  "AMD Ryzen 7 9800X3D 8-Core Processor           "
+                   },
+    "frameTiming":  null,
+    "latencymon":  null,
+    "date":  "2026-04-22T10:04:18",
+    "gpuUtilization":  null
+}

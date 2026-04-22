@@ -1,0 +1,8 @@
+﻿{
+    "latmon":  "LatMon.exe present",
+    "presentmon":  "PresentMon_x64.exe present",
+    "prime95":  "prime95.exe present",
+    "wpr":  "",
+    "xperf":  "unknown",
+    "procmon":  "Procmon64.exe present"
+}

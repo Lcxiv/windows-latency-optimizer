@@ -72,6 +72,9 @@ captures/baselines/**/*.pml
 captures/baselines/**/*.csv
 captures/baselines/**/wpr_*_raw.txt
 captures/baselines/**/xperf_*_raw.txt
+captures/baselines/**/*.NGENPDB/
+captures/baselines/**/audit_[0-9]*.html
+captures/baselines/**/audit_[0-9]*.json
 captures/.synthetic_load_state.json
 
 # Playwright MCP scratch
