@@ -39,18 +39,28 @@ Describe 'aggregate_baseline_to_dashboard_entry.ps1 — schema validation' {
         New-Item -ItemType Directory -Path (Join-Path $runDir '30_loaded') -Force | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $runDir '40_aggregate') -Force | Out-Null
 
-        # Fixture: minimal pipeline_idle.json
+        # Fixture: minimal pipeline_idle.json matching real pipeline.ps1 shape
+        # (performance.'% dpc time[_total]'.avg, not flat top-level DPCTimePct)
         @{
-            DPCTimePct = @{ avg = 0.1; min = 0.05; max = 0.3 }
-            InterruptTimePct = @{ avg = 0.2; min = 0.1; max = 0.5 }
+            schemaVersion = 4
+            label = 'BASELINE_IDLE'
+            durationSec = 60
+            performance = @{
+                '% dpc time[_total]' = @{ avg = 0.1; min = 0.05; max = 0.3; stdev = 0.02 }
+                '% interrupt time[_total]' = @{ avg = 0.2; min = 0.1; max = 0.5; stdev = 0.05 }
+                'interrupts/sec[_total]' = @{ avg = 1500; min = 1000; max = 2500; stdev = 200 }
+            }
             cpuData = @(@{ cpu = 0; interruptPct = 0.3; dpcPct = 0.1; intrPerSec = 100 })
         } | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $runDir '20_idle\pipeline_idle.json')
 
-        # Fixture: minimal xperf_idle.json
+        # Fixture: minimal xperf_idle.json matching orchestrator's new format
+        # (top_drivers use total_usec/total_pct from CPU Usage By Module parse)
         @{
-            top_drivers = @(@{ driver = 'ndis.sys'; dpc_pct = 0.5; count = 100 })
-            total_dpcs = 1000
-            total_isrs = 500
+            phase = 'idle'
+            top_drivers = @(@{ driver = 'ndis.sys'; total_usec = 50000; total_pct = 0.5 })
+            total_dpcs = $null
+            total_isrs = $null
+            parse_source = 'CPU Usage Summing By Module'
         } | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $runDir '20_idle\xperf_idle.json')
 
         $outputPath = Join-Path $runDir '40_aggregate\experiment_entry.json'

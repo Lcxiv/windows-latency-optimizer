@@ -341,27 +341,44 @@ function Invoke-CapturePhase {
     & wpr.exe -stop $etlPath 2>&1 | Out-Null
     $script:cleanupState.wpr_active = $false
 
-    # 2. xperf DPC/ISR extract
+    # 2. xperf DPC/ISR extract — parses "CPU Usage Summing By Module" table
+    # from xperf -a dpcisr output (the DPC Info section is empty for default
+    # WPR GeneralProfile captures; CPU Usage By Module is richer).
     Write-Step 'xperf DPC/ISR analysis...'
     $xperfJsonPath = Join-Path $PhaseDir ('xperf_' + $PhaseName + '.json')
     $xperfRawPath = Join-Path $PhaseDir ('xperf_' + $PhaseName + '_raw.txt')
     try {
         $xperfOut = & $Tools.xperf -i $etlPath -a dpcisr 2>&1
         Set-Content -Path $xperfRawPath -Value $xperfOut -Encoding UTF8
-        # Minimal JSON structure — parse_xperf_trace.ps1 does richer parsing but
-        # we inline minimal extraction here for self-contained output
+
+        # Parse "CPU Usage Summing By Module" — each data row is 16 per-CPU
+        # "usec %," columns then a final ", driver_name". Module name on the
+        # RIGHT, not left. We sum the usec column across all 16 CPUs to rank.
         $topDrivers = @()
-        $lines = Get-Content $xperfRawPath
-        foreach ($ln in $lines) {
-            if ($ln -match '^\s*(\S+\.sys)\s+.*?(\d+\.\d+)%') {
-                $topDrivers += @{ driver = $Matches[1]; dpc_pct = [double]$Matches[2]; count = 0 }
+        $inTable = $false
+        foreach ($ln in Get-Content $xperfRawPath) {
+            if ($ln -match 'CPU Usage Summing By Module') { $inTable = $true; continue }
+            if ($inTable -and ($ln -match '^Total\s*=') ) { $inTable = $false; continue }
+            if (-not $inTable) { continue }
+            if ($ln -match ',\s*([A-Za-z0-9_\-\.]+\.(sys|exe|dll))\s*$') {
+                $drv = $Matches[1]
+                # Extract all "usec %" pairs from the line
+                $cpuMatches = [regex]::Matches($ln, '(\d+)\s+(\d+\.\d+),')
+                $usecSum = 0
+                $pctSum = 0.0
+                foreach ($m in $cpuMatches) {
+                    $usecSum += [int64]$m.Groups[1].Value
+                    $pctSum += [double]$m.Groups[2].Value
+                }
+                $topDrivers += [PSCustomObject]@{ driver = $drv; total_usec = $usecSum; total_pct = [Math]::Round($pctSum, 3) }
             }
         }
         @{
             phase = $PhaseName
-            top_drivers = @($topDrivers | Sort-Object -Property dpc_pct -Descending | Select-Object -First 10)
+            top_drivers = @($topDrivers | Sort-Object -Property total_usec -Descending | Select-Object -First 15)
             total_dpcs = $null
             total_isrs = $null
+            parse_source = 'CPU Usage Summing By Module'
         } | ConvertTo-Json -Depth 10 | Set-Content -Path $xperfJsonPath -Encoding UTF8
     } catch {
         Write-Warning ('xperf extraction failed: ' + $_.Exception.Message)
@@ -511,19 +528,32 @@ function Invoke-Phase4 {
     } catch {}
 
     $delta = @{}
-    if ($idlePerf -and $loadedPerf) {
-        if ($idlePerf.DPCTimePct -and $loadedPerf.DPCTimePct) {
+    if ($idlePerf -and $loadedPerf -and $idlePerf.performance -and $loadedPerf.performance) {
+        $dpcIdleVal = $idlePerf.performance.'% dpc time[_total]'
+        $dpcLoadedVal = $loadedPerf.performance.'% dpc time[_total]'
+        if ($dpcIdleVal -and $dpcLoadedVal) {
             $delta['dpc_pct'] = @{
-                idle = $idlePerf.DPCTimePct.avg
-                loaded = $loadedPerf.DPCTimePct.avg
-                delta = [Math]::Round(($loadedPerf.DPCTimePct.avg - $idlePerf.DPCTimePct.avg), 3)
+                idle = $dpcIdleVal.avg
+                loaded = $dpcLoadedVal.avg
+                delta = [Math]::Round(($dpcLoadedVal.avg - $dpcIdleVal.avg), 3)
             }
         }
-        if ($idlePerf.InterruptTimePct -and $loadedPerf.InterruptTimePct) {
-            $delta['interrupt_rate'] = @{
-                idle = $idlePerf.InterruptTimePct.avg
-                loaded = $loadedPerf.InterruptTimePct.avg
-                delta = [Math]::Round(($loadedPerf.InterruptTimePct.avg - $idlePerf.InterruptTimePct.avg), 3)
+        $intIdleVal = $idlePerf.performance.'% interrupt time[_total]'
+        $intLoadedVal = $loadedPerf.performance.'% interrupt time[_total]'
+        if ($intIdleVal -and $intLoadedVal) {
+            $delta['interrupt_pct'] = @{
+                idle = $intIdleVal.avg
+                loaded = $intLoadedVal.avg
+                delta = [Math]::Round(($intLoadedVal.avg - $intIdleVal.avg), 3)
+            }
+        }
+        $ipsIdleVal = $idlePerf.performance.'interrupts/sec[_total]'
+        $ipsLoadedVal = $loadedPerf.performance.'interrupts/sec[_total]'
+        if ($ipsIdleVal -and $ipsLoadedVal) {
+            $delta['interrupts_per_sec'] = @{
+                idle = $ipsIdleVal.avg
+                loaded = $ipsLoadedVal.avg
+                delta = [Math]::Round(($ipsLoadedVal.avg - $ipsIdleVal.avg), 1)
             }
         }
     }

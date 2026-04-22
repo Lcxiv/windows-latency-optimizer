@@ -98,26 +98,38 @@ $latmonIdlePath = Join-Path $idleDir 'latmon_idle_report.txt'
 $latmonIdle = if (Test-Path $latmonIdlePath) { Get-Content $latmonIdlePath -Raw } else { $null }
 $manifest = Read-JsonOrEmpty (Join-Path $InputDir 'manifest.json') @{}
 
-# Performance block — prefer idle for baseline, note delta in description
-$perfBlock = @{}
-if ($perfIdle -and $perfIdle.DPCTimePct) {
-    $perfBlock['DPCTimePct'] = @{
-        avg = $perfIdle.DPCTimePct.avg
-        min = $perfIdle.DPCTimePct.min
-        max = $perfIdle.DPCTimePct.max
-    }
-}
-if ($perfIdle -and $perfIdle.InterruptTimePct) {
-    $perfBlock['InterruptTimePct'] = @{
-        avg = $perfIdle.InterruptTimePct.avg
-        min = $perfIdle.InterruptTimePct.min
-        max = $perfIdle.InterruptTimePct.max
+# Performance block — pipeline.ps1 writes perf counter names verbatim under
+# a `performance` sub-object: performance['% dpc time[_total]'].avg, etc.
+function Get-PerfCounter {
+    param($PerfData, [string]$CounterName)
+    if (-not $PerfData) { return $null }
+    if (-not $PerfData.performance) { return $null }
+    $val = $PerfData.performance.$CounterName
+    if (-not $val) { return $null }
+    return @{
+        avg = $val.avg
+        min = $val.min
+        max = $val.max
+        stdev = $val.stdev
     }
 }
 
-# CPU data — passthrough from pipeline
+$perfBlock = @{}
+$dpcIdle = Get-PerfCounter -PerfData $perfIdle -CounterName '% dpc time[_total]'
+if ($dpcIdle) { $perfBlock['DPCTimePct'] = $dpcIdle }
+$intIdle = Get-PerfCounter -PerfData $perfIdle -CounterName '% interrupt time[_total]'
+if ($intIdle) { $perfBlock['InterruptTimePct'] = $intIdle }
+$intrPerSec = Get-PerfCounter -PerfData $perfIdle -CounterName 'interrupts/sec[_total]'
+if ($intrPerSec) { $perfBlock['InterruptsPerSec'] = $intrPerSec }
+
+# CPU data — passthrough from pipeline (nested under .performance typically, but
+# generate_dashboard_data.ps1 outputs cpuData at top level in the entry. Try both.)
 $cpuData = @()
-if ($perfIdle -and $perfIdle.cpuData) { $cpuData = $perfIdle.cpuData }
+if ($perfIdle -and $perfIdle.cpuData) {
+    $cpuData = $perfIdle.cpuData
+} elseif ($perfIdle -and $perfIdle.performance -and $perfIdle.performance.cpuData) {
+    $cpuData = $perfIdle.performance.cpuData
+}
 
 # LatencyMon — pass raw text if present
 $latencymonBlock = $null

@@ -66,28 +66,33 @@ function Build-PhaseSection {
     $sb = New-Object System.Text.StringBuilder
     [void]$sb.AppendLine('<section class="phase"><h2>' + (HtmlEscape $Title) + '</h2>')
 
-    # Perf summary
-    if ($perf) {
+    # Perf summary — pipeline.ps1 shape: perf.performance['% dpc time[_total]']
+    if ($perf -and $perf.performance) {
         [void]$sb.AppendLine('<h3>Perf counters</h3><table class="perf">')
-        [void]$sb.AppendLine('<tr><th>Counter</th><th>Avg</th><th>Min</th><th>Max</th></tr>')
-        if ($perf.DPCTimePct) {
-            [void]$sb.AppendLine('<tr><td>DPC Time %</td><td>' + $perf.DPCTimePct.avg + '</td><td>' + $perf.DPCTimePct.min + '</td><td>' + $perf.DPCTimePct.max + '</td></tr>')
-        }
-        if ($perf.InterruptTimePct) {
-            [void]$sb.AppendLine('<tr><td>Interrupt Time %</td><td>' + $perf.InterruptTimePct.avg + '</td><td>' + $perf.InterruptTimePct.min + '</td><td>' + $perf.InterruptTimePct.max + '</td></tr>')
+        [void]$sb.AppendLine('<tr><th>Counter</th><th>Avg</th><th>Min</th><th>Max</th><th>Stdev</th></tr>')
+        $counters = @(
+            @{ label = 'DPC Time %'; key = '% dpc time[_total]' },
+            @{ label = 'Interrupt Time %'; key = '% interrupt time[_total]' },
+            @{ label = 'Interrupts/sec total'; key = 'interrupts/sec[_total]' }
+        )
+        foreach ($c in $counters) {
+            $val = $perf.performance.($c.key)
+            if ($val) {
+                [void]$sb.AppendLine('<tr><td>' + $c.label + '</td><td>' + $val.avg + '</td><td>' + $val.min + '</td><td>' + $val.max + '</td><td>' + $val.stdev + '</td></tr>')
+            }
         }
         [void]$sb.AppendLine('</table>')
     } else {
         [void]$sb.AppendLine('<p class="skipped">Perf counters: missing</p>')
     }
 
-    # xperf DPC/ISR top drivers
-    if ($xperf -and $xperf.top_drivers) {
-        [void]$sb.AppendLine('<h3>Top 10 DPC drivers</h3><table class="drivers">')
-        [void]$sb.AppendLine('<tr><th>Driver</th><th>DPC %</th><th>Count</th></tr>')
-        $top = @($xperf.top_drivers) | Select-Object -First 10
+    # xperf top CPU-consumer modules (from CPU Usage By Module)
+    if ($xperf -and $xperf.top_drivers -and $xperf.top_drivers.Count -gt 0) {
+        [void]$sb.AppendLine('<h3>Top 15 modules by total CPU usec</h3><table class="drivers">')
+        [void]$sb.AppendLine('<tr><th>Module</th><th>Total usec (sum 16 CPUs)</th><th>Total %</th></tr>')
+        $top = @($xperf.top_drivers) | Select-Object -First 15
         foreach ($d in $top) {
-            [void]$sb.AppendLine('<tr><td>' + (HtmlEscape $d.driver) + '</td><td>' + $d.dpc_pct + '</td><td>' + $d.count + '</td></tr>')
+            [void]$sb.AppendLine('<tr><td>' + (HtmlEscape $d.driver) + '</td><td>' + $d.total_usec + '</td><td>' + $d.total_pct + '</td></tr>')
         }
         [void]$sb.AppendLine('</table>')
     }
@@ -134,13 +139,13 @@ function Build-DeltaSection {
         $row = $delta.dpc_pct
         [void]$sb.AppendLine('<tr><td>DPC %</td><td>' + $row.idle + '</td><td>' + $row.loaded + '</td><td>' + $row.delta + '</td></tr>')
     }
-    if ($delta.PSObject.Properties['interrupt_rate']) {
-        $row = $delta.interrupt_rate
-        [void]$sb.AppendLine('<tr><td>Interrupt rate</td><td>' + $row.idle + '</td><td>' + $row.loaded + '</td><td>' + $row.delta + '</td></tr>')
+    if ($delta.PSObject.Properties['interrupt_pct']) {
+        $row = $delta.interrupt_pct
+        [void]$sb.AppendLine('<tr><td>Interrupt %</td><td>' + $row.idle + '</td><td>' + $row.loaded + '</td><td>' + $row.delta + '</td></tr>')
     }
-    if ($delta.PSObject.Properties['frame_p99']) {
-        $row = $delta.frame_p99
-        [void]$sb.AppendLine('<tr><td>Frame p99 (ms)</td><td>' + $row.idle + '</td><td>' + $row.loaded + '</td><td>' + $row.delta + '</td></tr>')
+    if ($delta.PSObject.Properties['interrupts_per_sec']) {
+        $row = $delta.interrupts_per_sec
+        [void]$sb.AppendLine('<tr><td>Interrupts/sec</td><td>' + $row.idle + '</td><td>' + $row.loaded + '</td><td>' + $row.delta + '</td></tr>')
     }
 
     [void]$sb.AppendLine('</table></section>')
