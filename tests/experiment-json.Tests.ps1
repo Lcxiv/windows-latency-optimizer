@@ -33,11 +33,25 @@ Describe 'Experiment JSON Schema Validation' {
             }
 
             It 'has required top-level fields' {
-                $json.label | Should Not BeNullOrEmpty
+                # Two schemas coexist in captures/experiments/:
+                #   A) pipeline.ps1 per-experiment: { label, capturedAt, durationSec, hostname, ... }
+                #   B) dashboard-entry / baseline aggregate: { name, date, systemInfo.hostname, ... }
+                # Accept either — both are valid consumers of the dashboard.
+                $labelOrName = if ($json.label) { $json.label } else { $json.name }
+                $labelOrName | Should Not BeNullOrEmpty
+
                 $json.description | Should Not BeNullOrEmpty
-                $json.capturedAt | Should Not BeNullOrEmpty
-                $json.durationSec | Should BeGreaterThan 0
-                $json.hostname | Should Not BeNullOrEmpty
+
+                $timestamp = if ($json.capturedAt) { $json.capturedAt } else { $json.date }
+                $timestamp | Should Not BeNullOrEmpty
+
+                $hostname = if ($json.hostname) { $json.hostname } else { $json.systemInfo.hostname }
+                $hostname | Should Not BeNullOrEmpty
+
+                # durationSec is Shape A only — conditional check
+                if ($json.PSObject.Properties.Name -contains 'durationSec') {
+                    $json.durationSec | Should BeGreaterThan 0
+                }
             }
 
             It 'has performance data' {
@@ -45,12 +59,18 @@ Describe 'Experiment JSON Schema Validation' {
             }
 
             It 'has DPC time data' {
-                $dpcKey = $json.performance.PSObject.Properties.Name | Where-Object { $_ -match 'dpc time.*_total' }
+                # Shape A: "% dpc time[_total]"  |  Shape B: "DPCTimePct"
+                $dpcKey = $json.performance.PSObject.Properties.Name | Where-Object {
+                    $_ -match 'dpc time.*_total' -or $_ -eq 'DPCTimePct'
+                }
                 $dpcKey | Should Not BeNullOrEmpty
             }
 
             It 'has interrupt time data' {
-                $intKey = $json.performance.PSObject.Properties.Name | Where-Object { $_ -match 'interrupt time.*_total' }
+                # Shape A: "% interrupt time[_total]"  |  Shape B: "InterruptTimePct"
+                $intKey = $json.performance.PSObject.Properties.Name | Where-Object {
+                    $_ -match 'interrupt time.*_total' -or $_ -eq 'InterruptTimePct'
+                }
                 $intKey | Should Not BeNullOrEmpty
             }
 
@@ -68,8 +88,10 @@ Describe 'Experiment JSON Schema Validation' {
             }
 
             It 'has valid capturedAt timestamp' {
+                # Shape A uses capturedAt, Shape B uses date — parse whichever is present.
+                $timestamp = if ($json.capturedAt) { $json.capturedAt } else { $json.date }
                 $parsed = [DateTime]::MinValue
-                $valid = [DateTime]::TryParse($json.capturedAt, [ref]$parsed)
+                $valid = [DateTime]::TryParse($timestamp, [ref]$parsed)
                 $valid | Should Be $true
             }
 
