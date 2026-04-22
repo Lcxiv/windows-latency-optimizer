@@ -48,8 +48,29 @@ latencyguard/%windir%/
 
 # Local captures (not tracked — regenerated per machine)
 captures/backup_pre_*.txt
+captures/backup_pre_*.reg
 captures/backup_dwm_*.reg
+captures/backup_audio_*.txt
+captures/backup_nic_*.txt
+captures/backup_deconflict_*.txt
 captures/experiments/
+
+# Audit/BIOS/pipeline run outputs (regenerated each session)
+captures/audit_output_*.txt
+captures/audio_clock_diag_*.txt
+captures/pipeline_output_*.txt
+captures/bios_backup_*.txt
+captures/bios_current.txt
+captures/bios_current.txt.dup
+captures/bios_export_*.txt
+captures/bios_tier*_import.txt
+captures/health_*/
+
+# Playwright MCP scratch
+.playwright-mcp/
+
+# Claude scheduled task lockfile
+.claude/scheduled_tasks.lock
 
 # Historical archive zips (large, mirror preserved locally only)
 docs/history/**/scripts_and_tools.zip
