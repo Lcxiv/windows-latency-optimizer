@@ -73,6 +73,7 @@ if ($Mode -eq 'Deep') {
     $allChecks += Invoke-AntiCheatChecks
     $allChecks += Invoke-NvidiaDpcHealthCheck
     $allChecks += Invoke-LatencyMitigationChecks
+    $allChecks += Invoke-DWMHealthChecks
 }
 
 # --- Symptom filtering (post-aggregation) ---
