@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaming Lag Diagnostic Report</title>
+<style>
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2235;
+    --bg-card-hover: #1f2a40;
+    --border: #2a3a55;
+    --cyan: #00e5ff;
+    --cyan-dim: #00a0b0;
+    --green: #00e676;
+    --green-dim: #00a050;
+    --red: #ff1744;
+    --red-dim: #c0102e;
+    --yellow: #ffc400;
+    --yellow-dim: #b08a00;
+    --orange: #ff9100;
+    --text-primary: #e8ecf1;
+    --text-secondary: #8899aa;
+    --text-muted: #556677;
+    --purple: #b388ff;
+    --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan-dim); }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0d1525 0%, #0a1628 50%, #0d1a2d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--green), var(--cyan), transparent);
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(0,229,255,0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(0,230,118,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .header-left { flex: 1; }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+  }
+
+  .header-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .meta-item .label { color: var(--text-secondary); }
+
+  .header-verdict {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    min-width: 320px;
+    max-width: 400px;
+  }
+
+  .verdict-title {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+
+  .verdict-text {
+    font-size: 0.95rem;
+    color: var(--yellow);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .verdict-detail {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Nav */
+  .nav {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .nav a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .nav a:hover {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan-dim);
+    background: rgba(0,229,255,0.03);
+  }
+
+  /* Main */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-icon {
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .section-icon.cyan { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+  .section-icon.green { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+  .section-icon.red { background: rgba(255,23,68,0.1); color: var(--red); border: 1px solid rgba(255,23,68,0.2); }
+  .section-icon.yellow { background: rgba(255,196,0,0.1); color: var(--yellow); border: 1px solid rgba(255,196,0,0.2); }
+  .section-icon.purple { background: rgba(179,136,255,0.1); color: var(--purple); border: 1px solid rgba(179,136,255,0.2); }
+  .section-icon.orange { background: rgba(255,145,0,0.1); color: var(--orange); border: 1px solid rgba(255,145,0,0.2); }
+
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    padding: 0.2rem 0.6rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: rgba(0,229,255,0.2); }
+
+  /* Spec Grid */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .spec-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: border-color 0.2s;
+  }
+
+  .spec-card:hover { border-color: rgba(0,229,255,0.15); }
+
+  .spec-label {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+  }
+
+  .spec-value {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .spec-detail {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+  }
+
+  .spec-icon-box {
+    width: 36px; height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 6px;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .badge-fixed {
+    background: rgba(0,230,118,0.1);
+    color: var(--green);
+    border: 1px solid rgba(0,230,118,0.25);
+  }
+
+  .badge-issue {
+    background: rgba(255,23,68,0.1);
+    color: var(--red);
+    border: 1px solid rgba(255,23,68,0.25);
+  }
+
+  .badge-noted {
+    background: rgba(255,196,0,0.1);
+    color: var(--yellow);
+    border: 1px solid rgba(255,196,0,0.25);
+  }
+
+  .badge-info {
+    background: rgba(0,229,255,0.1);
+    color: var(--cyan);
+    border: 1px solid rgba(0,229,255,0.25);
+  }
+
+  .badge-root {
+    background: rgba(255,23,68,0.15);
+    color: var(--red);
+    border: 1px solid rgba(255,23,68,0.35);
+  }
+
+  /* Issue List */
+  .issue-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .issue-num {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    min-width: 1.5rem;
+    padding-top: 0.15rem;
+  }
+
+  .issue-content { flex: 1; }
+
+  .issue-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .issue-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .issue-badge { flex-shrink: 0; padding-top: 0.15rem; }
+
+  /* BIOS Table */
+  .bios-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+
+  .bios-table th {
+    background: rgba(0,229,255,0.05);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bios-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(42,58,85,0.5);
+    vertical-align: middle;
+  }
+
+  .bios-table tr:last-child td { border-bottom: none; }
+
+  .bios-table tr:hover td { background: rgba(0,229,255,0.02); }
+
+  .bios-before {
+    color: var(--red);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+
+  .bios-after {
+    color: var(--green);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .bios-arrow {
+    color: var(--text-muted);
+    margin: 0 0.3rem;
+  }
+
+  /* Fix List */
+  .fix-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(42,58,85,0.3);
+  }
+
+  .fix-item:last-child { border-bottom: none; }
+
+  .fix-check {
+    width: 18px; height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,230,118,0.1);
+    border: 1px solid rgba(0,230,118,0.3);
+    border-radius: 4px;
+    color: var(--green);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  .fix-text {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+  }
+
+  /* Performance Comparison Table */
+  .perf-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .perf-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+  }
+
+  .perf-table thead th {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.8rem 0.75rem;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .perf-table thead th:first-child {
+    text-align: left;
+    min-width: 180px;
+  }
+
+  .perf-table thead th.baseline { color: var(--red); border-top: 2px solid var(--red-dim); }
+  .perf-table thead th.bios { color: var(--yellow); border-top: 2px solid var(--yellow-dim); }
+  .perf-table thead th.gpu { color: var(--green); border-top: 2px solid var(--green-dim); }
+  .perf-table thead th.gaming { color: var(--cyan); border-top: 2px solid var(--cyan-dim); }
+
+  .perf-table tbody td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid rgba(42,58,85,0.4);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .perf-table tbody td:first-child {
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .perf-table tbody tr:hover td { background: rgba(0,229,255,0.02); }
+  .perf-table tbody tr:last-child td { border-bottom: none; }
+
+  .perf-val-bad { color: var(--red); }
+  .perf-val-warn { color: var(--yellow); }
+  .perf-val-ok { color: var(--green); }
+  .perf-val-info { color: var(--cyan); }
+  .perf-val-neutral { color: var(--text-primary); }
+
+  .perf-delta {
+    font-size: 0.65rem;
+    display: block;
+    margin-top: 0.1rem;
+  }
+
+  .delta-good { color: var(--green-dim); }
+  .delta-bad { color: var(--red-dim); }
+  .perf-na { color: var(--text-muted); font-style: italic; }
+
+  /* DPC Table */
+  .dpc-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+  }
+
+  .dpc-table th {
+    background: rgba(255,23,68,0.05);
+    color: var(--red);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.7rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dpc-table th:nth-child(3),
+  .dpc-table th:nth-child(4) { text-align: right; }
+
+  .dpc-table td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid rgba(42,58,85,0.4);
+    vertical-align: middle;
+  }
+
+  .dpc-table td:nth-child(3),
+  .dpc-table td:nth-child(4) {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .dpc-table tr:last-child td { border-bottom: none; }
+  .dpc-table tr:hover td { background: rgba(255,23,68,0.02); }
+
+  .dpc-driver {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+
+  .dpc-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.1rem;
+  }
+
+  .dpc-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .dpc-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .dpc-rank {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    min-width: 1.2rem;
+  }
+
+  /* Feedback Loop */
+  .loop-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .loop-steps {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .loop-step {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .loop-step-num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
+  }
+
+  .loop-step-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .loop-step-desc {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .loop-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    padding: 0 0.25rem;
+  }
+
+  .loop-note {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,196,0,0.05);
+    border: 1px solid rgba(255,196,0,0.15);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--yellow);
+    line-height: 1.5;
+  }
+
+  /* Recommendations */
+  .rec-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(42,58,85,0.3);
+  }
+
+  .rec-item:last-child { border-bottom: none; }
+
+  .rec-num {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--cyan);
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 4px;
+    width: 22px; height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .rec-content { flex: 1; }
+
+  .rec-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+  }
+
+  .rec-detail {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  /* Tool & File Lists */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .tool-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .tool-item:hover { border-color: rgba(0,229,255,0.15); }
+
+  .tool-num {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    padding-top: 0.1rem;
+  }
+
+  .tool-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cyan);
+    font-family: var(--font-mono);
+  }
+
+  .tool-ver {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .tool-path {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    word-break: break-all;
+  }
+
+  .file-item {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(42,58,85,0.2);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  .file-item:last-child { border-bottom: none; }
+
+  .file-path { color: var(--cyan-dim); }
+
+  /* Collapsible */
+  .collapsible { margin-bottom: 0.5rem; }
+
+  .collapsible-toggle {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1.25rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .collapsible-toggle:hover {
+    border-color: rgba(0,229,255,0.2);
+    background: var(--bg-card-hover);
+  }
+
+  .collapsible-toggle .chevron {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    transition: transform 0.25s;
+    margin-left: auto;
+  }
+
+  .collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+
+  .collapsible.open .collapsible-content {
+    max-height: 3000px;
+  }
+
+  .collapsible.open .collapsible-toggle .chevron {
+    transform: rotate(90deg);
+  }
+
+  .collapsible-inner {
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+  }
+
+  .footer-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin-bottom: 1rem;
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #111; }
+    .nav { display: none; }
+    .card, .spec-card, .issue-item, .tool-item { border-color: #ccc; background: #f9f9f9; }
+    .collapsible-content { max-height: none !important; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header-inner { flex-direction: column; }
+    .header-verdict { min-width: 100%; max-width: 100%; }
+    .spec-grid { grid-template-columns: 1fr; }
+    .tool-grid { grid-template-columns: 1fr; }
+    .loop-steps { flex-direction: column; align-items: center; }
+    .loop-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="top">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-badge">
+        <span class="dot"></span>
+        Diagnostic Session Complete
+      </div>
+      <h1>Gaming Lag Diagnostic Report</h1>
+      <p class="header-subtitle">Comprehensive latency analysis and system optimization</p>
+      <div class="header-meta">
+        <div class="meta-item"><span class="label">Date:</span> April 9, 2026</div>
+        <div class="meta-item"><span class="label">System:</span> ROG STRIX X670E-A / R7 9800X3D</div>
+        <div class="meta-item"><span class="label">Duration:</span> Full session</div>
+        <div class="meta-item"><span class="label">Issues:</span> 7 found, 3 fixed</div>
+      </div>
+    </div>
+    <div class="header-verdict">
+      <div class="verdict-title">Summary Verdict</div>
+      <div class="verdict-text">Root Cause Identified: NVIDIA GPU Driver DPC Latency</div>
+      <div class="verdict-detail">
+        The nvlddmkm.sys driver (v32.0.15.9597) accounts for 54.3% of all DPCs,
+        creating a feedback loop that starves the game thread and idles the GPU at 25-40%.
+        BIOS power-saving fixes reduced idle interrupt load by 39%.
+        A DDU clean driver reinstall is the recommended next step.
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#system-profile">System Profile</a>
+    <a href="#issues-found">Issues Found</a>
+    <a href="#bios-changes">BIOS Changes</a>
+    <a href="#os-fixes">OS Fixes</a>
+    <a href="#performance">Performance Data</a>
+    <a href="#root-cause">Root Cause</a>
+    <a href="#recommendations">Recommendations</a>
+    <a href="#tools">Tools Used</a>
+    <a href="#files">Files Generated</a>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- SYSTEM PROFILE -->
+  <section class="section" id="system-profile">
+    <div class="section-header">
+      <div class="section-icon cyan">&#9881;</div>
+      <h2 class="section-title">System Profile</h2>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128187;</div>
+        <div>
+          <div class="spec-label">Processor</div>
+          <div class="spec-value">AMD Ryzen 7 9800X3D</div>
+          <div class="spec-detail">8C/16T, 4.7 GHz base, 3D V-Cache on CCD1 (cores 8-15)</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#127918;</div>
+        <div>
+          <div class="spec-label">Graphics</div>
+          <div class="spec-value">NVIDIA GeForce RTX 5070 Ti</div>
+          <div class="spec-detail">Driver v32.0.15.9597 (March 2026)</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128204;</div>
+        <div>
+          <div class="spec-label">Memory</div>
+          <div class="spec-value">32 GB DDR5-6000</div>
+          <div class="spec-detail">Team Group, Dual Channel, XMP/EXPO active</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128189;</div>
+        <div>
+          <div class="spec-label">Primary Storage</div>
+          <div class="spec-value">Samsung 9100 PRO 1TB NVMe (C:)</div>
+          <div class="spec-detail">OS + Games drive</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128189;</div>
+        <div>
+          <div class="spec-label">Secondary Storage</div>
+          <div class="spec-value">WD_BLACK SN850X 1TB</div>
+          <div class="spec-detail">Unpartitioned &mdash; not in use</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#127760;</div>
+        <div>
+          <div class="spec-label">Network</div>
+          <div class="spec-value">Intel I226-V</div>
+          <div class="spec-detail">1 Gbps Ethernet</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128736;</div>
+        <div>
+          <div class="spec-label">Motherboard</div>
+          <div class="spec-value">ASUS ROG STRIX X670E-A Gaming WiFi</div>
+          <div class="spec-detail">BIOS 3602</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128421;</div>
+        <div>
+          <div class="spec-label">Display</div>
+          <div class="spec-value">ASUS ROG XG27ACDNG 27"</div>
+          <div class="spec-detail">2560x1440 @ 360 Hz</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#127909;</div>
+        <div>
+          <div class="spec-label">Capture Card</div>
+          <div class="spec-value">AverMedia GC570-D</div>
+          <div class="spec-detail">Internal PCIe capture device</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128433;</div>
+        <div>
+          <div class="spec-label">Peripherals</div>
+          <div class="spec-value">Razer Viper V3 Pro / Wooting KB</div>
+          <div class="spec-detail">Wireless mouse + Analog keyboard</div>
+        </div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-icon-box">&#128187;</div>
+        <div>
+          <div class="spec-label">Operating System</div>
+          <div class="spec-value">Windows 11 Pro</div>
+          <div class="spec-detail">Build 26200, Ultimate Performance power plan</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ISSUES FOUND -->
+  <section class="section" id="issues-found">
+    <div class="section-header">
+      <div class="section-icon red">&#9888;</div>
+      <h2 class="section-title">Issues Found</h2>
+      <span class="section-count">7 total &middot; 3 fixed &middot; 3 noted &middot; 1 info</span>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#1</div>
+      <div class="issue-content">
+        <div class="issue-title">BTHUSB Driver Crash Every Boot (Error 17)</div>
+        <div class="issue-desc">Bluetooth USB driver throwing Error 17 on every startup, generating interrupt noise and event log spam. Bluetooth adapter was not actively needed.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-fixed">FIXED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#2</div>
+      <div class="issue-content">
+        <div class="issue-title">UDP Port Exhaustion (Tcpip Warning 4266)</div>
+        <div class="issue-desc">Ephemeral port range was only 16,384 ports. Under load, UDP-heavy games and background services could exhaust available ports, causing transient connection failures.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-fixed">FIXED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#3</div>
+      <div class="issue-content">
+        <div class="issue-title">Razer Software Bloat (10 Processes)</div>
+        <div class="issue-desc">Razer Synapse spawning 10 background processes including Game Manager Service, contributing to unnecessary context switches and CPU overhead.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-fixed">FIXED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#4</div>
+      <div class="issue-content">
+        <div class="issue-title">luafv Driver Blocked Every Boot</div>
+        <div class="issue-desc">LUA File Virtualization driver logging block events on each startup. Low impact to gaming performance but indicates a minor system configuration issue.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-noted">NOTED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#5</div>
+      <div class="issue-content">
+        <div class="issue-title">Intel I226-V Link Disconnect at Boot</div>
+        <div class="issue-desc">Network adapter briefly disconnects and reconnects during boot sequence. No impact during gaming sessions, but may cause brief connectivity blip on startup.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-noted">NOTED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#6</div>
+      <div class="issue-content">
+        <div class="issue-title">GameBar DCOM Timeout</div>
+        <div class="issue-desc">Xbox Game Bar DCOM server failing to start within timeout period. Generates event log noise but does not directly impact game performance.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-noted">NOTED</span></div>
+    </div>
+
+    <div class="issue-item">
+      <div class="issue-num">#7</div>
+      <div class="issue-content">
+        <div class="issue-title">WD_BLACK SN850X Unpartitioned</div>
+        <div class="issue-desc">Secondary 1TB NVMe drive is installed but has no partition or file system. Available for use as a dedicated game drive to separate OS and game I/O.</div>
+      </div>
+      <div class="issue-badge"><span class="badge badge-info">INFO</span></div>
+    </div>
+  </section>
+
+  <!-- BIOS CHANGES -->
+  <section class="section" id="bios-changes">
+    <div class="section-header">
+      <div class="section-icon yellow">&#9881;</div>
+      <h2 class="section-title">BIOS Changes Applied</h2>
+      <span class="section-count">7 settings modified</span>
+    </div>
+
+    <div class="card">
+      <div style="overflow-x: auto;">
+        <table class="bios-table">
+          <thead>
+            <tr>
+              <th style="width:35%">Setting</th>
+              <th style="width:20%">Before</th>
+              <th style="width:5%"></th>
+              <th style="width:20%">After</th>
+              <th style="width:20%">Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Global C-State Control</td>
+              <td><span class="bios-before">Enabled</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Disabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">Prevents deep CPU sleep transitions that add latency</td>
+            </tr>
+            <tr>
+              <td>Power Supply Idle Control</td>
+              <td><span class="bios-before">Auto</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Typical Current Idle</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">Stabilizes VRM idle behavior</td>
+            </tr>
+            <tr>
+              <td>ASPM Support</td>
+              <td><span class="bios-before">Auto</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Disabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">Eliminates PCIe link power transitions</td>
+            </tr>
+            <tr>
+              <td>ASPM L1 Substates</td>
+              <td><span class="bios-before">Auto</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Disabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">Prevents deep PCIe sleep causing wake latency</td>
+            </tr>
+            <tr>
+              <td>Native ASPM</td>
+              <td><span class="bios-before">Auto</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Disabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">OS-level ASPM control disabled</td>
+            </tr>
+            <tr>
+              <td>CPU PCIE ASPM Mode</td>
+              <td><span class="bios-before">Auto</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Disabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">CPU-side PCIe power management disabled</td>
+            </tr>
+            <tr>
+              <td>Publish HII Resources</td>
+              <td><span class="bios-before">&mdash;</span></td>
+              <td class="bios-arrow">&rarr;</td>
+              <td><span class="bios-after">Enabled</span></td>
+              <td style="font-size:0.78rem;color:var(--text-secondary)">Required for SCEWIN NVRAM export tool</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(0,230,118,0.04); border: 1px solid rgba(0,230,118,0.12); border-radius: 6px;">
+        <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
+          <strong style="color: var(--green);">Verified via SCEWIN NVRAM export.</strong>
+          IOMMU and SVM were intentionally left <strong style="color: var(--cyan);">enabled</strong> &mdash; required by Easy Anti-Cheat (EAC) for Fortnite and other competitive titles.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OS FIXES -->
+  <section class="section" id="os-fixes">
+    <div class="section-header">
+      <div class="section-icon green">&#10003;</div>
+      <h2 class="section-title">OS Fixes Applied</h2>
+      <span class="section-count">6 changes</span>
+    </div>
+
+    <div class="card">
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>Bluetooth adapter disabled</strong> &mdash; Eliminated BTHUSB Error 17 crash loop and associated interrupt noise</div>
+      </div>
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>Razer Game Manager Service stopped + set to Manual</strong> &mdash; Removed unnecessary background process overhead from Razer Synapse</div>
+      </div>
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>TCP/UDP ephemeral port range expanded</strong> &mdash; From 16,384 to 64,511 ports, resolving Tcpip Warning 4266 port exhaustion</div>
+      </div>
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>Chrome hardware acceleration disabled</strong> &mdash; Prevents Chrome GPU context from competing with game for GPU scheduler time</div>
+      </div>
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>NVIDIA overlay disabled</strong> &mdash; Reduces GPU driver overhead and DPC generation from overlay composition</div>
+      </div>
+      <div class="fix-item">
+        <div class="fix-check">&#10003;</div>
+        <div class="fix-text"><strong>AverMedia capture card display disconnected</strong> &mdash; Removes secondary display output from DWM composition pipeline</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE DATA -->
+  <section class="section" id="performance">
+    <div class="section-header">
+      <div class="section-icon purple">&#128200;</div>
+      <h2 class="section-title">Performance Data</h2>
+      <span class="section-count">4 captures compared</span>
+    </div>
+
+    <div class="perf-wrapper">
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th class="baseline">Pre-Reboot Baseline<br><span style="font-weight:400;font-size:0.6rem;opacity:0.7">5 min idle</span></th>
+            <th class="bios">Post-BIOS Fix<br><span style="font-weight:400;font-size:0.6rem;opacity:0.7">5 min idle</span></th>
+            <th class="gpu">Post-GPU Fix<br><span style="font-weight:400;font-size:0.6rem;opacity:0.7">2 min idle</span></th>
+            <th class="gaming">Fortnite Gaming<br><span style="font-weight:400;font-size:0.6rem;opacity:0.7">5 min session</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Interrupts/sec (avg)</td>
+            <td class="perf-val-bad">62,318</td>
+            <td class="perf-val-warn">38,045<span class="perf-delta delta-good">-39.0%</span></td>
+            <td class="perf-val-ok">35,592<span class="perf-delta delta-good">-42.9%</span></td>
+            <td class="perf-val-info">143,222</td>
+          </tr>
+          <tr>
+            <td>Interrupts/sec (max)</td>
+            <td class="perf-val-bad">1,180,949</td>
+            <td class="perf-val-warn">189,164<span class="perf-delta delta-good">-84.0%</span></td>
+            <td class="perf-val-ok">100,233<span class="perf-delta delta-good">-91.5%</span></td>
+            <td class="perf-val-info">250,681</td>
+          </tr>
+          <tr>
+            <td>Core 4 DPC Time (max %)</td>
+            <td class="perf-val-bad">14.03%</td>
+            <td class="perf-val-bad">18.71%<span class="perf-delta delta-bad">+33.4%</span></td>
+            <td class="perf-val-ok">6.34%<span class="perf-delta delta-good">-54.8%</span></td>
+            <td class="perf-val-bad">22.17%</td>
+          </tr>
+          <tr>
+            <td>Core 4 Interrupt Time (max %)</td>
+            <td class="perf-val-bad">17.42%</td>
+            <td class="perf-val-warn">10.91%<span class="perf-delta delta-good">-37.4%</span></td>
+            <td class="perf-val-warn">15.58%<span class="perf-delta delta-good">-10.6%</span></td>
+            <td class="perf-val-bad">17.42%</td>
+          </tr>
+          <tr>
+            <td>Context Switches/sec (avg)</td>
+            <td class="perf-val-bad">55,720</td>
+            <td class="perf-val-warn">31,114<span class="perf-delta delta-good">-44.2%</span></td>
+            <td class="perf-val-warn">36,194<span class="perf-delta delta-good">-35.1%</span></td>
+            <td class="perf-val-info">127,282</td>
+          </tr>
+          <tr>
+            <td>Context Switches/sec (max)</td>
+            <td class="perf-val-bad">454,642</td>
+            <td class="perf-val-warn">191,536<span class="perf-delta delta-good">-57.9%</span></td>
+            <td class="perf-val-ok">126,992<span class="perf-delta delta-good">-72.1%</span></td>
+            <td class="perf-val-info">161,490</td>
+          </tr>
+          <tr>
+            <td>CPU Utilization (avg %)</td>
+            <td class="perf-val-bad">13.3%</td>
+            <td class="perf-val-warn">7.7%<span class="perf-delta delta-good">-42.1%</span></td>
+            <td class="perf-val-ok">6.2%<span class="perf-delta delta-good">-53.4%</span></td>
+            <td class="perf-val-info">35.2%</td>
+          </tr>
+          <tr>
+            <td>DPCs Queued/sec (avg)</td>
+            <td class="perf-val-bad">4,322</td>
+            <td class="perf-val-warn">3,313<span class="perf-delta delta-good">-23.3%</span></td>
+            <td class="perf-val-ok">2,607<span class="perf-delta delta-good">-39.7%</span></td>
+            <td class="perf-val-info">15,211</td>
+          </tr>
+          <tr>
+            <td>Core 2 DPC Time (max %)</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-bad">24.93%</td>
+          </tr>
+          <tr>
+            <td>GPU Utilization</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-warn">25-40%</td>
+          </tr>
+          <tr>
+            <td>GPU Temperature</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-ok">41-43&deg;C</td>
+          </tr>
+          <tr>
+            <td>GPU Power Draw</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-neutral">85-102W</td>
+          </tr>
+          <tr>
+            <td>Processor Queue Length (max)</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-ok">3</td>
+          </tr>
+          <tr>
+            <td>Available Memory</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-ok">17.4 GB free</td>
+          </tr>
+          <tr>
+            <td>Network Latency</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-na">&mdash;</td>
+            <td class="perf-val-ok">4 ms, 0% loss</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top: 0.75rem; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-muted);">
+      <span><span style="color: var(--red);">&#9632;</span> Baseline = Pre-optimization</span>
+      <span><span style="color: var(--yellow);">&#9632;</span> Post-BIOS = C-States + ASPM disabled</span>
+      <span><span style="color: var(--green);">&#9632;</span> Post-GPU = Overlays + capture card removed</span>
+      <span><span style="color: var(--cyan);">&#9632;</span> Gaming = Fortnite live session</span>
+      <span>&#916; = Change from baseline</span>
+    </div>
+  </section>
+
+  <!-- ROOT CAUSE ANALYSIS -->
+  <section class="section" id="root-cause">
+    <div class="section-header">
+      <div class="section-icon red">&#128269;</div>
+      <h2 class="section-title">Root Cause Analysis</h2>
+    </div>
+
+    <!-- DPC Offender Ranking -->
+    <div class="collapsible open">
+      <button class="collapsible-toggle" onclick="this.parentElement.classList.toggle('open')">
+        DPC Offender Ranking (xperf ETL Analysis)
+        <span class="section-count" style="margin-left:auto;margin-right:0.5rem">7 drivers profiled</span>
+        <span class="chevron">&#9654;</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="collapsible-inner" style="padding:0;">
+          <table class="dpc-table">
+            <thead>
+              <tr>
+                <th style="width:3%">#</th>
+                <th style="width:35%">Driver</th>
+                <th style="width:15%">DPC Count</th>
+                <th style="width:10%">Share</th>
+                <th style="width:37%">Distribution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="dpc-rank">1</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--red)">nvlddmkm.sys</div>
+                  <div class="dpc-desc">NVIDIA GPU display driver. Concentrated on cores 4-7. 26.6% of DPCs take 32-64&micro;s, 7.8% take 64-128&micro;s. <span class="badge badge-root" style="margin-left:0.25rem;">ROOT CAUSE</span></div>
+                </td>
+                <td style="color:var(--red);font-weight:700">574,364</td>
+                <td style="color:var(--red);font-weight:700">54.3%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:100%;background:linear-gradient(90deg,var(--red),var(--red-dim))"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">2</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--orange)">dxgkrnl.sys</div>
+                  <div class="dpc-desc">DirectX graphics kernel. Works in tandem with nvlddmkm for GPU command submission.</div>
+                </td>
+                <td style="color:var(--orange)">247,334</td>
+                <td style="color:var(--orange)">23.4%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:43.1%;background:linear-gradient(90deg,var(--orange),#995700)"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">3</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--yellow)">ntoskrnl.exe</div>
+                  <div class="dpc-desc">Windows kernel timer and scheduler. Expected baseline DPC source.</div>
+                </td>
+                <td style="color:var(--yellow)">71,442</td>
+                <td style="color:var(--yellow)">6.8%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:12.4%;background:linear-gradient(90deg,var(--yellow),var(--yellow-dim))"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">4</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--cyan)">USBXHCI.SYS</div>
+                  <div class="dpc-desc">USB 3.x host controller. Handles Razer Viper V3 Pro wireless receiver. Active on cores 2-3.</div>
+                </td>
+                <td style="color:var(--cyan)">55,506</td>
+                <td style="color:var(--cyan)">5.2%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:9.7%;background:linear-gradient(90deg,var(--cyan),var(--cyan-dim))"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">5</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--text-secondary)">storport.sys</div>
+                  <div class="dpc-desc">NVMe storage port driver. Samsung 9100 PRO I/O completions.</div>
+                </td>
+                <td>45,077</td>
+                <td>4.3%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:7.8%;background:linear-gradient(90deg,#607080,#405060)"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">6</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--text-secondary)">e2fn.sys</div>
+                  <div class="dpc-desc">Intel I226-V Ethernet adapter driver. Network packet processing.</div>
+                </td>
+                <td>43,489</td>
+                <td>4.1%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:7.6%;background:linear-gradient(90deg,#607080,#405060)"></div></div></td>
+              </tr>
+              <tr>
+                <td><span class="dpc-rank">7</span></td>
+                <td>
+                  <div class="dpc-driver" style="color:var(--text-secondary)">tcpip.sys</div>
+                  <div class="dpc-desc">TCP/IP network stack. Protocol-level packet handling.</div>
+                </td>
+                <td>13,658</td>
+                <td>1.3%</td>
+                <td><div class="dpc-bar-bg"><div class="dpc-bar" style="width:2.4%;background:linear-gradient(90deg,#607080,#405060)"></div></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Loop -->
+    <div class="collapsible open">
+      <button class="collapsible-toggle" onclick="this.parentElement.classList.toggle('open')">
+        The GPU-CPU Feedback Loop
+        <span class="chevron">&#9654;</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="collapsible-inner">
+          <div class="loop-container" style="border:none;padding:0;">
+            <div class="loop-steps">
+              <div class="loop-step">
+                <div class="loop-step-num">Step 1</div>
+                <div class="loop-step-title" style="color:var(--red)">GPU Driver Fires DPC</div>
+                <div class="loop-step-desc">nvlddmkm.sys completes a GPU operation and queues a Deferred Procedure Call on cores 4-7</div>
+              </div>
+              <div class="loop-arrow">&rarr;</div>
+              <div class="loop-step">
+                <div class="loop-step-num">Step 2</div>
+                <div class="loop-step-title" style="color:var(--orange)">CPU Stolen from Game</div>
+                <div class="loop-step-desc">DPC execution at elevated IRQL preempts the game thread, preventing next frame submission</div>
+              </div>
+              <div class="loop-arrow">&rarr;</div>
+              <div class="loop-step">
+                <div class="loop-step-num">Step 3</div>
+                <div class="loop-step-title" style="color:var(--yellow)">GPU Idles at 25-40%</div>
+                <div class="loop-step-desc">GPU has no work to do while waiting for the CPU to prepare and submit the next frame</div>
+              </div>
+              <div class="loop-arrow">&rarr;</div>
+              <div class="loop-step">
+                <div class="loop-step-num">Step 4</div>
+                <div class="loop-step-title" style="color:var(--cyan)">Frame Eventually Submits</div>
+                <div class="loop-step-desc">Game thread regains CPU, submits a frame. GPU finishes fast (underutilized)</div>
+              </div>
+              <div class="loop-arrow">&rarr;</div>
+              <div class="loop-step">
+                <div class="loop-step-num">Step 5</div>
+                <div class="loop-step-title" style="color:var(--red)">Cycle Repeats</div>
+                <div class="loop-step-desc">GPU completion fires another DPC, restarting the starvation loop</div>
+              </div>
+            </div>
+
+            <div class="loop-note">
+              <strong>Aggravating factor:</strong> The 360 Hz monitor at 1440p forces continuous DWM (Desktop Window Manager) composition even at idle.
+              At 360 Hz, DWM must composite a new frame every 2.78 ms, generating a sustained stream of GPU driver DPCs regardless
+              of whether the game is rendering. This dramatically amplifies the feedback loop.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section class="section" id="recommendations">
+    <div class="section-header">
+      <div class="section-icon orange">&#9733;</div>
+      <h2 class="section-title">Remaining Recommendations</h2>
+      <span class="section-count">7 items</span>
+    </div>
+
+    <div class="card">
+      <div class="rec-item">
+        <div class="rec-num">1</div>
+        <div class="rec-content">
+          <div class="rec-title">DDU + Clean NVIDIA Driver Reinstall</div>
+          <div class="rec-detail">Use Display Driver Uninstaller (DDU) in Safe Mode to fully remove the current driver (v32.0.15.9597 / v595.97), then reinstall. This is the highest-impact action &mdash; the DPC regression in this driver version may be resolved by a clean installation or by trying an older/newer driver branch.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">2</div>
+        <div class="rec-content">
+          <div class="rec-title">Consider 240 Hz Instead of 360 Hz</div>
+          <div class="rec-detail">Reducing the monitor refresh rate from 360 Hz to 240 Hz decreases the DWM composition rate by approximately 33%, directly reducing the number of GPU driver DPCs generated per second.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">3</div>
+        <div class="rec-content">
+          <div class="rec-title">Fortnite: Enable NVIDIA Reflex Low Latency = ON</div>
+          <div class="rec-detail">NVIDIA Reflex synchronizes CPU frame submission with GPU readiness, reducing the render queue depth and breaking the DPC feedback loop by aligning work submission timing.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">4</div>
+        <div class="rec-content">
+          <div class="rec-title">Fortnite: Set Rendering Mode to Performance or DX12</div>
+          <div class="rec-detail">The Performance rendering mode reduces GPU draw calls and DPC generation. DX12 mode uses a more efficient command submission model that may reduce driver overhead.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">5</div>
+        <div class="rec-content">
+          <div class="rec-title">Partition and Use the WD_BLACK SN850X for Games</div>
+          <div class="rec-detail">Moving game installations to the secondary NVMe drive separates OS I/O from game asset loading, reducing storport.sys DPC contention on the primary drive during gameplay.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">6</div>
+        <div class="rec-content">
+          <div class="rec-title">Install Proper ASUS Bluetooth Driver</div>
+          <div class="rec-detail">If Bluetooth is needed in the future, install the ASUS-specific Bluetooth driver for the X670E-A board rather than relying on the generic Windows BTHUSB driver that crashes at boot.</div>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-num">7</div>
+        <div class="rec-content">
+          <div class="rec-title">Update Intel I226-V NIC Firmware</div>
+          <div class="rec-detail">The boot-time link disconnect may be resolved by updating the Intel I226-V firmware/driver. Check Intel's download center for the latest version.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS USED -->
+  <section class="section" id="tools">
+    <div class="section-header">
+      <div class="section-icon cyan">&#128295;</div>
+      <h2 class="section-title">Tools Used</h2>
+      <span class="section-count">9 tools</span>
+    </div>
+
+    <div class="tool-grid">
+      <div class="tool-item">
+        <div class="tool-num">1</div>
+        <div>
+          <div class="tool-name">xperf / WPR (Windows Performance Recorder)</div>
+          <div class="tool-ver">Windows ADK (Build 26200)</div>
+          <div class="tool-path">C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\xperf.exe</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">2</div>
+        <div>
+          <div class="tool-name">typeperf (Performance Counter Logger)</div>
+          <div class="tool-ver">Windows Built-in</div>
+          <div class="tool-path">C:\Windows\System32\typeperf.exe</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">3</div>
+        <div>
+          <div class="tool-name">perfmon / BLG Analyzer</div>
+          <div class="tool-ver">Windows Built-in</div>
+          <div class="tool-path">C:\Windows\System32\perfmon.exe</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">4</div>
+        <div>
+          <div class="tool-name">SCEWIN (AMI NVRAM Editor)</div>
+          <div class="tool-ver">AMI v5.x</div>
+          <div class="tool-path">C:\Users\L\Desktop\DiagCapture\Tools\SCEWIN\</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">5</div>
+        <div>
+          <div class="tool-name">LatencyMon</div>
+          <div class="tool-ver">v7.x</div>
+          <div class="tool-path">C:\Program Files\LatencyMon\LatMon.exe</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">6</div>
+        <div>
+          <div class="tool-name">PowerShell (Capture Scripts)</div>
+          <div class="tool-ver">v5.1 / v7.x</div>
+          <div class="tool-path">C:\Users\L\Desktop\DiagCapture\*.ps1</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">7</div>
+        <div>
+          <div class="tool-name">Event Viewer / wevtutil</div>
+          <div class="tool-ver">Windows Built-in</div>
+          <div class="tool-path">C:\Windows\System32\eventvwr.msc</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">8</div>
+        <div>
+          <div class="tool-name">netsh (Network Configuration)</div>
+          <div class="tool-ver">Windows Built-in</div>
+          <div class="tool-path">C:\Windows\System32\netsh.exe</div>
+        </div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-num">9</div>
+        <div>
+          <div class="tool-name">nvidia-smi (GPU Monitoring)</div>
+          <div class="tool-ver">v32.0.15.9597</div>
+          <div class="tool-path">C:\Windows\System32\nvidia-smi.exe</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILES GENERATED -->
+  <section class="section" id="files">
+    <div class="section-header">
+      <div class="section-icon green">&#128193;</div>
+      <h2 class="section-title">Files Generated</h2>
+    </div>
+
+    <div class="collapsible open">
+      <button class="collapsible-toggle" onclick="this.parentElement.classList.toggle('open')">
+        Capture Folders
+        <span class="chevron">&#9654;</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="collapsible-inner">
+          <div class="file-item"><span class="file-path">C:\Users\L\Desktop\DiagCapture\</span> &mdash; Root diagnostic directory</div>
+          <div class="file-item"><span class="file-path">C:\Users\L\Desktop\DiagCapture\Tools\</span> &mdash; SCEWIN and utility binaries</div>
+          <div class="file-item"><span class="file-path">C:\Users\L\Desktop\DiagCapture\Tools\SCEWIN\</span> &mdash; AMI NVRAM export tool</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapsible open">
+      <button class="collapsible-toggle" onclick="this.parentElement.classList.toggle('open')">
+        Scripts &amp; Documentation
+        <span class="chevron">&#9654;</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="collapsible-inner">
+          <div class="file-item"><span class="file-path">auto_capture_5min.ps1</span> &mdash; Automated 5-minute performance capture orchestrator</div>
+          <div class="file-item"><span class="file-path">capture_orchestrator.ps1</span> &mdash; Multi-tool capture coordination script</div>
+          <div class="file-item"><span class="file-path">analyze_blg.ps1</span> &mdash; BLG performance log analyzer</div>
+          <div class="file-item"><span class="file-path">investigate_interrupts.ps1</span> &mdash; Interrupt and DPC investigation script</div>
+          <div class="file-item"><span class="file-path">fix_bluetooth_razer.ps1</span> &mdash; Bluetooth + Razer service fix script</div>
+          <div class="file-item"><span class="file-path">fix_bt_razer.ps1</span> &mdash; Combined BT/Razer remediation</div>
+          <div class="file-item"><span class="file-path">fix_gpu_dpc.ps1</span> &mdash; GPU DPC mitigation script</div>
+          <div class="file-item"><span class="file-path">fix_fortnite_affinity.ps1</span> &mdash; Fortnite CPU affinity optimizer</div>
+          <div class="file-item"><span class="file-path">verify_fixes.ps1</span> &mdash; Post-fix verification script</div>
+          <div class="file-item"><span class="file-path">check_cpu_temp.ps1</span> &mdash; CPU temperature monitor</div>
+          <div class="file-item"><span class="file-path">get_monitors.ps1</span> &mdash; Display enumeration utility</div>
+          <div class="file-item"><span class="file-path">extract_dpc.bat</span> &mdash; DPC data extraction from ETL traces</div>
+          <div class="file-item"><span class="file-path">test_all_tools.ps1</span> &mdash; Tool availability verification</div>
+          <div class="file-item"><span class="file-path">test_5min_capture.ps1</span> &mdash; 5-minute capture test runner</div>
+          <div class="file-item"><span class="file-path">find_frameview.ps1</span> &mdash; FrameView detection utility</div>
+          <div class="file-item"><span class="file-path">extract_tools.ps1</span> / <span class="file-path">extract2.ps1</span> &mdash; Tool extraction helpers</div>
+          <div class="file-item"><span class="file-path">verify2.ps1</span> &mdash; Secondary verification pass</div>
+          <div class="file-item"><span class="file-path">RUN_AS_ADMIN.bat</span> &mdash; Admin elevation launcher</div>
+          <div class="file-item"><span class="file-path">bios_nvram_export.txt</span> &mdash; SCEWIN BIOS NVRAM settings dump</div>
+          <div class="file-item"><span class="file-path">ERRORS_AND_FIXES.md</span> &mdash; Error log and applied fixes documentation</div>
+          <div class="file-item"><span class="file-path">TOOL_REFERENCE_GUIDE.md</span> &mdash; Tool usage reference guide</div>
+          <div class="file-item"><span class="file-path">REVERT_ALL_FIXES.ps1</span> &mdash; Rollback script for all applied changes</div>
+          <div class="file-item"><span class="file-path">DIAGNOSTIC_REPORT.html</span> &mdash; This report</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div style="max-width:1400px;margin:0 auto;">
+    <div class="footer-line"></div>
+    <div>Gaming Lag Diagnostic Report &mdash; Generated April 9, 2026</div>
+    <div style="margin-top:0.3rem;">ROG STRIX X670E-A &middot; Ryzen 7 9800X3D &middot; RTX 5070 Ti &middot; Windows 11 Pro Build 26200</div>
+  </div>
+</footer>
+
+<script>
+  // Smooth nav link highlighting
+  document.querySelectorAll('.nav a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

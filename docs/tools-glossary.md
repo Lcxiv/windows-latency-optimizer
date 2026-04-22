@@ -164,3 +164,22 @@ NETWORK LATENCY
 | Nsight Systems | `C:\Program Files\NVIDIA Corporation\Nsight Systems <ver>\` | NVIDIA Developer |
 | pktmon | System PATH | Built-in Windows 10/11 |
 | LatencyMon | Manual download | resplendence.com |
+
+---
+
+## Desktop Shortcuts (user-maintained)
+
+| File | Purpose |
+|------|---------|
+| `C:\Users\L\Desktop\Reboot to BIOS.bat` | `shutdown /r /fw /t 0` — reboots directly into UEFI for BIOS tuning |
+| `C:\Users\L\Desktop\Reboot to Safe Mode.bat` | Enables `bcdedit /set {current} safeboot minimal` + reboot |
+| `C:\Users\L\Desktop\Exit Safe Mode.bat` | Clears safeboot flag + reboot back to normal |
+
+---
+
+## Historical Archives
+
+| Location | Contents |
+|----------|----------|
+| `docs\history\DiagCapture_20260328\` | Pre-repo diagnostic kit. `ERRORS_AND_FIXES.md` + `TOOL_REFERENCE_GUIDE.md` + `DIAGNOSTIC_REPORT.html` tracked; rest in `scripts_and_tools.zip` (gitignored, local only). |
+| `captures\archive\legacy_20260328\` | Desktop-captured procmon + latencymon + os baselines from 2026-03-28. Gitignored. |

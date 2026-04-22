@@ -48,7 +48,12 @@ latencyguard/%windir%/
 
 # Local captures (not tracked — regenerated per machine)
 captures/backup_pre_*.txt
+captures/backup_dwm_*.reg
 captures/experiments/
+
+# Historical archive zips (large, mirror preserved locally only)
+docs/history/**/scripts_and_tools.zip
+docs/history/**/*.zip
 
 # Local settings
 .claude/settings.local.json
