@@ -66,11 +66,23 @@ captures/bios_export_*.txt
 captures/bios_tier*_import.txt
 captures/health_*/
 
+# Full-suite baseline captures (large binaries; keep MASTER.html + manifest + entry small-file subset trackable if user commits)
+captures/baselines/**/*.etl
+captures/baselines/**/*.pml
+captures/baselines/**/*.csv
+captures/baselines/**/wpr_*_raw.txt
+captures/baselines/**/xperf_*_raw.txt
+captures/.synthetic_load_state.json
+
 # Playwright MCP scratch
 .playwright-mcp/
 
 # Claude scheduled task lockfile
 .claude/scheduled_tasks.lock
+
+# Third-party tools bundled locally (redistributable, not tracked)
+p95v3019b20.win64/
+ProcessMonitor/
 
 # Historical archive zips (large, mirror preserved locally only)
 docs/history/**/scripts_and_tools.zip
