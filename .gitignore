@@ -49,6 +49,7 @@ latencyguard/%windir%/
 # Local captures (not tracked — regenerated per machine)
 captures/backup_pre_*.txt
 captures/backup_pre_*.reg
+captures/backup_pre_*.json
 captures/backup_dwm_*.reg
 captures/backup_audio_*.txt
 captures/backup_nic_*.txt

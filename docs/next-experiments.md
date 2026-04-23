@@ -208,3 +208,48 @@ Session 3 (BIOS + stability testing):
   EXP08 — PBO + Curve Optimizer
   EXP11 — VSync/G-Sync strategy
 ```
+
+---
+
+## Queued 2026-04-23
+
+### EXP_GPU_AFFINITY_FIX — Restore RTX 5070 Ti interrupt affinity (CRITICAL)
+
+```powershell
+# Must run as admin. Reboot to activate.
+$gpuBase = 'HKLM:\SYSTEM\CurrentControlSet\Enum\PCI\VEN_10DE&DEV_2C05&SUBSYS_417F1458&REV_A1'
+$inst = Get-ChildItem $gpuBase | Select-Object -First 1
+$policyKey = Join-Path $inst.PSPath 'Device Parameters\Interrupt Management\Affinity Policy'
+if (-not (Test-Path $policyKey)) { New-Item -Path $policyKey -Force | Out-Null }
+Set-ItemProperty -Path $policyKey -Name 'DevicePolicy' -Value 3 -Type DWord           # IrqPolicySpecifiedProcessors
+Set-ItemProperty -Path $policyKey -Name 'AssignmentSetOverride' -Value ([byte[]]@(0xF0, 0x00)) -Type Binary  # CPUs 4-7
+```
+- **What:** Set RTX 5070 Ti interrupt affinity override to mask 0xF0 (CPUs 4-7).
+- **Why:** Deep DPC analysis 2026-04-23 found GPU has NO affinity override — 46.8% of CPU 0 DPC time spent on `nvlddmkm.sys` + `dxgkrnl.sys`. Other devices (USB, audio, NIC) all have correct masks. This is a regression from project baseline (EXP15: "CPU 0 share 0% Perfect"). Likely earlier `SET_GPU_AFFINITY` experiment targeted RTX 4090; not re-applied for RTX 5070 Ti.
+- **Expected impact:** HIGH — CPU 0 DPC drops from 46.8% to <5%; GPU DPCs redistribute to CPUs 4-7 (project's GPU/bulk group per topology).
+- **Validation:** Re-run `analyze-dpc-deep.ps1` post-reboot — confirm `nvlddmkm.sys` CPU 0 contribution drops to near-zero; CPUs 4-7 absorb the load. Re-run `diagnose-mouse.ps1 -DurationSec 30` — confirm input gap count drops significantly (baseline today: 121 gaps, 974ms longest).
+- **Risk:** Low — registry change, trivially reversible (`Remove-Item $policyKey`). Reboot required.
+- **Script to create:** `scripts/set_gpu_affinity.ps1` wrapping the above with backup registry snapshot + post-reboot verification. Mirror pattern from `run_experiment.ps1`.
+
+### EXP_REMOTION_ISOLATION — Validate concurrency + CPU affinity impact on render-induced stutter
+
+```cmd
+# Three runs, capture with pipeline.ps1 during each:
+# A) Baseline: --concurrency=8, no affinity
+# B) P2: --concurrency=4, no affinity (current applied state)
+# C) P2+: --concurrency=4, wrapped with process-governor on CPUs 8-15
+procgov --cpu 0xFF00 --priority below-normal -- npx remotion render src/index.ts FortniteHighlights out/exp_c.mp4 --codec=h264 --concurrency=4 --gl=angle --overwrite --frames=0-600 --props=out/props-full.json
+```
+- **What:** A/B/C comparison measuring DPC-per-CPU, GPU util, commit peak, TransientFailure count, frame time percentiles, mouse input gaps during each render.
+- **Why:** Yesterday's P2 validation was GPU contention only. Need per-CPU DPC evidence that wrapping with Job Object + CPUs 8-15 reduces cross-group interference AND validates the fix composes with the GPU affinity fix (EXP_GPU_AFFINITY_FIX).
+- **Tool:** `process-governor` from [lowleveldesign/process-governor](https://github.com/lowleveldesign/process-governor). Uses Windows Job Object `JOB_OBJECT_LIMIT_AFFINITY` — propagates to Chrome-headless children automatically (Microsoft: children inherit unless `CREATE_BREAKAWAY_FROM_JOB`).
+- **Impact:** Medium — gives hard data on whether affinity-bound Remotion renders further reduce DWM contention vs concurrency cap alone.
+- **Risk:** Low — runs isolated in output files, doesn't modify system state.
+- **Prereq:** EXP_GPU_AFFINITY_FIX applied first, to isolate Remotion's contribution vs baseline GPU DPC noise.
+
+### EXP_PER_CPU_DPC_PIPELINE — Add per-CPU DPC breakdown to pipeline.ps1
+
+- **What:** Extend `scripts/pipeline.ps1` to sample `\Processor(N)\% DPC Time` for N=0-15 as separate series (currently only `_Total` aggregate).
+- **Why:** Today's `_Total` = 0.59% looked healthy but hid CPU 0 saturation at 46.8%. Aggregate-only view is insufficient observability.
+- **Dashboard impact:** Stacked bar chart per experiment showing DPC distribution across 16 CPUs. Alert rule: CPU 0 > 10% warn, > 25% critical.
+- **Risk:** Low — pure observability addition, no state changes.
