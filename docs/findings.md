@@ -114,3 +114,70 @@ Windows Defender exclusions added:
 - [ ] Enable MSI mode for NVIDIA GPU (eliminates shared IRQ contention)
 - [ ] Profile frame time variance in-game (CapFrameX or PresentMon) to correlate with DPC spikes
 - [ ] Test with ULPS (Ultra Low Power State) disabled for NVIDIA GPU
+
+---
+
+## 2026-04-23 — Deep RCA + GPU Affinity Discovery
+
+### Root cause: 2026-04-22 16:09 PT mouse stutter
+
+**Trigger:** Remotion render on `fortnite-highlights/` at `--concurrency=8` saturated GPU. Chrome-headless-shell logged `ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer` at 16:09:05.807. DWM (cursor compositor) starved → stutter. Concurrent Claude Code subprocess accumulation (102 node.exe + 9 claude.exe) + Vite/Astro build on `Website/portfolio/` added memory pressure, triggering WDI Resource Exhaustion Detector at 16:08:21.
+
+**Fix (P2) applied + validated:**
+- `fortnite-highlights/RENDER.bat` + `package.json`: `--concurrency=8` → `--concurrency=4`
+- Validated 180-frame + 600-frame + 300-frame (under 99% commit) — all produced zero TransientFailure, GPU peak 23-60% (never saturated), DPC 0.20-1.56%
+
+### NEW finding: RTX 5070 Ti missing interrupt affinity
+
+Deep `analyze-dpc-deep.ps1` on 2-min capture (2026-04-23) revealed:
+- **CPU 0 eating 82.5% of total DPC time** (56.1 sec / 120 sec window)
+- `nvlddmkm.sys` + `dxgkrnl.sys` drivers dumping 56 sec of DPC on CPU 0
+
+Registry audit: RTX 5070 Ti `VEN_10DE&DEV_2C05` has **no `Affinity Policy`** override. Other devices all correctly set:
+- AMD USB: CPUs 2,3 ✓
+- NVIDIA HDA audio: CPU 6 ✓
+- Intel NIC I226-V: CPUs 6,7 ✓
+- **RTX 5070 Ti: empty** ✗ → defaults to CPU 0
+
+Project baseline (EXP15) had "CPU 0 share 0% Perfect". Today 46.8%. Likely the old `SET_GPU_AFFINITY` experiment targeted previous RTX 4090 device ID; never re-applied for RTX 5070 Ti.
+
+### Real-world stutter still reproducing
+
+`diagnose-mouse.ps1 -DurationSec 30` under current load:
+- 121 mouse input gaps > 4ms
+- Longest gap: 974 ms
+- DWM P99 frame time: 144 ms (7 fps-equivalent hitch)
+- Correlated to `ntoskrnl.exe` DPC 256 μs peaks
+
+### Methodology insight
+
+`_Total` DPC aggregate (0.59% today) HIDES per-CPU saturation. Per-CPU view exposes CPU 0 at 46.8%. **Pipeline must record `\Processor(N)\% DPC Time` for each CPU 0-15 as separate series.**
+
+### Performance metrics: 2026-04-22 vs 2026-04-23
+
+| Metric | 2026-04-22 16:11 | 2026-04-23 09:03 |
+|---|---|---|
+| Audit score | — | 87% |
+| Commit % | 62.0% | 87.1% |
+| node.exe count | 102 | 144 |
+| claude.exe count | 9 | 23 |
+| DPC _Total | 0.67% | 0.59% |
+| Preferred group share | unknown | **73.5%** (regression) |
+| CPU 0 DPC (120-sec) | unknown | **46.8%** (regression) |
+| Mouse input gaps (30s) | — | **121** |
+| DWM P99 frame | — | **144 ms** |
+| P2 Remotion TransientFailure | 0 | 0 (at 99% commit) |
+| Pester | 659/659 | 659/659 |
+
+### Ruled out (both days)
+
+PnP re-enum · thermal throttle · sleep/wake · Defender scan · Razer Synapse (disabled) · Windows Update · Game Mode toggle · Memory compression (actively helping) · Core isolation · MPO (already project-correct)
+
+### References
+
+- [`~/.claude/plans/mouse-smooth-at-1609-rootcause-20260422.md`](../../../.claude/plans/mouse-smooth-at-1609-rootcause-20260422.md)
+- [`~/.claude/plans/p2-validation-evidence-20260422.md`](../../../.claude/plans/p2-validation-evidence-20260422.md)
+- [`~/.claude/plans/p2-postreboot-verification-20260423.md`](../../../.claude/plans/p2-postreboot-verification-20260423.md)
+- [`~/.claude/plans/deep-research-latency-optimization-20260423.md`](../../../.claude/plans/deep-research-latency-optimization-20260423.md) — 20 cited sources
+- [`~/.claude/plans/deep-test-report-20260423.md`](../../../.claude/plans/deep-test-report-20260423.md)
+- `captures/experiments/20260423_085432_DEEP_TEST_20260423/` — raw pipeline output
