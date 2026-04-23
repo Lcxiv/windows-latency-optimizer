@@ -56,6 +56,10 @@ docs/
 | `rollback.ps1 -BackupFile path [-WhatIf]` | Restore registry from backup | Yes |
 | `generate_dashboard_data.ps1` | Rebuild experiments_generated.js | No |
 | `baseline_capture.ps1 -Label X` | Quick 10s snapshot | Yes |
+| `analyze_capframex.ps1 [-Files ...]` | Side-by-side CapFrameX capture comparison | No |
+| `capframex_hitches.ps1 -Path X [-HitchThresholdMs Y] [-TopN Z]` | Per-frame hitch table + cluster detection | No |
+| `capframex_steady_state.ps1 -Path X [-StartSec Y] [-EndSec Z]` | Trimmed gameplay-window recompute | No |
+| `capframex_correlate_sensors.ps1 -Path X [-HitchThresholdMs Y]` | Correlate hitches with GPU/CPU sensor readings | No |
 
 ## Data Schema (v3)
 Experiments have these fields (all nullable except id/label/date):
