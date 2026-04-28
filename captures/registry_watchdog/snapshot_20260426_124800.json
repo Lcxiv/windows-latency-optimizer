@@ -1,0 +1,43 @@
+﻿{
+    "_meta":  {
+                  "capturedAt":  "2026-04-26T12:48:00",
+                  "hostname":  "DESKTOP-V5BN4SC",
+                  "buildNumber":  "26200"
+              },
+    "dwm_OverlayTestMode":  null,
+    "dwm_ForceEffectMode":  null,
+    "dwm_EnableAeroPeek":  null,
+    "gfx_HwSchMode":  2,
+    "gfx_DisableDynamicPstate":  null,
+    "prio_Win32PrioritySeparation":  22,
+    "mmcss_SystemResponsiveness":  0,
+    "mmcss_NetworkThrottlingIndex":  4294967295,
+    "mmcss_Games_Priority":  6,
+    "mmcss_Games_SchedulingCategory":  "High",
+    "mmcss_Games_SFIO_Priority":  "High",
+    "gpu_affinity_DevicePolicy":  3,
+    "gpu_affinity_mask":  [
+                              240,
+                              0
+                          ],
+    "nic_affinity_mask":  [
+                              0,
+                              3
+                          ],
+    "hvci_Enabled":  0,
+    "vbs_EnableVBS":  null,
+    "bcd_hypervisorlaunchtype":  "Off",
+    "bcd_nx":  "OptIn",
+    "defender_DisableRealtimeMonitoring":  null,
+    "defender_ScanAvgCPULoadFactor":  null,
+    "defender_ExclusionPathCount":  null,
+    "power_ActiveScheme":  "Ultimate Performance",
+    "nic_InterruptModeration":  "Disabled",
+    "nic_RSS":  null,
+    "wu_AUOptions":  2,
+    "wu_NoAutoUpdate":  0,
+    "wu_NoAutoReboot":  1,
+    "hpet_UseHighPerfTimer":  null,
+    "nagle_TcpAckFrequency":  1,
+    "nagle_TCPNoDelay":  1
+}

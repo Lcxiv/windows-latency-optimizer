@@ -1,0 +1,84 @@
+﻿=== TCP Global ===
+
+
+SettingName                     : Internet
+MinRto(ms)                      : 300
+InitialCongestionWindow(MSS)    : 10
+CongestionProvider              : CUBIC
+CwndRestart                     : False
+DelayedAckTimeout(ms)           : 40
+DelayedAckFrequency             : 2
+MemoryPressureProtection        : Enabled
+AutoTuningLevelLocal            : Restricted
+AutoTuningLevelGroupPolicy      : NotConfigured
+AutoTuningLevelEffective        : Local
+EcnCapability                   : Disabled
+Timestamps                      : Disabled
+InitialRto(ms)                  : 300
+ScalingHeuristics               : Disabled
+DynamicPortRangeStartPort       : 1025
+DynamicPortRangeNumberOfPorts   : 64511
+AutomaticUseCustom              : Disabled
+NonSackRttResiliency            : Disabled
+ForceWS                         : Enabled
+MaxSynRetransmissions           : 4
+AutoReusePortRangeStartPort     : 0
+AutoReusePortRangeNumberOfPorts : 0
+
+
+
+=== NIC Advanced Properties ===
+
+Name     DisplayName                  DisplayValue                   RegistryKeyword         RegistryValue
+----     -----------                  ------------                   ---------------         -------------
+Ethernet Energy Efficient Ethernet    Off                            *EEE                    {0}          
+Ethernet Flow Control                 Disabled                       *FlowControl            {0}          
+Ethernet Idle power down restriction  Disabled                       *IdleRestriction        {0}          
+Ethernet Interrupt Moderation         Disabled                       *InterruptModeration    {0}          
+Ethernet IPv4 Checksum Offload        Rx & Tx Enabled                *IPChecksumOffloadIPv4  {3}          
+Ethernet Jumbo Packet                 1514                           *JumboPacket            {1514}       
+Ethernet Large Send Offload V2 (IPv4) Disabled                       *LsoV2IPv4              {0}          
+Ethernet Large Send Offload V2 (IPv6) Disabled                       *LsoV2IPv6              {0}          
+Ethernet ARP Offload                  Enabled                        *PMARPOffload           {1}          
+Ethernet NS Offload                   Enabled                        *PMNSOffload            {1}          
+Ethernet Packet Priority & VLAN       Packet Priority & VLAN Enabled *PriorityVLANTag        {3}          
+Ethernet Speed & Duplex               Auto Negotiation               *SpeedDuplex            {0}          
+Ethernet TCP Checksum Offload (IPv4)  Rx & Tx Enabled                *TCPChecksumOffloadIPv4 {3}          
+Ethernet TCP Checksum Offload (IPv6)  Rx & Tx Enabled                *TCPChecksumOffloadIPv6 {3}          
+Ethernet UDP Checksum Offload (IPv4)  Rx & Tx Enabled                *UDPChecksumOffloadIPv4 {3}          
+Ethernet UDP Checksum Offload (IPv6)  Rx & Tx Enabled                *UDPChecksumOffloadIPv6 {3}          
+Ethernet Wake on Magic Packet         Disabled                       *WakeOnMagicPacket      {0}          
+Ethernet Wake on Pattern Match        Disabled                       *WakeOnPattern          {0}          
+Ethernet Interrupt Moderation Rate    Medium                         ITR                     {125}        
+Ethernet Locally Administered Address --                             NetworkAddress          {--}         
+Ethernet Wake On Magic Packet From S5 Disabled                       WakeOnMagicPacketFromS5 {0}          
+
+
+=== Connection Profile ===
+
+
+Name                     : Network
+InterfaceAlias           : Ethernet
+InterfaceIndex           : 14
+NetworkCategory          : Public
+DomainAuthenticationKind : None
+IPv4Connectivity         : Internet
+IPv6Connectivity         : NoTraffic
+
+
+
+=== DNS ===
+
+
+InterfaceAlias  : Ethernet
+InterfaceIndex  : 14
+AddressFamily   : IPv4
+ServerAddresses : {192.168.4.1}
+
+InterfaceAlias  : Ethernet
+InterfaceIndex  : 14
+AddressFamily   : IPv6
+ServerAddresses : {}
+
+
+

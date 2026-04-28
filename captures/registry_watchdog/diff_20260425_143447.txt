@@ -1,0 +1,21 @@
+﻿=== REGISTRY DRIFT DETECTED ===
+Time: 2026-04-25 14:34:51
+Previous: snapshot_20260425_134858.json
+Changes: 4
+
+  dwm_OverlayTestMode
+    was: 5
+    now: <null>
+
+  wu_AUOptions
+    was: <null>
+    now: 2
+
+  wu_NoAutoUpdate
+    was: <null>
+    now: 0
+
+  wu_NoAutoReboot
+    was: <null>
+    now: 1
+

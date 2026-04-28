@@ -1,0 +1,24 @@
+﻿=== OS Performance: SLOW_STATE_20260424 ===
+Captured: 2026-04-24 13:24:03
+Samples: 10 (1s interval)
+
+Counter                                                          Avg          Min          Max
+-----------------------------------------------------------------------------------------------
+memory\available mbytes                                  19,208.2000  18,901.0000  19,528.0000
+memory\pages/sec                                             16.6829       0.0000     111.8966
+physicaldisk(_total)\avg. disk sec/read                       0.0001       0.0000       0.0002
+physicaldisk(_total)\avg. disk sec/write                      0.0002       0.0000       0.0003
+physicaldisk(_total)\current disk queue length                0.0000       0.0000       0.0000
+processor(_total)\% dpc time                                  0.5461       0.0975       1.2676
+processor(_total)\% interrupt time                            1.2189       0.0000       3.4128
+processor(_total)\% processor time                           10.0401       6.8615      12.7592
+system\context switches/sec                              33,074.4781  29,003.9714  35,997.9882
+system\processor queue length                                 0.0000       0.0000       0.0000
+
+=== Registry Settings ===
+SystemResponsiveness: 0
+NetworkThrottlingIndex: 4294967295
+Games Scheduling Category: High
+Games Priority: 6
+Games SFIO Priority: High
+Defender Exclusions: C:\Program Files (x86)\Steam\steamapps\common, C:\Program Files\Epic Games, C:\Program Files\Epic Games\Fortnite, C:\Program Files\Epic Games\Launcher, C:\ProgramData\Epic\EpicGamesLauncher, C:\Users\L\.claude, C:\Users\L\AppData\Local\D3DSCache, C:\Users\L\AppData\Local\EpicGamesLauncher, C:\Users\L\AppData\Local\FortniteGame, C:\Users\L\AppData\Local\NVIDIA\DXCache, C:\Users\L\AppData\Local\Temp, C:\Users\L\AppData\Local\Temp\claude, C:\Users\L\AppData\Roaming\Claude

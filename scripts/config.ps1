@@ -62,6 +62,10 @@ $script:ToolPaths = @{
         'C:\Tools',
         (Join-Path $env:USERPROFILE 'Downloads')
     )
+    Chrome = Find-Tool 'chrome.exe' @(
+        'C:\Program Files\Google\Chrome\Application',
+        'C:\Program Files (x86)\Google\Chrome\Application'
+    )
 }
 
 # ─── Performance Counter List ────────────────────────────────────────────────
@@ -116,7 +120,8 @@ $script:KnownGameProcesses = @(
     'cod',
     'Warzone',
     'GTA5',
-    'eldenring'
+    'eldenring',
+    'warhammer3'
 )
 
 # ─── Network Ping Targets ───────────────────────────────────────────────────
