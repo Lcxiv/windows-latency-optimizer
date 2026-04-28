@@ -1184,7 +1184,7 @@ function Invoke-NvidiaDpcHealthCheck {
     $expRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'captures\experiments'
     if (-not (Test-Path $expRoot)) { return $results }
 
-    $dirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
+    $dirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
     if ($dirs.Count -eq 0) { return $results }
 
     $lastExpDir = $dirs[0].FullName
@@ -1342,7 +1342,7 @@ function Invoke-LatencyMitigationChecks {
     $expRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'captures\experiments'
     $bloatChecked = $false
     if (Test-Path $expRoot) {
-        $expDirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending)
+        $expDirs = @(Get-ChildItem $expRoot -Directory -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
         if ($expDirs.Count -gt 0) {
             $expJson = Join-Path $expDirs[0].FullName 'experiment.json'
             if (Test-Path $expJson) {
@@ -1656,32 +1656,71 @@ function Invoke-DriverHealthChecks {
     }
 
     # --- Check B: NVMe Vendor Drivers ---
+    # Modern NVMe drives (Samsung 990+, WD SN850X+, Crucial T500+, SK Hynix P41+)
+    # no longer ship standalone NVMe drivers. Vendors recommend Windows inbox stornvme.sys.
+    # Only WARN for older drives that have a vendor driver available.
     $nvmeGeneric = 0
     $nvmeTotal = 0
+    $nvmeInboxOk = 0
+    $inboxOkPatterns = @(
+        'Samsung.*99[0-9]',          # Samsung 990 PRO/EVO
+        'Samsung.*9[1-9][0-9][0-9]', # Samsung 9100 PRO+ series
+        'WD.*SN85',                  # WD BLACK SN850X
+        'WD.*SN5[0-9]',             # WD SN5000 series
+        'Crucial.*T[5-7]0[0-9]',    # Crucial T500/T700/T705
+        'SK.*P4[1-4]'               # SK Hynix P41/P44
+    )
     try {
         $nvmeDisks = @(Get-PhysicalDisk -ErrorAction SilentlyContinue | Where-Object { $_.BusType -eq 'NVMe' })
         $nvmeTotal = $nvmeDisks.Count
         $nvmePnp = @(Get-WmiObject Win32_PnPSignedDriver -ErrorAction SilentlyContinue |
             Where-Object { $_.Description -and $_.Description -like '*NVMe*' -and $_.DriverProviderName -eq 'Microsoft' })
         $nvmeGeneric = $nvmePnp.Count
+        # Count physical disks that match modern "inbox OK" models
+        if ($nvmeGeneric -gt 0) {
+            foreach ($disk in $nvmeDisks) {
+                $model = $disk.FriendlyName
+                foreach ($pat in $inboxOkPatterns) {
+                    if ($model -match $pat) {
+                        $nvmeInboxOk++
+                        break
+                    }
+                }
+            }
+        }
     } catch { }
 
     if ($nvmeTotal -eq 0) {
         $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
-            -Status 'PASS' -Current 'No NVMe drives' -Expected 'Vendor driver'
+            -Status 'PASS' -Current 'No NVMe drives' -Expected 'Vendor or inbox driver'
     } elseif ($nvmeGeneric -eq 0) {
         $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
-            -Status 'PASS' -Current ('All ' + $nvmeTotal + ' NVMe drive(s) use vendor drivers') -Expected 'Vendor driver'
-    } else {
+            -Status 'PASS' -Current ('All ' + $nvmeTotal + ' NVMe drive(s) use vendor drivers') -Expected 'Vendor or inbox driver'
+    } elseif ($nvmeInboxOk -ge $nvmeTotal) {
+        # All drives are modern models — vendor recommends inbox driver
         $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
-            -Status 'WARN' -Current ([string]$nvmeGeneric + '/' + [string]$nvmeTotal + ' NVMe drive(s) use generic Microsoft driver') -Expected 'Vendor driver' `
-            -Message 'Generic stornvme.sys lacks vendor APST tuning and optimized queue depth. Samsung and WD provide native NVMe drivers.' `
+            -Status 'PASS' `
+            -Current ([string]$nvmeTotal + ' NVMe drive(s) — inbox driver (vendor-recommended)') `
+            -Expected 'Vendor or inbox driver' `
+            -Message 'Modern NVMe drives (Samsung 990+, WD SN850X+) no longer ship standalone drivers. Vendor recommends Windows inbox stornvme.sys.'
+    } else {
+        $needsDriver = $nvmeTotal - $nvmeInboxOk
+        $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
+            -Status 'WARN' `
+            -Current ([string]$needsDriver + '/' + [string]$nvmeTotal + ' NVMe drive(s) may benefit from vendor driver') `
+            -Expected 'Vendor driver' `
+            -Message 'Older NVMe drives may have vendor drivers with optimized APST tuning and queue depth.' `
             -Fix '.\audit-drivers.ps1 -Html' `
             -FixNote 'Check audit report for specific drive recommendations.'
     }
 
     # --- Check C: Event Viewer Driver Errors (7 days) ---
+    # Known-benign error patterns excluded from count:
+    # - luafv: LUA File Virtualization driver blocked by design on modern Win11 (fires every boot)
+    # - Windows Search: Intentionally disabled service (polling storm optimization)
+    $benignPatterns = @('luafv', 'Windows Search')
     $driverErrors = 0
+    $benignCount = 0
     try {
         $startDate = (Get-Date).AddDays(-7)
         $scmErrs = @(Get-WinEvent -FilterHashtable @{
@@ -1690,19 +1729,35 @@ function Invoke-DriverHealthChecks {
             Level        = @(1,2)
             StartTime    = $startDate
         } -MaxEvents 200 -ErrorAction SilentlyContinue)
-        $driverErrors = $scmErrs.Count
+        foreach ($evt in $scmErrs) {
+            $isBenign = $false
+            $msg = $evt.Message
+            if ($msg) {
+                foreach ($pat in $benignPatterns) {
+                    if ($msg -match [regex]::Escape($pat)) {
+                        $isBenign = $true
+                        break
+                    }
+                }
+            }
+            if ($isBenign) { $benignCount++ } else { $driverErrors++ }
+        }
     } catch { }
 
     if ($driverErrors -eq 0) {
+        $detail = '0 driver errors (7d)'
+        if ($benignCount -gt 0) {
+            $detail = '0 actionable errors (7d, ' + [string]$benignCount + ' known-benign suppressed)'
+        }
         $results += New-CheckResult -Name 'Event Log Driver Errors' -Category 'Drivers' -Tier 'Deep' -Severity 'MEDIUM' `
-            -Status 'PASS' -Current '0 driver errors (7d)' -Expected '0'
+            -Status 'PASS' -Current $detail -Expected '0'
     } elseif ($driverErrors -le 5) {
         $results += New-CheckResult -Name 'Event Log Driver Errors' -Category 'Drivers' -Tier 'Deep' -Severity 'MEDIUM' `
-            -Status 'WARN' -Current ([string]$driverErrors + ' driver errors (7d)') -Expected '0' `
+            -Status 'WARN' -Current ([string]$driverErrors + ' actionable errors (7d)') -Expected '0' `
             -Message 'Minor driver/service errors in event log. Run audit-drivers.ps1 for details.'
     } else {
         $results += New-CheckResult -Name 'Event Log Driver Errors' -Category 'Drivers' -Tier 'Deep' -Severity 'HIGH' `
-            -Status 'FAIL' -Current ([string]$driverErrors + ' driver errors (7d)') -Expected '0' `
+            -Status 'FAIL' -Current ([string]$driverErrors + ' actionable errors (7d)') -Expected '0' `
             -Message 'Significant driver/service errors in event log.' `
             -Fix '.\audit-drivers.ps1 -Html' `
             -FixNote 'Run driver audit for full breakdown.'
