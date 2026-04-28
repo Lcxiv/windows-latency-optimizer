@@ -1,0 +1,56 @@
+﻿[
+    {
+        "TaskName":  "Office Actions Server",
+        "TaskPath":  "\\Microsoft\\Office\\",
+        "Reason":  "Hourly Office integration (PT1H)",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "Office Automatic Updates 2.0",
+        "TaskPath":  "\\Microsoft\\Office\\",
+        "Reason":  "Office update check",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "Schedule Scan",
+        "TaskPath":  "\\Microsoft\\Windows\\UpdateOrchestrator\\",
+        "Reason":  "6h WU scan (PT6H) â€” custom 4AM task handles this",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "UsageDataFlushing",
+        "TaskPath":  "\\Microsoft\\Windows\\Flighting\\FeatureConfig\\",
+        "Reason":  "Telemetry â€” flushes experiment data to Microsoft",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "UsageDataReceiver",
+        "TaskPath":  "\\Microsoft\\Windows\\Flighting\\FeatureConfig\\",
+        "Reason":  "Telemetry â€” receives feature experiment data",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "ReconcileFeatures",
+        "TaskPath":  "\\Microsoft\\Windows\\Flighting\\FeatureConfig\\",
+        "Reason":  "Telemetry â€” reconciles feature experiment state",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "RefreshCache",
+        "TaskPath":  "\\Microsoft\\Windows\\Flighting\\OneSettings\\",
+        "Reason":  "Feature experiment cache refresh (PT6H4M)",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "QueueReporting",
+        "TaskPath":  "\\Microsoft\\Windows\\Windows Error Reporting\\",
+        "Reason":  "Crash report upload (PT4H)",
+        "OriginalState":  "Ready"
+    },
+    {
+        "TaskName":  "PcaPatchDbTask",
+        "TaskPath":  "\\Microsoft\\Windows\\Application Experience\\",
+        "Reason":  "Compat DB patch (PT12H)",
+        "OriginalState":  "Ready"
+    }
+]

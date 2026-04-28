@@ -65,6 +65,7 @@ $allChecks = @()
 $allChecks += Invoke-OsChecks
 $allChecks += Invoke-NicChecks
 $allChecks += Invoke-GpuChecks
+$allChecks += Invoke-DriverHealthChecks
 # Deep tier
 if ($Mode -eq 'Deep') {
     $allChecks += Invoke-MemoryChecks
