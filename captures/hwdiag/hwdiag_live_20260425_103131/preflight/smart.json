@@ -1,0 +1,85 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T10:31:33",
+    "phase":  "preflight",
+    "drives":  [
+                   {
+                       "deviceId":  "0",
+                       "friendlyName":  "Samsung SSD 9100 PRO 1TB",
+                       "busType":  "NVMe",
+                       "mediaType":  "SSD",
+                       "sizeGB":  931.5,
+                       "healthStatus":  "Healthy",
+                       "operationalStatus":  "OK",
+                       "firmwareVersion":  "0B2QNXH7",
+                       "reliability":  {
+                                           "temperature_c":  0,
+                                           "temperatureMax_c":  0,
+                                           "wear_pct":  0,
+                                           "powerOnHours":  null,
+                                           "startStopCycles":  null,
+                                           "readErrorsTotal":  null,
+                                           "writeErrorsTotal":  null,
+                                           "readErrorsCorrected":  null,
+                                           "writeErrorsCorrected":  null,
+                                           "readErrorsUncorrected":  null,
+                                           "writeErrorsUncorrected":  null,
+                                           "readLatencyMax_ms":  31,
+                                           "writeLatencyMax_ms":  23
+                                       }
+                   },
+                   {
+                       "deviceId":  "1",
+                       "friendlyName":  "WD_BLACK SN850X HS 1000GB",
+                       "busType":  "NVMe",
+                       "mediaType":  "SSD",
+                       "sizeGB":  931.5,
+                       "healthStatus":  "Healthy",
+                       "operationalStatus":  "OK",
+                       "firmwareVersion":  "620361WD",
+                       "reliability":  {
+                                           "temperature_c":  0,
+                                           "temperatureMax_c":  0,
+                                           "wear_pct":  0,
+                                           "powerOnHours":  null,
+                                           "startStopCycles":  null,
+                                           "readErrorsTotal":  null,
+                                           "writeErrorsTotal":  null,
+                                           "readErrorsCorrected":  null,
+                                           "writeErrorsCorrected":  null,
+                                           "readErrorsUncorrected":  null,
+                                           "writeErrorsUncorrected":  null,
+                                           "readLatencyMax_ms":  0,
+                                           "writeLatencyMax_ms":  0
+                                       }
+                   },
+                   {
+                       "deviceId":  "2",
+                       "friendlyName":  "USB DISK 2.0",
+                       "busType":  "USB",
+                       "mediaType":  "Unspecified",
+                       "sizeGB":  14.5,
+                       "healthStatus":  "Healthy",
+                       "operationalStatus":  "OK",
+                       "firmwareVersion":  "PMAP",
+                       "reliability":  {
+                                           "temperature_c":  0,
+                                           "temperatureMax_c":  0,
+                                           "wear_pct":  0,
+                                           "powerOnHours":  null,
+                                           "startStopCycles":  null,
+                                           "readErrorsTotal":  null,
+                                           "writeErrorsTotal":  null,
+                                           "readErrorsCorrected":  null,
+                                           "writeErrorsCorrected":  null,
+                                           "readErrorsUncorrected":  null,
+                                           "writeErrorsUncorrected":  null,
+                                           "readLatencyMax_ms":  119,
+                                           "writeLatencyMax_ms":  null
+                                       }
+                   }
+               ],
+    "flags":  [
+                  "SMART USB DISK 2.0: max read latency 119 ms \u003e 100 ms"
+              ]
+}

@@ -1,0 +1,21 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T11:09:14",
+    "daysBack":  1,
+    "totalEvents":  0,
+    "bySeverity":  {
+                       "Critical":  0,
+                       "Error":  0,
+                       "Warning":  0,
+                       "Information":  0
+                   },
+    "byEventId":  {
+
+                  },
+    "perDayCounts":  {
+
+                     },
+    "flags":  [
+                  "PASS: zero WHEA-Logger events in past 1 days"
+              ]
+}

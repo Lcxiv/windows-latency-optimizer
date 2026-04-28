@@ -1,0 +1,34 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T10:31:31",
+    "phase":  "preflight",
+    "gpu":  {
+                "name":  "NVIDIA GeForce RTX 5070 Ti",
+                "pcie_gen_current":  5,
+                "pcie_gen_max":  5,
+                "pcie_width_current":  16,
+                "pcie_width_max":  16,
+                "degraded":  false
+            },
+    "nvme":  [
+                 {
+                     "friendlyName":  "Samsung SSD 9100 PRO 1TB",
+                     "mediaType":  "SSD",
+                     "sizeGB":  931.5,
+                     "healthStatus":  "Healthy",
+                     "operationalStatus":  "OK",
+                     "pcie_link":  null
+                 },
+                 {
+                     "friendlyName":  "WD_BLACK SN850X HS 1000GB",
+                     "mediaType":  "SSD",
+                     "sizeGB":  931.5,
+                     "healthStatus":  "Healthy",
+                     "operationalStatus":  "OK",
+                     "pcie_link":  null
+                 }
+             ],
+    "flags":  [
+                  "PASS: All PCIe links at max gen/width"
+              ]
+}

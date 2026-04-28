@@ -1,0 +1,59 @@
+﻿{
+    "schemaVersion":  1,
+    "phase":  "smoketest",
+    "durationSec":  10,
+    "sampleCount":  11,
+    "flags":  [
+                  "PASS: GPU within thermal/power/ECC bands during phase"
+              ],
+    "metrics":  {
+                    "ecc_uncorrected_volatile_last":  null,
+                    "ecc_uncorrected_aggregate_last":  null,
+                    "powerlimit_clamp_pct":  0,
+                    "ecc_corrected_aggregate_last":  null,
+                    "mem_temp_c":  null,
+                    "power_draw_w":  {
+                                         "min":  69.74,
+                                         "max":  70.4,
+                                         "count":  11,
+                                         "avg":  70.18
+                                     },
+                    "gpu_util_pct":  {
+                                         "min":  12,
+                                         "max":  15,
+                                         "count":  11,
+                                         "avg":  14.73
+                                     },
+                    "gpu_clock_mhz":  {
+                                          "min":  2722,
+                                          "max":  2790,
+                                          "count":  11,
+                                          "avg":  2728.91
+                                      },
+                    "ecc_corrected_volatile_last":  null,
+                    "power_limit_w":  {
+                                          "min":  350,
+                                          "max":  350,
+                                          "count":  11,
+                                          "avg":  350
+                                      },
+                    "mem_util_pct":  {
+                                         "min":  1,
+                                         "max":  2,
+                                         "count":  11,
+                                         "avg":  1.91
+                                     },
+                    "mem_clock_mhz":  {
+                                          "min":  14001,
+                                          "max":  14001,
+                                          "count":  11,
+                                          "avg":  14001
+                                      },
+                    "gpu_temp_c":  {
+                                       "min":  49,
+                                       "max":  49,
+                                       "count":  11,
+                                       "avg":  49
+                                   }
+                }
+}
