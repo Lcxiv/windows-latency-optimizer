@@ -1,6 +1,6 @@
 ﻿{
     "_meta":  {
-                  "capturedAt":  "2026-04-29T10:27:26",
+                  "capturedAt":  "2026-04-29T09:00:01",
                   "hostname":  "DESKTOP-V5BN4SC",
                   "buildNumber":  "26200"
               },
@@ -28,9 +28,9 @@
     "vbs_EnableVBS":  null,
     "bcd_hypervisorlaunchtype":  "Off",
     "bcd_nx":  "OptIn",
-    "defender_DisableRealtimeMonitoring":  null,
-    "defender_ScanAvgCPULoadFactor":  null,
-    "defender_ExclusionPathCount":  null,
+    "defender_DisableRealtimeMonitoring":  true,
+    "defender_ScanAvgCPULoadFactor":  5,
+    "defender_ExclusionPathCount":  14,
     "power_ActiveScheme":  "Ultimate Performance",
     "nic_InterruptModeration":  "Disabled",
     "nic_RSS":  null,

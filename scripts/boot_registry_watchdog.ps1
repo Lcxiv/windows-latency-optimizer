@@ -124,6 +124,18 @@ $snapshot = [ordered]@{
     # --- Timer / HPET ---
     hpet_UseHighPerfTimer = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel' 'UseHighPerfTimer'
 
+    # --- Deep Optimize keys (HKLM only — watchdog runs as SYSTEM) ---
+    deep_csrss_CpuPriorityClass = Get-RegValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions' 'CpuPriorityClass'
+    deep_AllowGameDVR = Get-RegValue 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR'
+    deep_PowerThrottlingOff = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' 'PowerThrottlingOff'
+    deep_HiberbootEnabled = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HiberbootEnabled'
+    deep_IPv6_DisabledComponents = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters' 'DisabledComponents'
+    deep_NoLazyMode = Get-RegValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'NoLazyMode'
+    deep_GlobalTimerRes = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel' 'GlobalTimerResolutionRequests'
+    deep_DisablePagingExec = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management' 'DisablePagingExecutive'
+    deep_EnergyTelemetry = Get-RegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Diagnostics\Performance' 'DisableTaggedEnergyLogging'
+    deep_TimeStampInterval = Get-RegValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability' 'TimeStampInterval'
+
     # --- Nagle ---
     nagle_TcpAckFrequency = $null
     nagle_TCPNoDelay = $null

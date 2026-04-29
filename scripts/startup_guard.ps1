@@ -218,6 +218,163 @@ if ($inputDrift -eq 0) {
     Write-Log ('All ' + $inputTweaks.Count + ' input tweaks intact') 'PASS'
 }
 
+# ── Guard 3: Windows Defender Settings ──────────────────────────────────────
+Write-Section 'Windows Defender Settings'
+
+$defenderPolicyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender'
+$defenderScanPath   = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Scan'
+
+$defenderChecks = @(
+    @{ Path = $defenderPolicyPath; Name = 'DisableRealtimeMonitoring'; Value = 1; Type = 'DWord'; Label = 'Real-time monitoring disabled' },
+    @{ Path = $defenderScanPath;   Name = 'ScanAvgCPULoadFactor';     Value = 5; Type = 'DWord'; Label = 'Scan CPU cap = 5%' }
+)
+
+foreach ($d in $defenderChecks) {
+    $checks++
+    $current = $null
+    try {
+        if (-not (Test-Path $d.Path)) {
+            New-Item -Path $d.Path -Force | Out-Null
+        }
+        $current = (Get-ItemProperty $d.Path -Name $d.Name -ErrorAction Stop).$($d.Name)
+    } catch {}
+
+    if ($null -ne $current -and [int]$current -eq $d.Value) {
+        Write-Log ($d.Label + ' [OK]') 'PASS'
+        $passed++
+    } else {
+        $fromStr = if ($null -eq $current) { '<null>' } else { [string]$current }
+        if (-not (Test-Path $d.Path)) {
+            New-Item -Path $d.Path -Force | Out-Null
+        }
+        Set-ItemProperty $d.Path -Name $d.Name -Value $d.Value -Type $d.Type
+        Write-Log ($d.Name + ': ' + $fromStr + ' -> ' + [string]$d.Value + ' (' + $d.Label + ')') 'FIX'
+        $fixes++
+    }
+}
+
+# Exclusion paths — restore from config file (skip if Defender WMI is dead)
+$checks++
+$exclusionFile = Join-Path $projectRoot 'config\defender_exclusions.txt'
+if (Test-Path $exclusionFile) {
+    $mpPrefError = $false
+    try {
+        $currentPaths = @((Get-MpPreference -ErrorAction Stop).ExclusionPath)
+    } catch {
+        $mpPrefError = $true
+    }
+
+    if ($mpPrefError) {
+        # 0x800106ba = Defender AM not running / WMI dead — exclusions irrelevant
+        Write-Log 'Defender WMI unavailable (AM dormant) - exclusions N/A' 'PASS'
+        $passed++
+    } else {
+        $expectedPaths = @(Get-Content $exclusionFile | Where-Object { $_.Trim().Length -gt 0 })
+        $missing = @()
+        foreach ($ep in $expectedPaths) {
+            $found = $false
+            foreach ($cp in $currentPaths) {
+                if ($cp -eq $ep) { $found = $true; break }
+            }
+            if (-not $found) { $missing += $ep }
+        }
+        if ($missing.Count -eq 0) {
+            Write-Log ($expectedPaths.Count.ToString() + ' exclusion paths intact') 'PASS'
+            $passed++
+        } else {
+            foreach ($mp in $missing) {
+                try { Add-MpPreference -ExclusionPath $mp -ErrorAction Stop } catch {}
+            }
+            Write-Log ('Restored ' + $missing.Count.ToString() + ' missing exclusion path(s)') 'FIX'
+            $fixes++
+        }
+    }
+} else {
+    Write-Log ('Exclusion config not found: ' + $exclusionFile) 'WARN'
+}
+
+# ── Guard 4: Deep Optimize Drift (GameBar, GameDVR, CSRSS priority) ─────────
+Write-Section 'Deep Optimize Settings'
+
+$deepChecks = @(
+    @{ Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR';  Name = 'AllowGameDVR';           Value = 0; Type = 'DWord'; Label = 'GameBar policy disabled' },
+    @{ Path = 'HKCU:\System\GameConfigStore';                        Name = 'GameDVR_Enabled';         Value = 0; Type = 'DWord'; Label = 'GameDVR disabled' },
+    @{ Path = 'HKCU:\System\GameConfigStore';                        Name = 'GameDVR_FSEBehaviorMode'; Value = 0; Type = 'DWord'; Label = 'FSE behavior mode' },
+    @{ Path = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'; Name = 'AppCaptureEnabled';  Value = 0; Type = 'DWord'; Label = 'App capture disabled' },
+    @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions'; Name = 'CpuPriorityClass'; Value = 3; Type = 'DWord'; Label = 'CSRSS high priority' },
+    @{ Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling'; Name = 'PowerThrottlingOff'; Value = 1; Type = 'DWord'; Label = 'Power throttling off' }
+)
+
+$deepDrift = 0
+foreach ($d in $deepChecks) {
+    $checks++
+    $current = $null
+    try {
+        $current = (Get-ItemProperty $d.Path -Name $d.Name -ErrorAction Stop).$($d.Name)
+    } catch {}
+
+    if ($null -ne $current -and [int]$current -eq $d.Value) {
+        $passed++
+    } else {
+        if (-not (Test-Path $d.Path)) {
+            New-Item -Path $d.Path -Force | Out-Null
+        }
+        $fromStr = if ($null -eq $current) { '<null>' } else { [string]$current }
+        Set-ItemProperty $d.Path -Name $d.Name -Value $d.Value -Type $d.Type
+        Write-Log ($d.Name + ': ' + $fromStr + ' -> ' + [string]$d.Value + ' (' + $d.Label + ')') 'FIX'
+        $fixes++
+        $deepDrift++
+    }
+}
+
+if ($deepDrift -eq 0) {
+    Write-Log ('All ' + $deepChecks.Count + ' deep optimize settings intact') 'PASS'
+}
+
+# ── Guard 5: NVIDIA GPU Performance Settings ───────────────────────────────
+Write-Section 'NVIDIA GPU Performance'
+
+$nvRegPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000'
+$nvChecks = @(
+    @{ Name = 'DisableDynamicPstate'; Value = 1; Label = 'Dynamic P-state disabled' },
+    @{ Name = 'PerfLevelSrc';         Value = 13090; Label = 'Max performance mode (0x3322)' },
+    @{ Name = 'PowerMizerEnable';     Value = 1; Label = 'PowerMizer enabled' },
+    @{ Name = 'PowerMizerLevel';      Value = 1; Label = 'PowerMizer high perf' }
+)
+
+$nvDrift = 0
+if (Test-Path $nvRegPath) {
+    foreach ($nv in $nvChecks) {
+        $checks++
+        $current = (Get-ItemProperty $nvRegPath -Name $nv.Name -ErrorAction SilentlyContinue).$($nv.Name)
+        if ($null -ne $current -and [int]$current -eq $nv.Value) {
+            $passed++
+        } else {
+            $fromStr = if ($null -eq $current) { '<null>' } else { [string]$current }
+            Set-ItemProperty $nvRegPath -Name $nv.Name -Value $nv.Value -Type DWord
+            Write-Log ($nv.Name + ': ' + $fromStr + ' -> ' + [string]$nv.Value + ' (' + $nv.Label + ')') 'FIX'
+            $fixes++
+            $nvDrift++
+        }
+    }
+    if ($nvDrift -eq 0) {
+        Write-Log ('All ' + $nvChecks.Count + ' NVIDIA settings intact') 'PASS'
+    }
+
+    # Apply nvidia-smi clock lock (immediate effect, no reboot needed)
+    $nvsmi = 'C:\Windows\System32\nvidia-smi.exe'
+    if (Test-Path $nvsmi) {
+        $lockResult = & $nvsmi -lgc 3090,3090 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Log 'GPU clock locked to 3090 MHz' 'PASS'
+        } else {
+            Write-Log ('nvidia-smi clock lock failed: ' + $lockResult) 'WARN'
+        }
+    }
+} else {
+    Write-Log 'NVIDIA GPU registry key not found' 'WARN'
+}
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 Write-Log ''
 $summary = 'Checks: ' + $checks + ' | Passed: ' + $passed + ' | Fixed: ' + $fixes

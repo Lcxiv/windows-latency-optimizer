@@ -1,0 +1,17 @@
+﻿=== REGISTRY DRIFT DETECTED ===
+Time: 2026-04-28 11:01:17
+Previous: snapshot_20260428_090001.json
+Changes: 3
+
+  defender_DisableRealtimeMonitoring
+    was: True
+    now: <null>
+
+  defender_ScanAvgCPULoadFactor
+    was: 5
+    now: <null>
+
+  defender_ExclusionPathCount
+    was: 14
+    now: <null>
+

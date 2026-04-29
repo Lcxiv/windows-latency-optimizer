@@ -1,6 +1,6 @@
 ﻿{
     "_meta":  {
-                  "capturedAt":  "2026-04-29T10:27:26",
+                  "capturedAt":  "2026-04-29T06:46:32",
                   "hostname":  "DESKTOP-V5BN4SC",
                   "buildNumber":  "26200"
               },
@@ -38,16 +38,6 @@
     "wu_NoAutoUpdate":  0,
     "wu_NoAutoReboot":  1,
     "hpet_UseHighPerfTimer":  null,
-    "deep_csrss_CpuPriorityClass":  3,
-    "deep_AllowGameDVR":  0,
-    "deep_PowerThrottlingOff":  1,
-    "deep_HiberbootEnabled":  0,
-    "deep_IPv6_DisabledComponents":  null,
-    "deep_NoLazyMode":  null,
-    "deep_GlobalTimerRes":  null,
-    "deep_DisablePagingExec":  0,
-    "deep_EnergyTelemetry":  null,
-    "deep_TimeStampInterval":  1,
     "nagle_TcpAckFrequency":  1,
     "nagle_TCPNoDelay":  1
 }

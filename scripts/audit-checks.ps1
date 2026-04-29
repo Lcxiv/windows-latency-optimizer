@@ -1,11 +1,11 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Audit check functions for audit.ps1.
 .DESCRIPTION
     Dot-sourced by audit.ps1. Contains all check functions and New-CheckResult helper.
     Each check function returns a hashtable matching the check result schema.
-    Read-only — no system modifications.
+    Read-only â€” no system modifications.
 #>
 
 # ---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ function Get-SystemInfo {
     $cpu = Get-WmiObject Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($cpu) { $info.cpu = $cpu.Name.Trim() }
 
-    # GPU — prefer dedicated adapter over Basic Display Adapter
+    # GPU â€” prefer dedicated adapter over Basic Display Adapter
     $gpus = @(Get-WmiObject Win32_VideoController -ErrorAction SilentlyContinue)
     $gpu  = $gpus | Where-Object { $_.Name -notlike '*Basic*' -and $_.Status -eq 'OK' } | Select-Object -First 1
     if ($null -eq $gpu) { $gpu = $gpus | Select-Object -First 1 }
@@ -75,7 +75,7 @@ function Get-SystemInfo {
         $info.gpuDriver = $gpu.DriverVersion
     }
 
-    # RAM — total + configured speed
+    # RAM â€” total + configured speed
     $dimms = Get-WmiObject Win32_PhysicalMemory -ErrorAction SilentlyContinue
     if ($dimms) {
         $totalMB = ($dimms | Measure-Object -Property Capacity -Sum).Sum / 1MB
@@ -220,7 +220,7 @@ function Invoke-OsChecks {
     $powerOutput = powercfg /getactivescheme 2>&1 | Out-String
     $isHP        = $powerOutput -match '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'  # High Performance
     $isUP        = $powerOutput -match 'e9a42b02-d5df-448d-aa00-03f14749eb61'  # Ultimate Performance
-    # Fallback: custom schemes get unique GUIDs — match by name
+    # Fallback: custom schemes get unique GUIDs â€” match by name
     if (-not $isHP -and -not $isUP) {
         $isHP = $powerOutput -match 'High Performance'
         $isUP = $powerOutput -match 'Ultimate Performance'
@@ -539,7 +539,7 @@ function Invoke-NicChecks {
 function Invoke-GpuChecks {
     $results = @()
 
-    # Detect NVIDIA GPU — match PCI device to display adapter (not USB controller)
+    # Detect NVIDIA GPU â€” match PCI device to display adapter (not USB controller)
     $nvKey = $null
     try {
         $gpuPnp = Get-WmiObject Win32_VideoController -ErrorAction Stop |
@@ -589,7 +589,7 @@ function Invoke-GpuChecks {
             -Status 'FAIL' -Current ('MSISupported = ' + $msiVal) -Expected 'MSISupported = 1' `
             -Message 'Line-based interrupts cause shared IRQ contention and higher DPC latency. NVIDIA driver updates silently reset this to 0.' `
             -Fix '.\scripts\exp21_msi_gpu_clocks.ps1' `
-            -FixNote 'Reboot required. Re-apply after every NVIDIA driver update — the installer resets MSISupported to 0.'
+            -FixNote 'Reboot required. Re-apply after every NVIDIA driver update â€” the installer resets MSISupported to 0.'
     }
 
     # --- Check 18: GPU Interrupt Affinity ---
@@ -737,7 +737,7 @@ function Invoke-PeripheralChecks {
             if (Get-Process -Name $proc -ErrorAction SilentlyContinue) { $running = $true; break }
         }
 
-        # Also check if Synapse/GHUB is installed (even if not running — polling saved to firmware)
+        # Also check if Synapse/GHUB is installed (even if not running â€” polling saved to firmware)
         $companionInstalled = $false
         $installedApps = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
         $installedApps += Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
@@ -752,7 +752,7 @@ function Invoke-PeripheralChecks {
             $status = 'configured'
             if ($running) { $status = 'running' }
             $results += New-CheckResult -Name 'Mouse Polling Rate' -Category 'Peripheral' -Tier 'Deep' -Severity 'HIGH' `
-                -Status 'PASS' -Current ($displayName + ' — companion software ' + $status) -Expected 'Polling rate configured'
+                -Status 'PASS' -Current ($displayName + ' â€” companion software ' + $status) -Expected 'Polling rate configured'
         } else {
             $fixCmd = '.\scripts\fix_razer_polling.ps1'
             $fixNote = 'Downloads Razer Synapse, set polling to 1000Hz+, save to onboard memory, then uninstall Synapse.'
@@ -764,7 +764,7 @@ function Invoke-PeripheralChecks {
                 $fixNote = 'Install SteelSeries GG from https://steelseries.com/gg, set 1000Hz, save to onboard.'
             }
             $results += New-CheckResult -Name 'Mouse Polling Rate' -Category 'Peripheral' -Tier 'Deep' -Severity 'HIGH' `
-                -Status 'WARN' -Current ($displayName + ' — no companion software') -Expected 'Polling rate set to 1000Hz+' `
+                -Status 'WARN' -Current ($displayName + ' â€” no companion software') -Expected 'Polling rate set to 1000Hz+' `
                 -Message ('Without companion software, ' + $mouseBrand + ' mice default to 125Hz (8ms input delay vs 1ms at 1000Hz).') `
                 -Fix $fixCmd -FixNote $fixNote
         }
@@ -918,11 +918,12 @@ function Invoke-PeripheralChecks {
 
     # --- Check 23: Overlay Processes ---
     $overlayProcs = @(
-        @{ Name='Discord';        Exe='Discord' },
-        @{ Name='GeForce Overlay';Exe='NVTMRMON' },
-        @{ Name='Xbox Game Bar';  Exe='GameBar' },
-        @{ Name='Steam Overlay';  Exe='GameOverlayUI' },
-        @{ Name='NZXT CAM';       Exe='NZXT CAM' }
+        @{ Name='Discord';         Exe='Discord' },
+        @{ Name='GeForce Overlay'; Exe='NVTMRMON' },
+        @{ Name='Xbox Game Bar';   Exe='GameBar' },
+        @{ Name='Steam Overlay';   Exe='GameOverlayUI' },
+        @{ Name='NZXT CAM';        Exe='NZXT CAM' },
+        @{ Name='Ankama Launcher'; Exe='Ankama Launcher' }
     )
     $foundOverlays = @()
     foreach ($o in $overlayProcs) {
@@ -1169,7 +1170,7 @@ function Invoke-AntiCheatChecks {
         $results += New-CheckResult -Name 'Anti-Cheat Drivers' -Category 'OS' -Tier 'Deep' -Severity 'INFO' `
             -Status 'WARN' -Current $detectedStr -Expected 'Awareness only' `
             -Message 'Anti-cheat drivers operate at kernel level. EAC uses PASSIVE_LEVEL callbacks (not visible in DPC/ISR but adds CPU overhead). Vanguard loads at boot.' `
-            -Fix '' -FixNote 'Not fixable — informational. Use WPR InputLatency profile to measure actual CPU impact during gameplay.'
+            -Fix '' -FixNote 'Not fixable â€” informational. Use WPR InputLatency profile to measure actual CPU impact during gameplay.'
     }
 
     return $results
@@ -1550,7 +1551,7 @@ public static extern int DwmIsCompositionEnabled(out bool pfEnabled);
 
     # --- Check D: Legacy Aero-Disable Registry (HKCU) ---
     # FAIL only if value=0 (actual Aero-disable). WARN on presence with non-zero value
-    # (suspicious — usually set by debloat scripts — but not actively breaking).
+    # (suspicious â€” usually set by debloat scripts â€” but not actively breaking).
     $dwmUser = 'HKCU:\Software\Microsoft\Windows\DWM'
     $legacyDisabled = @()
     $legacyPresent = @()
@@ -1567,7 +1568,7 @@ public static extern int DwmIsCompositionEnabled(out bool pfEnabled);
     if ($legacyDisabled.Count -gt 0) {
         $results += New-CheckResult -Name 'Legacy Aero-Disable' -Category 'DWM' -Tier 'Deep' -Severity 'HIGH' `
             -Status 'FAIL' -Current ($legacyDisabled -join '; ') -Expected 'None or enabled (=1)' `
-            -Message 'Win7-era Aero-disable keys present under HKCU\...\DWM with value=0. UE honors these — WindowsWindow.cpp:363 will hard-assert on launch.' `
+            -Message 'Win7-era Aero-disable keys present under HKCU\...\DWM with value=0. UE honors these â€” WindowsWindow.cpp:363 will hard-assert on launch.' `
             -Fix 'Remove-ItemProperty "HKCU:\Software\Microsoft\Windows\DWM" -Name CompositionPolicy,Composition,ForceEffectMode -ErrorAction SilentlyContinue' `
             -FixNote 'Sign out / sign in required for HKCU policy to take effect.'
     } elseif ($legacyPresent.Count -gt 0) {
@@ -1595,7 +1596,7 @@ public static extern int DwmIsCompositionEnabled(out bool pfEnabled);
             -Message 'Legacy MPO-disable key set. Does not control MPO on 24H2/25H2 (use DisableOverlays instead). Residual value may trigger UE launcher asserts on fullscreen-exclusive game launch.' `
             -Source 'exp11_stutter_fixes_apply.ps1:16' `
             -Fix 'Remove-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name OverlayTestMode -ErrorAction SilentlyContinue' `
-            -FixNote 'Reboot required. Safe — MPO still controlled via GraphicsDrivers\DisableOverlays (EXP11 modern path).'
+            -FixNote 'Reboot required. Safe â€” MPO still controlled via GraphicsDrivers\DisableOverlays (EXP11 modern path).'
     } else {
         $results += New-CheckResult -Name 'OverlayTestMode (Legacy)' -Category 'DWM' -Tier 'Deep' -Severity 'LOW' `
             -Status 'WARN' -Current ('OverlayTestMode=' + [string]$otm) -Expected 'Absent on 24H2/25H2' `
@@ -1697,10 +1698,10 @@ function Invoke-DriverHealthChecks {
         $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
             -Status 'PASS' -Current ('All ' + $nvmeTotal + ' NVMe drive(s) use vendor drivers') -Expected 'Vendor or inbox driver'
     } elseif ($nvmeInboxOk -ge $nvmeTotal) {
-        # All drives are modern models — vendor recommends inbox driver
+        # All drives are modern models â€” vendor recommends inbox driver
         $results += New-CheckResult -Name 'NVMe Vendor Drivers' -Category 'Drivers' -Tier 'Quick' -Severity 'MEDIUM' `
             -Status 'PASS' `
-            -Current ([string]$nvmeTotal + ' NVMe drive(s) — inbox driver (vendor-recommended)') `
+            -Current ([string]$nvmeTotal + ' NVMe drive(s) â€” inbox driver (vendor-recommended)') `
             -Expected 'Vendor or inbox driver' `
             -Message 'Modern NVMe drives (Samsung 990+, WD SN850X+) no longer ship standalone drivers. Vendor recommends Windows inbox stornvme.sys.'
     } else {
@@ -1794,6 +1795,139 @@ function Invoke-DriverHealthChecks {
             -Message 'Tasks with hourly or more frequent intervals can cause CPU/disk spikes during gaming.' `
             -Fix '.\fix_scheduled_tasks.ps1' `
             -FixNote 'Disable non-essential hourly tasks. Rollback: -Restore flag.'
+    }
+
+    return $results
+}
+
+# ---------------------------------------------------------------------------
+# Deep Optimize checks (added by deep_optimize.ps1 research)
+# ---------------------------------------------------------------------------
+function Get-DeepRegValue {
+    param([string]$Path, [string]$Name)
+    try {
+        $prop = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop
+        return $prop.$Name
+    } catch {
+        return $null
+    }
+}
+
+function Invoke-DeepOptimizeChecks {
+    $results = @()
+
+    # CSRSS IFEO priority
+    $csrssPath = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\csrss.exe\PerfOptions'
+    $csrssPrio = Get-DeepRegValue $csrssPath 'CpuPriorityClass'
+    $csrssPrioStr = if ($null -eq $csrssPrio) { 'Not set' } else { $csrssPrio.ToString() }
+    $results += New-CheckResult -Name 'CSRSS Priority Boost' -Category 'Deep' -Tier 'Deep' -Severity 'MEDIUM' `
+        -Status $(if ($csrssPrio -eq 3) { 'PASS' } else { 'WARN' }) `
+        -Current $csrssPrioStr -Expected '3 (High)' `
+        -Message 'CSRSS handles raw mouse/keyboard input. High priority reduces input processing delay.' `
+        -Fix '.\scripts\deep_optimize.ps1 -Tier 1' -FixNote 'Sets CpuPriorityClass=3 and IoPriority=3'
+
+    # Game DVR
+    $dvr = Get-DeepRegValue 'HKCU:\System\GameConfigStore' 'GameDVR_Enabled'
+    $dvrStr = if ($null -eq $dvr) { 'Not set' } else { $dvr.ToString() }
+    $results += New-CheckResult -Name 'Game DVR Disabled' -Category 'Deep' -Tier 'Deep' -Severity 'MEDIUM' `
+        -Status $(if ($dvr -eq 0) { 'PASS' } else { 'WARN' }) `
+        -Current $dvrStr -Expected '0 (Disabled)' `
+        -Message 'Game DVR background recording hooks add DWM interception overhead.' `
+        -Fix '.\scripts\deep_optimize.ps1 -Tier 1'
+
+    # Xbox services
+    $xboxRunning = 0
+    foreach ($svc in @('XblAuthManager', 'XblGameSave', 'XboxGipSvc', 'XboxNetApiSvc')) {
+        $start = Get-DeepRegValue ('HKLM:\SYSTEM\CurrentControlSet\Services\' + $svc) 'Start'
+        if ($null -ne $start -and $start -ne 4) { $xboxRunning++ }
+    }
+    $results += New-CheckResult -Name 'Xbox Services Disabled' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($xboxRunning -eq 0) { 'PASS' } else { 'WARN' }) `
+        -Current ([string]$xboxRunning + '/4 enabled') -Expected '0/4 enabled' `
+        -Message 'Xbox services consume background resources without benefit for PC gaming.'
+
+    # Power Throttling
+    $ptOff = Get-DeepRegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' 'PowerThrottlingOff'
+    $ptStr = if ($null -eq $ptOff) { 'Not set (enabled)' } else { $ptOff.ToString() }
+    $results += New-CheckResult -Name 'Power Throttling Off' -Category 'Deep' -Tier 'Deep' -Severity 'MEDIUM' `
+        -Status $(if ($ptOff -eq 1) { 'PASS' } else { 'WARN' }) `
+        -Current $ptStr -Expected '1 (Disabled)' `
+        -Message 'Win11 silently throttles background processes. Disabling prevents game helper throttling.'
+
+    # Hibernate / Fast Startup
+    $hiberboot = Get-DeepRegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' 'HiberbootEnabled'
+    $hiberStr = if ($null -eq $hiberboot) { 'Not set' } else { $hiberboot.ToString() }
+    $results += New-CheckResult -Name 'Fast Startup Disabled' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($hiberboot -eq 0) { 'PASS' } else { 'WARN' }) `
+        -Current $hiberStr -Expected '0 (Disabled)' `
+        -Message 'Fast Startup preserves stale driver state across reboots. Full cold boot is cleaner.'
+
+    # IPv6
+    $ipv6 = Get-DeepRegValue 'HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters' 'DisabledComponents'
+    $ipv6Str = if ($null -eq $ipv6) { 'Not set (enabled)' } else { $ipv6.ToString() }
+    $results += New-CheckResult -Name 'IPv6 Disabled' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($ipv6 -eq 255) { 'PASS' } else { 'INFO' }) `
+        -Current $ipv6Str -Expected '255 (All disabled)' `
+        -Message 'IPv6 dual-stack adds processing overhead. Disable if not needed.'
+
+    # MMCSS NoLazyMode
+    $noLazy = Get-DeepRegValue 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' 'NoLazyMode'
+    $noLazyStr = if ($null -eq $noLazy) { 'Not set (lazy)' } else { $noLazy.ToString() }
+    $results += New-CheckResult -Name 'MMCSS NoLazyMode' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($noLazy -eq 1) { 'PASS' } else { 'INFO' }) `
+        -Current $noLazyStr -Expected '1 (Aggressive)' `
+        -Message 'NoLazyMode prevents MMCSS from sleeping during idle detection periods.' `
+        -Fix '.\scripts\deep_optimize.ps1 -Tier 2'
+
+    # GlobalTimerResolutionRequests
+    $timerRes = Get-DeepRegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel' 'GlobalTimerResolutionRequests'
+    $timerStr = if ($null -eq $timerRes) { 'Not set' } else { $timerRes.ToString() }
+    $results += New-CheckResult -Name 'Global Timer Resolution' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($timerRes -eq 1) { 'PASS' } else { 'INFO' }) `
+        -Current $timerStr -Expected '1 (Enabled)' `
+        -Message 'Allows sub-1ms timer resolution when paired with ISLC.' `
+        -Fix '.\scripts\deep_optimize.ps1 -Tier 2'
+
+    # Energy telemetry
+    $energyLog = Get-DeepRegValue 'HKLM:\SYSTEM\CurrentControlSet\Control\Diagnostics\Performance' 'DisableTaggedEnergyLogging'
+    $energyStr = if ($null -eq $energyLog) { 'Not set (logging)' } else { $energyLog.ToString() }
+    $results += New-CheckResult -Name 'Energy Telemetry Off' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+        -Status $(if ($energyLog -eq 1) { 'PASS' } else { 'WARN' }) `
+        -Current $energyStr -Expected '1 (Disabled)' `
+        -Message 'Energy estimation background logging consumes CPU cycles.'
+
+    # GameBar Policy (system-level disable prevents DCOM PresenceWriter timeouts)
+    $gameDvrPolicy = Get-DeepRegValue 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR' 'AllowGameDVR'
+    $gameDvrPolicyStr = if ($null -eq $gameDvrPolicy) { 'Not set (allowed)' } else { $gameDvrPolicy.ToString() }
+    $results += New-CheckResult -Name 'GameBar Policy Disabled' -Category 'Deep' -Tier 'Deep' -Severity 'MEDIUM' `
+        -Status $(if ($gameDvrPolicy -eq 0) { 'PASS' } else { 'WARN' }) `
+        -Current $gameDvrPolicyStr -Expected '0 (Disabled)' `
+        -Message 'Without policy block, Windows activates GameBar PresenceWriter on game launch causing DCOM 10010 timeouts and input stalls.' `
+        -Fix '.\scripts\deep_optimize.ps1 -Tier 1'
+
+    # Game launcher background processes (resource hogs during gameplay)
+    $launcherProcs = @(
+        @{ Name='Ankama Launcher'; Exe='Ankama Launcher' },
+        @{ Name='Epic Games';      Exe='EpicGamesLauncher' },
+        @{ Name='EA App';          Exe='EADesktop' },
+        @{ Name='Ubisoft Connect'; Exe='upc' },
+        @{ Name='GOG Galaxy';      Exe='GalaxyClient' },
+        @{ Name='Battle.net';      Exe='Battle.net' }
+    )
+    $foundLaunchers = @()
+    foreach ($l in $launcherProcs) {
+        if (Get-Process -Name $l.Exe -ErrorAction SilentlyContinue) {
+            $foundLaunchers += $l.Name
+        }
+    }
+    if ($foundLaunchers.Count -eq 0) {
+        $results += New-CheckResult -Name 'Game Launcher Processes' -Category 'Deep' -Tier 'Deep' -Severity 'LOW' `
+            -Status 'PASS' -Current 'No background launchers detected' -Expected 'None during gaming'
+    } else {
+        $results += New-CheckResult -Name 'Game Launcher Processes' -Category 'Deep' -Tier 'Deep' -Severity 'MEDIUM' `
+            -Status 'WARN' -Current ('Running: ' + ($foundLaunchers -join ', ')) -Expected 'None during gaming' `
+            -Message 'Game launchers consume CPU, RAM, and disk I/O in background. Close after launching game.' `
+            -Fix '' -FixNote 'Close listed launchers after game starts. Disable auto-start in each launcher settings.'
     }
 
     return $results
