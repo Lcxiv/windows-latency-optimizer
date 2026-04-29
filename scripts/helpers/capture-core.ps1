@@ -191,7 +191,10 @@ function Invoke-PresentMonCapture {
     )
 
     $presentMonPath = $script:ToolPaths.PresentMon
-    if ($SkipPresentMon -or $GameProcess -eq '' -or -not (Test-Path $presentMonPath)) {
+    if ($SkipPresentMon -or $GameProcess -eq '' -or -not $presentMonPath -or -not (Test-Path $presentMonPath)) {
+        if ($GameProcess -ne '' -and -not $SkipPresentMon) {
+            Log 'PresentMon not found — frame timing skipped' 'WARN'
+        }
         return $null
     }
 
