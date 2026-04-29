@@ -94,6 +94,16 @@ docs/history/**/*.zip
 # Local settings
 .claude/settings.local.json
 
+# Machine-specific runtime artifacts (regenerated per-machine, contain device IDs)
+captures/startup_guard_log.txt
+captures/defender_safemode/
+captures/os_baseline_*.txt
+captures/driver_audit_*.html
+captures/driver_audit_*.json
+
+# User-local Defender exclusions (contains machine-specific paths)
+config/defender_exclusions.txt
+
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv
 %windir%/

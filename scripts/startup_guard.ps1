@@ -269,7 +269,7 @@ if (Test-Path $exclusionFile) {
         Write-Log 'Defender WMI unavailable (AM dormant) - exclusions N/A' 'PASS'
         $passed++
     } else {
-        $expectedPaths = @(Get-Content $exclusionFile | Where-Object { $_.Trim().Length -gt 0 })
+        $expectedPaths = @(Get-Content $exclusionFile | Where-Object { $_.Trim().Length -gt 0 } | ForEach-Object { [Environment]::ExpandEnvironmentVariables($_) })
         $missing = @()
         foreach ($ep in $expectedPaths) {
             $found = $false
@@ -283,7 +283,8 @@ if (Test-Path $exclusionFile) {
             $passed++
         } else {
             foreach ($mp in $missing) {
-                try { Add-MpPreference -ExclusionPath $mp -ErrorAction Stop } catch {}
+                $expandedPath = [Environment]::ExpandEnvironmentVariables($mp)
+                try { Add-MpPreference -ExclusionPath $expandedPath -ErrorAction Stop } catch {}
             }
             Write-Log ('Restored ' + $missing.Count.ToString() + ' missing exclusion path(s)') 'FIX'
             $fixes++

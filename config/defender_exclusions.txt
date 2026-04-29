@@ -3,12 +3,12 @@ C:\Program Files\Epic Games
 C:\Program Files\Epic Games\Fortnite
 C:\Program Files\Epic Games\Launcher
 C:\ProgramData\Epic\EpicGamesLauncher
-C:\Users\L\.claude
-C:\Users\L\AppData\Local\D3DSCache
-C:\Users\L\AppData\Local\EpicGamesLauncher
-C:\Users\L\AppData\Local\FortniteGame
-C:\Users\L\AppData\Local\ms-playwright
-C:\Users\L\AppData\Local\NVIDIA\DXCache
-C:\Users\L\AppData\Local\Temp
-C:\Users\L\AppData\Local\Temp\claude
-C:\Users\L\AppData\Roaming\Claude
+%USERPROFILE%\.claude
+%LOCALAPPDATA%\D3DSCache
+%LOCALAPPDATA%\EpicGamesLauncher
+%LOCALAPPDATA%\FortniteGame
+%LOCALAPPDATA%\ms-playwright
+%LOCALAPPDATA%\NVIDIA\DXCache
+%LOCALAPPDATA%\Temp
+%LOCALAPPDATA%\Temp\claude
+%APPDATA%\Claude
