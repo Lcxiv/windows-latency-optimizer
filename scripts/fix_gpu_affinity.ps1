@@ -1,13 +1,32 @@
 #Requires -RunAsAdministrator
-# Fix GPU Interrupt Affinity - Route GPU interrupts off CPU 0
-# Targets: NVIDIA GPU (dxgkrnl.sys/nvlddmkm.sys) and Intel NIC
-# Based on 9800X3D topology: CPUs 4-7 = DPC worker cores
-
+<#
+.SYNOPSIS
+    Fix GPU Interrupt Affinity - Route GPU interrupts off CPU 0.
+.DESCRIPTION
+    Targets: NVIDIA GPU (dxgkrnl.sys/nvlddmkm.sys) and Intel NIC.
+    Based on 9800X3D topology: CPUs 4-7 = DPC worker cores.
+    Supports -WhatIf to preview changes without applying.
+.PARAMETER Apply
+    Apply affinity changes to devices.
+.PARAMETER CheckOnly
+    Only display current state (default behavior without -Apply/-Revert).
+.PARAMETER KillRazer
+    Kill Razer processes and stop Razer services.
+.PARAMETER Revert
+    Remove affinity overrides and restore OS defaults.
+.PARAMETER GpuCpuMask
+    Hex byte array for GPU affinity mask. Default: CPUs 4-7 (0xF0,0x00).
+.PARAMETER NicCpuMask
+    Hex byte array for NIC affinity mask. Default: CPUs 4-5 (0x30,0x00).
+#>
+[CmdletBinding(SupportsShouldProcess=$true)]
 param(
     [switch]$Apply,
     [switch]$CheckOnly,
     [switch]$KillRazer,
-    [switch]$Revert
+    [switch]$Revert,
+    [byte[]]$GpuCpuMask = @(0xF0, 0x00),
+    [byte[]]$NicCpuMask = @(0x30, 0x00)
 )
 
 $ErrorActionPreference = 'Continue'
@@ -25,9 +44,9 @@ Write-Host ""
 # CPUs 8-15: Game threads
 
 # Target affinity mask for CPUs 4-7 = 0xF0 (binary: 11110000)
-$gpuAffinityMask = [byte[]]@(0xF0, 0x00) # CPUs 4-7
+$gpuAffinityMask = $GpuCpuMask # Default: CPUs 4-7
 # For NIC: CPUs 4-5 = 0x30
-$nicAffinityMask = [byte[]]@(0x30, 0x00) # CPUs 4-5
+$nicAffinityMask = $NicCpuMask # Default: CPUs 4-5
 # For USB controllers: CPUs 2-3 = 0x0C
 $usbAffinityMask = [byte[]]@(0x0C, 0x00) # CPUs 2-3
 # For HD Audio: CPU 6 = 0x40
@@ -185,42 +204,46 @@ if ($Apply) {
 
         # Create registry paths if they don't exist
         $intMgmtPath = "$regBase\Device Parameters\Interrupt Management"
-        if (-not (Test-Path $intMgmtPath)) {
-            New-Item -Path $intMgmtPath -Force | Out-Null
-            Write-Host "    Created: Interrupt Management key"
-        }
 
-        if (-not (Test-Path $affinityPath)) {
-            New-Item -Path $affinityPath -Force | Out-Null
-            Write-Host "    Created: Affinity Policy key"
-        }
+        $shouldProcessTarget = $entry.Type + ': ' + $dev.Name
+        if ($PSCmdlet.ShouldProcess($shouldProcessTarget, 'Set interrupt affinity (DevicePolicy=3 + AssignmentSetOverride)')) {
+            if (-not (Test-Path $intMgmtPath)) {
+                New-Item -Path $intMgmtPath -Force | Out-Null
+                Write-Host "    Created: Interrupt Management key"
+            }
 
-        # Set DevicePolicy = 4 (IrqPolicySpreadMessagesAcrossAllProcessors with mask override)
-        # Actually, for specific CPU targeting, use DevicePolicy = 3 (Specified Processors)
-        # with AssignmentSetOverride = the CPU mask
-        Set-ItemProperty -Path $affinityPath -Name 'DevicePolicy' -Value 3 -Type DWord
-        Write-Host "    DevicePolicy -> 3 (Specified Processors)"
+            if (-not (Test-Path $affinityPath)) {
+                New-Item -Path $affinityPath -Force | Out-Null
+                Write-Host "    Created: Affinity Policy key"
+            }
 
-        # Set the CPU affinity mask
-        Set-ItemProperty -Path $affinityPath -Name 'AssignmentSetOverride' -Value $mask -Type Binary
-        $maskHex = [BitConverter]::ToString($mask) -replace '-',''
-        Write-Host "    AssignmentSetOverride -> 0x$maskHex"
+            # Set DevicePolicy = 4 (IrqPolicySpreadMessagesAcrossAllProcessors with mask override)
+            # Actually, for specific CPU targeting, use DevicePolicy = 3 (Specified Processors)
+            # with AssignmentSetOverride = the CPU mask
+            Set-ItemProperty -Path $affinityPath -Name 'DevicePolicy' -Value 3 -Type DWord
+            Write-Host "    DevicePolicy -> 3 (Specified Processors)"
 
-        # Decode target CPUs for display
-        $cpuList = @()
-        for ($byte = 0; $byte -lt $mask.Length; $byte++) {
-            for ($bit = 0; $bit -lt 8; $bit++) {
-                if ($mask[$byte] -band (1 -shl $bit)) {
-                    $cpuList += ($byte * 8 + $bit)
+            # Set the CPU affinity mask
+            Set-ItemProperty -Path $affinityPath -Name 'AssignmentSetOverride' -Value $mask -Type Binary
+            $maskHex = [BitConverter]::ToString($mask) -replace '-',''
+            Write-Host "    AssignmentSetOverride -> 0x$maskHex"
+
+            # Decode target CPUs for display
+            $cpuList = @()
+            for ($byte = 0; $byte -lt $mask.Length; $byte++) {
+                for ($bit = 0; $bit -lt 8; $bit++) {
+                    if ($mask[$byte] -band (1 -shl $bit)) {
+                        $cpuList += ($byte * 8 + $bit)
+                    }
                 }
             }
-        }
-        Write-Host "    Target CPUs: $($cpuList -join ', ')" -ForegroundColor Cyan
+            Write-Host "    Target CPUs: $($cpuList -join ', ')" -ForegroundColor Cyan
 
-        # Enable MSI mode if available
-        if (Test-Path $msiPath) {
-            Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 1 -Type DWord
-            Write-Host "    MSI Mode -> Enabled"
+            # Enable MSI mode if available
+            if (Test-Path $msiPath) {
+                Set-ItemProperty -Path $msiPath -Name 'MSISupported' -Value 1 -Type DWord
+                Write-Host "    MSI Mode -> Enabled"
+            }
         }
 
         $backupCommands += "# Revert $($entry.Type): Remove-ItemProperty -Path '$affinityPath' -Name 'DevicePolicy'; Remove-ItemProperty -Path '$affinityPath' -Name 'AssignmentSetOverride'"
@@ -261,11 +284,14 @@ if ($KillRazer) {
 
     if ($razerProcs) {
         foreach ($p in $razerProcs) {
-            try {
-                Stop-Process -Id $p.Id -Force -ErrorAction Stop
-                Write-Host "  Killed: $($p.ProcessName) (PID: $($p.Id))" -ForegroundColor Green
-            } catch {
-                Write-Host "  Failed to kill: $($p.ProcessName) (PID: $($p.Id)) - $($_.Exception.Message)" -ForegroundColor Red
+            $procTarget = $p.ProcessName + ' (PID: ' + $p.Id + ')'
+            if ($PSCmdlet.ShouldProcess($procTarget, 'Stop-Process')) {
+                try {
+                    Stop-Process -Id $p.Id -Force -ErrorAction Stop
+                    Write-Host "  Killed: $($p.ProcessName) (PID: $($p.Id))" -ForegroundColor Green
+                } catch {
+                    Write-Host "  Failed to kill: $($p.ProcessName) (PID: $($p.Id)) - $($_.Exception.Message)" -ForegroundColor Red
+                }
             }
         }
     } else {
@@ -277,11 +303,13 @@ if ($KillRazer) {
         $_.Name -match 'Razer|rzdevice'
     }
     foreach ($svc in $razerServices) {
-        try {
-            Stop-Service -Name $svc.Name -Force -ErrorAction Stop
-            Write-Host "  Stopped service: $($svc.Name)" -ForegroundColor Green
-        } catch {
-            Write-Host "  Failed to stop: $($svc.Name) - $($_.Exception.Message)" -ForegroundColor Red
+        if ($PSCmdlet.ShouldProcess($svc.Name, 'Stop-Service')) {
+            try {
+                Stop-Service -Name $svc.Name -Force -ErrorAction Stop
+                Write-Host "  Stopped service: $($svc.Name)" -ForegroundColor Green
+            } catch {
+                Write-Host "  Failed to stop: $($svc.Name) - $($_.Exception.Message)" -ForegroundColor Red
+            }
         }
     }
     Write-Host ""
@@ -300,9 +328,12 @@ if ($Revert) {
         $affinityPath = "$regBase\Device Parameters\Interrupt Management\Affinity Policy"
 
         if (Test-Path $affinityPath) {
-            Remove-ItemProperty -Path $affinityPath -Name 'DevicePolicy' -ErrorAction SilentlyContinue
-            Remove-ItemProperty -Path $affinityPath -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
-            Write-Host "  Reverted: $($entry.Type) - $($dev.Name)" -ForegroundColor Green
+            $revertTarget = $entry.Type + ': ' + $dev.Name
+            if ($PSCmdlet.ShouldProcess($revertTarget, 'Remove DevicePolicy + AssignmentSetOverride')) {
+                Remove-ItemProperty -Path $affinityPath -Name 'DevicePolicy' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -Path $affinityPath -Name 'AssignmentSetOverride' -ErrorAction SilentlyContinue
+                Write-Host "  Reverted: $($entry.Type) - $($dev.Name)" -ForegroundColor Green
+            }
         }
     }
 

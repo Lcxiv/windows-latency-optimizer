@@ -6,10 +6,13 @@
     Detects Razer mouse model via USB PID, downloads Razer Synapse installer,
     launches it, and guides user to set 1000Hz+ polling rate and save to onboard memory.
     After configuration, Synapse can be uninstalled — settings persist in mouse firmware.
+    Supports -WhatIf to preview actions without downloading or launching.
 .NOTES
     Reboot: NO
     This script downloads from Razer's official CDN only.
 #>
+[CmdletBinding(SupportsShouldProcess=$true)]
+param()
 
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
@@ -85,27 +88,29 @@ if (-not $synapseInstalled) {
     $installerUrl  = 'https://rzr.to/synapse-3-pc-download'
     $installerPath = Join-Path $env:TEMP 'RazerSynapseInstaller.exe'
 
-    try {
-        # Use BITS for reliable download
-        Start-BitsTransfer -Source $installerUrl -Destination $installerPath -ErrorAction Stop
-        Write-Host ('  Downloaded to: ' + $installerPath) -ForegroundColor Green
-    } catch {
-        # Fallback to WebClient
+    if ($PSCmdlet.ShouldProcess($installerUrl, 'Download Razer Synapse installer')) {
         try {
-            $wc = New-Object System.Net.WebClient
-            $wc.DownloadFile($installerUrl, $installerPath)
+            # Use BITS for reliable download
+            Start-BitsTransfer -Source $installerUrl -Destination $installerPath -ErrorAction Stop
             Write-Host ('  Downloaded to: ' + $installerPath) -ForegroundColor Green
         } catch {
-            Write-Host ('  Download failed: ' + $_.Exception.Message) -ForegroundColor Red
-            Write-Host '  Please download manually from: https://www.razer.com/synapse-3' -ForegroundColor Yellow
-            exit 1
+            # Fallback to WebClient
+            try {
+                $wc = New-Object System.Net.WebClient
+                $wc.DownloadFile($installerUrl, $installerPath)
+                Write-Host ('  Downloaded to: ' + $installerPath) -ForegroundColor Green
+            } catch {
+                Write-Host ('  Download failed: ' + $_.Exception.Message) -ForegroundColor Red
+                Write-Host '  Please download manually from: https://www.razer.com/synapse-3' -ForegroundColor Yellow
+                exit 1
+            }
         }
-    }
 
-    Write-Host ''
-    Write-Host 'Launching Razer Synapse installer...' -ForegroundColor Yellow
-    Start-Process -FilePath $installerPath -Wait:$false
-    Write-Host 'Installer launched.' -ForegroundColor Green
+        Write-Host ''
+        Write-Host 'Launching Razer Synapse installer...' -ForegroundColor Yellow
+        Start-Process -FilePath $installerPath -Wait:$false
+        Write-Host 'Installer launched.' -ForegroundColor Green
+    }
 }
 
 # --- Guide user ---

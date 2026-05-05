@@ -11,7 +11,7 @@
     Backs up previous state to captures/.
     Requires reboot or driver re-init for PnPCapabilities to take effect.
 #>
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess=$true)]
 param(
     [string]$NicMatch = 'I226'
 )
@@ -86,21 +86,25 @@ Write-Host ''
 Write-Host 'Applying fixes...' -ForegroundColor Cyan
 
 # Fix A: Cmdlet-based SelectiveSuspend
-try {
-    Set-NetAdapterPowerManagement -Name $nic.Name -SelectiveSuspend Disabled -Confirm:$false -ErrorAction Stop
-    Write-Host '[OK] SelectiveSuspend=Disabled (cmdlet)' -ForegroundColor Green
-} catch {
-    Write-Host ('[FAIL] SelectiveSuspend: ' + $_.Exception.Message) -ForegroundColor Red
+if ($PSCmdlet.ShouldProcess($nic.Name, 'Set-NetAdapterPowerManagement -SelectiveSuspend Disabled')) {
+    try {
+        Set-NetAdapterPowerManagement -Name $nic.Name -SelectiveSuspend Disabled -Confirm:$false -ErrorAction Stop
+        Write-Host '[OK] SelectiveSuspend=Disabled (cmdlet)' -ForegroundColor Green
+    } catch {
+        Write-Host ('[FAIL] SelectiveSuspend: ' + $_.Exception.Message) -ForegroundColor Red
+    }
 }
 
 # Fix B: Registry PnPCapabilities = 0x18
 # Bit 0x08 = "no wake from device"; bit 0x10 = "no power-off"
 # Combined 0x18 = fully disable "Allow computer to turn off"
-try {
-    Set-ItemProperty -Path $driverKey -Name 'PnPCapabilities' -Value 0x18 -Type DWord
-    Write-Host '[OK] PnPCapabilities=0x18 written (no power-off, no wake-from-device)' -ForegroundColor Green
-} catch {
-    Write-Host ('[FAIL] PnPCapabilities: ' + $_.Exception.Message) -ForegroundColor Red
+if ($PSCmdlet.ShouldProcess($driverKey, 'Set PnPCapabilities=0x18')) {
+    try {
+        Set-ItemProperty -Path $driverKey -Name 'PnPCapabilities' -Value 0x18 -Type DWord
+        Write-Host '[OK] PnPCapabilities=0x18 written (no power-off, no wake-from-device)' -ForegroundColor Green
+    } catch {
+        Write-Host ('[FAIL] PnPCapabilities: ' + $_.Exception.Message) -ForegroundColor Red
+    }
 }
 
 Write-Host ''
