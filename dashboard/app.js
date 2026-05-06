@@ -46,6 +46,7 @@ const AppState = {
   tagFilter: [],
   selectedIds: new Set(),
   timelineMetric: 'DPCTimePct',
+  searchQuery: '',
 };
 
 let baseline = null;
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   baseline = window.EXPERIMENTS.find(e => e.id === BASELINE_ID) || window.EXPERIMENTS[0];
   renderSystemInfo();
+  if (typeof window.initKeyboard === 'function') { window.initKeyboard(); }
   handleRoute();
   window.addEventListener('hashchange', handleRoute);
 });
