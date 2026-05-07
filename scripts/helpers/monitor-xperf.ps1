@@ -46,7 +46,19 @@ function Get-MonitorXperfSnapshot {
     }
 
     # -------------------------------------------------------------------------
-    # 1. Locate xperf
+    # 1. Elevation check — xperf kernel tracing requires admin
+    # -------------------------------------------------------------------------
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+    if (-not $isAdmin) {
+        $emptyResult.error = 'Requires elevation — run PowerShell as Administrator'
+        Write-Warning $emptyResult.error
+        return $emptyResult
+    }
+
+    # -------------------------------------------------------------------------
+    # 2. Locate xperf
     # -------------------------------------------------------------------------
     $xperf = $null
     if ($script:ToolPaths -and $script:ToolPaths.ContainsKey('Xperf')) {
@@ -60,7 +72,7 @@ function Get-MonitorXperfSnapshot {
     }
 
     # -------------------------------------------------------------------------
-    # 2. Verify no active NT Kernel Logger trace is blocking us
+    # 3. Verify no active NT Kernel Logger trace is blocking us
     # -------------------------------------------------------------------------
     $sessionCheck = & $xperf -loggers 2>&1
     $sessionLines = @($sessionCheck | ForEach-Object { $_.ToString() })
@@ -79,13 +91,14 @@ function Get-MonitorXperfSnapshot {
     }
 
     # -------------------------------------------------------------------------
-    # 3. Run trace
+    # 4. Run trace
     # -------------------------------------------------------------------------
     $etlPath = Join-Path $env:TEMP ('monitor_dpc_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.etl')
+    $traceStarted = $false
 
     try {
         # Start kernel trace (DPC + INTERRUPT providers)
-        $startOut = & $xperf -on PROC_THREAD+LOADER+DPC+INTERRUPT+PROFILE -stackwalk Profile -buffersize 1024 -minbuffers 256 -maxbuffers 512 2>&1
+        $startOut = & $xperf -on PROC_THREAD+LOADER+DPC+INTERRUPT -buffersize 1024 -minbuffers 256 -maxbuffers 512 2>&1
         $startLines = @($startOut | ForEach-Object { $_.ToString() })
 
         # Detect start failure (xperf prints errors to stdout mixed with normal output)
@@ -99,6 +112,7 @@ function Get-MonitorXperfSnapshot {
             }
         }
 
+        $traceStarted = $true
         Start-Sleep -Seconds $DurationSec
 
         # Stop trace and flush to ETL
@@ -110,7 +124,7 @@ function Get-MonitorXperfSnapshot {
         }
 
         # -------------------------------------------------------------------------
-        # 4. Parse dpcisr -summary output
+        # 5. Parse dpcisr -summary output
         #
         # Output structure (both DPC and ISR share the same layout):
         #
@@ -138,6 +152,7 @@ function Get-MonitorXperfSnapshot {
         $inDpcSection    = $false
         $inDataTable     = $false
         $traceDurationUs = 0L
+        $cpuCount        = 0   # derived from column header, not hardcoded
 
         # dpcCountMap: module name -> DPC execution count
         $dpcCountMap = @{}
@@ -172,10 +187,19 @@ function Get-MonitorXperfSnapshot {
                 continue
             }
 
+            # --- CPU column header — derive CPU count dynamically ---
+            # "     CPU 0 Usage,     CPU 1 Usage, ..., Module"
+            if ($line -match '^\s+CPU \d+ Usage') {
+                # Count how many "CPU N" tokens appear to get the CPU count
+                $cpuMatches = [regex]::Matches($line, 'CPU \d+')
+                $cpuCount = $cpuMatches.Count
+            }
+
             # --- Column label line — opens the data table ---
             # "     usec      %,      usec      %, ..., Module"
             if ($line -match '^\s+usec\s+%') {
                 $inDataTable = $true
+                if ($cpuCount -eq 0) { $cpuCount = 16 }  # fallback if header not found
                 continue
             }
 
@@ -208,16 +232,17 @@ function Get-MonitorXperfSnapshot {
                 if (-not ($trimmed -match '^\d')) { continue }
 
                 $parts = $trimmed -split ',\s*'
-                if ($parts.Count -lt 17) { continue }
+                $expectedFields = $cpuCount + 1  # N CPU columns + module name
+                if ($parts.Count -lt $expectedFields) { continue }
 
-                $moduleName = $parts[16].Trim()
+                $moduleName = $parts[$cpuCount].Trim()
                 if ($moduleName.Length -eq 0) { continue }
 
                 # Extract per-CPU usec values; each part is "usec %" — take first token
                 $cpuUsec   = New-Object System.Collections.ArrayList
                 $totalUsec = 0L
 
-                for ($cpuIdx = 0; $cpuIdx -lt 16; $cpuIdx++) {
+                for ($cpuIdx = 0; $cpuIdx -lt $cpuCount; $cpuIdx++) {
                     $tokens  = $parts[$cpuIdx].Trim() -split '\s+'
                     $usecVal = 0L
                     if ($tokens.Count -ge 1 -and [long]::TryParse($tokens[0], [ref]$usecVal)) {
@@ -238,7 +263,7 @@ function Get-MonitorXperfSnapshot {
         } # end foreach line
 
         # -------------------------------------------------------------------------
-        # 5. Merge dpcCount into driver entries and sort
+        # 6. Merge dpcCount into driver entries and sort
         # -------------------------------------------------------------------------
         $finalDrivers = New-Object System.Collections.ArrayList
         foreach ($entry in $driverList) {
@@ -268,6 +293,10 @@ function Get-MonitorXperfSnapshot {
         $emptyResult.error = $_.Exception.Message
         return $emptyResult
     } finally {
+        # If trace was started but ETL was never written (stop failed), cancel the session
+        if ($traceStarted -and -not (Test-Path $etlPath)) {
+            try { & $xperf -stop 2>&1 | Out-Null } catch {}
+        }
         # Always clean up temp ETL regardless of success or failure
         if (Test-Path $etlPath) {
             Remove-Item $etlPath -Force -ErrorAction SilentlyContinue
