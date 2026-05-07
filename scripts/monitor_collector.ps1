@@ -41,8 +41,8 @@
     # Writes 3 counter samples then exits — used in acceptance testing.
 #>
 param(
-    [int]$IntervalSec        = 1,
-    [int]$ProcessIntervalSec = 5,
+    [ValidateRange(1, 3600)][int]$IntervalSec        = 1,
+    [ValidateRange(1, 3600)][int]$ProcessIntervalSec = 5,
     [int]$XperfIntervalSec   = 0,
     [int]$MaxSamples         = 0,
     [int]$HistoryMaxEntries  = 300
@@ -88,12 +88,15 @@ function ConvertTo-JsonCompat {
 function Write-Snapshot {
     <#
     .SYNOPSIS
-        Overwrite snapshot.js with the current full state object.
+        Atomically overwrite snapshot.js with the current full state object.
+        Uses temp file + rename to prevent partial reads by the dashboard.
     #>
-    param($Data)
+    param([hashtable]$Data)
     $json    = ConvertTo-JsonCompat $Data
     $content = 'window.MONITOR_SNAPSHOT = ' + $json + ';'
-    $content | Out-File -FilePath $snapshotFile -Encoding utf8 -Force
+    $tmpFile = $snapshotFile + '.tmp'
+    $content | Out-File -FilePath $tmpFile -Encoding utf8 -Force
+    Move-Item -Path $tmpFile -Destination $snapshotFile -Force
 }
 
 function Add-HistoryEntry {
@@ -101,7 +104,7 @@ function Add-HistoryEntry {
     .SYNOPSIS
         Append one push() line to history.js for timeline charts.
     #>
-    param($Data)
+    param([hashtable]$Data)
     $json = ConvertTo-JsonCompat $Data
     $line = 'window.MONITOR_HISTORY.push(' + $json + ');'
     Add-Content -Path $historyFile -Value $line -Encoding utf8
@@ -163,9 +166,13 @@ try {
             }
         }
 
+        # ── Increment sample count (before assembly so meta is 1-based) ────
+        $sampleCount++
+
         # ── Assemble snapshot ─────────────────────────────────────────────────
+        # counterData.timestamp is already an ISO-8601 string from the helper
         $snapshot = @{
-            timestamp = $counterData.timestamp.ToString('o')
+            timestamp = $counterData.timestamp
             counters  = $counterData
             processes = $processData
             xperf     = $xperfData
@@ -181,18 +188,16 @@ try {
         Write-Snapshot $snapshot
 
         Add-HistoryEntry @{
-            timestamp = $counterData.timestamp.ToString('o')
+            timestamp = $counterData.timestamp
             system    = $counterData.system
             spikes    = $counterData.spikes
         }
-
-        $sampleCount++
 
         # ── Progress line ─────────────────────────────────────────────────────
         $dpcStr    = [math]::Round($counterData.system.dpcPct, 2).ToString('F2')
         $intrStr   = [math]::Round($counterData.system.intrPct, 2).ToString('F2')
         $ctxStr    = [math]::Round($counterData.system.ctxSwitchSec, 0).ToString()
-        $timeLabel = $counterData.timestamp.ToString('HH:mm:ss')
+        $timeLabel = $now.ToString('HH:mm:ss')
 
         $spikeTag = ''
         if ($counterData.spikes.totalDpcSpike)        { $spikeTag = $spikeTag + ' [DPC-SPIKE]' }

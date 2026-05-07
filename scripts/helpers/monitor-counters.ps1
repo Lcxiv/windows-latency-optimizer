@@ -7,6 +7,9 @@
 # ---------------------------------------------------------------------------
 # Rolling history buffers (max 30 entries per metric)
 # ---------------------------------------------------------------------------
+# CPU count — cached once at module load (static, never changes at runtime)
+$script:MonitorCpuCount = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+
 $script:MonitorHistory = @{
     contextSwitches = New-Object System.Collections.ArrayList
     totalDpc        = New-Object System.Collections.ArrayList
@@ -81,9 +84,9 @@ function Get-MonitorCounterSample {
     #>
 
     # ------------------------------------------------------------------
-    # Discover CPU count dynamically
+    # CPU count (cached at module load — see $script:MonitorCpuCount)
     # ------------------------------------------------------------------
-    $cpuCount = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+    $cpuCount = $script:MonitorCpuCount
 
     # ------------------------------------------------------------------
     # Build counter path lists (ArrayList avoids array reallocation)
@@ -224,7 +227,7 @@ function Get-MonitorCounterSample {
     # Return structured result
     # ------------------------------------------------------------------
     return @{
-        timestamp = (Get-Date)
+        timestamp = (Get-Date -Format 'o')
         perCpu    = $perCpu
         system    = $systemData
         spikes    = $spikes
