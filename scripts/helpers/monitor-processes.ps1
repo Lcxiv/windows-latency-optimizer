@@ -5,33 +5,9 @@
 # no -StandardDeviation on Measure-Object. $error and $pid are reserved.
 
 # ---------------------------------------------------------------------------
-# Known gaming-overhead process names (lowercase, no .exe suffix)
-# Each entry maps a display group name to one or more process name patterns.
-# The list intentionally matches partial names so "steamwebhelper" matches "steam".
-# ---------------------------------------------------------------------------
-$script:GamingOverheadProcesses = @(
-    'wispr',              # Wispr Flow
-    'afterburner',        # MSI Afterburner
-    'rtss',               # RivaTuner Statistics Server
-    'discord',            # Discord
-    'steamwebhelper',     # Steam web helper (high CPU, not the game itself)
-    'displaywidgetcenter',# DisplayWidget Center (ASUS)
-    'displaywidget',      # DisplayWidget alternate name
-    'searchhost',         # Windows Search UI host
-    'searchindexer',      # Windows SearchIndexer (high I/O)
-    'onedrive',           # OneDrive
-    'teams',              # Microsoft Teams
-    'slack',              # Slack
-    'spotify',            # Spotify
-    'chrome',             # Google Chrome
-    'firefox',            # Firefox
-    'msedge',             # Microsoft Edge
-    'claude'              # Claude desktop
-)
-
-# ---------------------------------------------------------------------------
 # Helper: Get-OverheadGroupName
 # Returns a human-readable group name for a matched process, or $null.
+# Uses -like wildcard matching against known gaming-overhead process names.
 # ---------------------------------------------------------------------------
 function Get-OverheadGroupName {
     param([string]$ProcessName)
@@ -55,20 +31,6 @@ function Get-OverheadGroupName {
     if ($pLower -like '*claude*')                                  { return 'Claude' }
 
     return $null
-}
-
-# ---------------------------------------------------------------------------
-# Helper: Test-IsGamingOverhead
-# Returns $true if the process name matches any entry in the overhead list.
-# ---------------------------------------------------------------------------
-function Test-IsGamingOverhead {
-    param([string]$ProcessName)
-
-    $pLower = $ProcessName.ToLower()
-    foreach ($pattern in $script:GamingOverheadProcesses) {
-        if ($pLower.Contains($pattern)) { return $true }
-    }
-    return $false
 }
 
 # ---------------------------------------------------------------------------
@@ -190,7 +152,7 @@ function Get-MonitorProcessSnapshot {
     # Return structured result
     # ------------------------------------------------------------------
     return @{
-        timestamp  = (Get-Date)
+        timestamp  = (Get-Date -Format 'o')
         processes  = $processes.ToArray()
         flagged    = $flagged.ToArray()
         auditScore = $auditScore
