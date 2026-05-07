@@ -1,5 +1,5 @@
-/* ============================================================
- * Heatmap View — CPU Grid (4×4) colored by DPC severity
+﻿/* ============================================================
+ * Heatmap View â€” CPU Grid (4Ã—4) colored by DPC severity
  * Globals: MonitorState, MonitorCharts, MON_COLORS,
  *          escHtml, safeNum, severityColor, severityBg,
  *          sectionHeader, summaryCard, fmtTime
@@ -31,7 +31,7 @@ function renderHeatmapView() {
 
   var snap = window.MONITOR_SNAPSHOT;
 
-  /* ── No data state ── */
+  /* â”€â”€ No data state â”€â”€ */
   if (!snap || !snap.counters) {
     el.innerHTML =
       '<div class="no-data">' +
@@ -47,7 +47,7 @@ function renderHeatmapView() {
   var perCpu   = counters.perCpu   || [];
   var spikes   = counters.spikes   || {};
 
-  /* ── Build HTML ── */
+  /* â”€â”€ Build HTML â”€â”€ */
   var html = '';
 
   /* 1. Summary bar */
@@ -108,7 +108,7 @@ function renderHeatmapView() {
   /* 3. CPU grid header */
   html += sectionHeader('CPU DPC Heatmap', fmtTime(counters.timestamp));
 
-  /* 4. 4×4 grid */
+  /* 4. 4Ã—4 grid */
   html += '<div class="heatmap-grid">';
 
   for (var i = 0; i < 16; i++) {
@@ -140,7 +140,7 @@ function renderHeatmapView() {
     html += '  <div class="heatmap-cell-cpu">CPU ' + i +
                 (isSpiking ? ' <span class="spike-badge">SPIKE</span>' : '') +
                 '</div>';
-    html += '  <div style="font-size:9px;color:var(--muted);margin-bottom:5px;">' + escHtml(roleTip) + '</div>';
+    html += '  <div class="heatmap-cell-role">' + escHtml(roleTip) + '</div>';
     html += '  <div class="heatmap-cell-dpc" style="color:' + dpcColor + ';">' +
                 safeNum(dpc, 1) + '<span class="heatmap-cell-unit">% DPC</span>' +
                 '</div>';

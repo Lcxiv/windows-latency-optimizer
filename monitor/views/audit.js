@@ -1,5 +1,5 @@
 /* ============================================================
- * Audit View — Pre-gaming checklist with score card
+ * Audit View â€” Pre-gaming checklist with score card
  * ============================================================ */
 
 function renderAuditView() {
@@ -26,7 +26,7 @@ function renderAuditView() {
 
   var html = '';
 
-  /* ── Score card ── */
+  /* â”€â”€ Score card â”€â”€ */
   var scoreLabel, scoreColor, scoreBadge;
   if (score === 0)     { scoreLabel = 'System ready';          scoreColor = 'green'; scoreBadge = 'READY';               }
   else if (score <= 3) { scoreLabel = 'Minor overhead';        scoreColor = 'amber'; scoreBadge = 'MINOR OVERHEAD';      }
@@ -56,7 +56,7 @@ function renderAuditView() {
   });
   html += '</div>';
 
-  /* ── System checks ── */
+  /* â”€â”€ System checks â”€â”€ */
   html += sectionHeader('System Checks');
   html += '<div class="audit-list">';
 
@@ -108,7 +108,7 @@ function renderAuditView() {
   }
   html += '</div>'; /* audit-list */
 
-  /* ── Flagged processes table ── */
+  /* â”€â”€ Flagged processes table â”€â”€ */
   if (flagged.length > 0) {
     html += sectionHeader('Overhead Processes', 'Consider closing before gaming');
     html += '<div class="proc-table-wrap">';
@@ -136,9 +136,9 @@ function renderAuditView() {
     html += '</tbody></table>';
     html += '</div>'; /* proc-table-wrap */
   } else {
-    html += '<div style="margin-top:16px;padding:12px 14px;background:rgba(16,185,129,0.08);' +
-            'border:1px solid rgba(16,185,129,0.3);border-radius:8px;font-size:12px;color:var(--green);">' +
-            '&#10003; No overhead processes detected — system is clean for gaming.' +
+    html += '<div class="audit-clean-banner">' +
+
+            '&#10003; No overhead processes detected â€” system is clean for gaming.' +
             '</div>';
   }
 

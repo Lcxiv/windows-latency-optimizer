@@ -1,5 +1,5 @@
-/* ============================================================
- * History View — Full session history with range selector
+﻿/* ============================================================
+ * History View â€” Full session history with range selector
  * Reuses updateOrCreateTimelineChart() from timeline.js
  * ============================================================ */
 
@@ -17,7 +17,7 @@ function renderHistoryView() {
 
   var allHistory = window.MONITOR_HISTORY || [];
 
-  /* ── No data ── */
+  /* â”€â”€ No data â”€â”€ */
   if (allHistory.length === 0) {
     el.innerHTML =
       '<div class="no-data">' +
@@ -28,7 +28,7 @@ function renderHistoryView() {
     return;
   }
 
-  /* ── Filter by range ── */
+  /* â”€â”€ Filter by range â”€â”€ */
   var filtered = allHistory;
   if (_historyRangeMin != null) {
     var cutoffMs = Date.now() - (_historyRangeMin * 60 * 1000);
@@ -54,20 +54,20 @@ function renderHistoryView() {
     intrData.push(sys.intrPct     != null ? sys.intrPct       : null);
   }
 
-  /* ── Duration string for first…last ── */
+  /* â”€â”€ Duration string for firstâ€¦last â”€â”€ */
   var durationStr = _historyDuration(filtered);
 
-  /* ── Compute stats (Avg/Min/Max) ── */
+  /* â”€â”€ Compute stats (Avg/Min/Max) â”€â”€ */
   var csStats   = _computeStats(csData);
   var dpcStats  = _computeStats(dpcData);
   var intrStats = _computeStats(intrData);
 
-  /* ── Build DOM (full redraw each time — this view is not animated) ── */
+  /* â”€â”€ Build DOM (full redraw each time â€” this view is not animated) â”€â”€ */
   var html = '';
 
   /* Range selector */
-  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">';
-  html += '<span style="font-size:11px;color:var(--muted);">Range:</span>';
+  html += '<div class="history-range-bar">';
+  html += '<span class="history-range-label">Range:</span>';
   var ranges = [
     { label: '1 min',  value: 1    },
     { label: '5 min',  value: 5    },
@@ -77,21 +77,18 @@ function renderHistoryView() {
   for (var ri = 0; ri < ranges.length; ri++) {
     var r       = ranges[ri];
     var isActive = _historyRangeMin === r.value;
-    var btnStyle = isActive
-      ? 'background:var(--blue);color:#fff;border-color:var(--blue);'
-      : 'background:var(--surface2);color:var(--muted);border-color:var(--border);';
+    var btnClass = 'history-range-btn' + (isActive ? ' active' : '');
     var onclickVal = r.value != null ? 'setHistoryRange(' + r.value + ')' : 'setHistoryRange(null)';
-    html += '<button onclick="' + onclickVal + '" style="' + btnStyle +
-            'border:1px solid;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;">' +
+    html += '<button class="' + btnClass + '" onclick="' + onclickVal + '">' +
             escHtml(r.label) + '</button>';
   }
-  html += '<span class="history-meta" style="margin-left:auto;">' +
+  html += '<span class="history-meta history-range-meta">' +
             escHtml(filtered.length + ' samples') +
             (durationStr ? ' &nbsp;&middot;&nbsp; ' + escHtml(durationStr) : '') +
             '</span>';
   html += '</div>';
 
-  /* ── Charts ── */
+  /* â”€â”€ Charts â”€â”€ */
   html += '<div class="chart-card full" style="margin-bottom:14px;">';
   html += '  <div class="chart-title">Context Switches / sec</div>';
   html += '  <div class="chart-subtitle">System-wide thread context switch rate</div>';
@@ -148,7 +145,7 @@ function renderHistoryCharts(labels, csData, dpcData) {
   }
 }
 
-/* ── Helpers ── */
+/* â”€â”€ Helpers â”€â”€ */
 
 function _computeStats(arr) {
   var valid = [];

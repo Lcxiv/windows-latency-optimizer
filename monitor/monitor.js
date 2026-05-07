@@ -1,5 +1,5 @@
 /* ============================================================
- * Latency Monitor — Core Shell
+ * Latency Monitor â€” Core Shell
  * File:// compatible, no ES modules, no fetch, no pushState.
  * Chart.js 4.4.0 (CDN + local fallback).
  * ============================================================ */
@@ -7,7 +7,7 @@
 var REFRESH_INTERVAL_MS = 2000;
 var STALE_THRESHOLD_MS  = 10000;
 
-/* ── State ── */
+/* â”€â”€ State â”€â”€ */
 var MonitorState = {
   view:             'heatmap',
   lastTimestamp:    null,
@@ -15,7 +15,7 @@ var MonitorState = {
   refreshTimer:     null
 };
 
-/* ── Chart registry ── */
+/* â”€â”€ Chart registry â”€â”€ */
 var MonitorCharts = {
   _charts: {},
 
@@ -40,53 +40,53 @@ var MonitorCharts = {
   }
 };
 
-/* ── Color palette ── */
+/* â”€â”€ Color palette â”€â”€ */
 var MON_COLORS = {
   blue:   '#3b82f6',
-  green:  '#10b981',
-  amber:  '#f59e0b',
-  red:    '#ef4444',
-  purple: '#a855f7',
-  cyan:   '#06b6d4',
-  muted:  '#7a8fa8',
-  text:   '#e2e8f0',
-  greenA: 'rgba(16,185,129,0.15)',
-  amberA: 'rgba(245,158,11,0.15)',
-  redA:   'rgba(239,68,68,0.15)',
-  blueA:  'rgba(59,130,246,0.15)'
+  green:  '#34d399',
+  amber:  '#fbbf24',
+  red:    '#f87171',
+  purple: '#a78bfa',
+  cyan:   '#22d3ee',
+  muted:  '#6b7f99',
+  text:   '#e8edf5',
+  greenA: 'rgba(52,211,153,0.12)',
+  amberA: 'rgba(251,191,36,0.1)',
+  redA:   'rgba(248,113,113,0.1)',
+  blueA:  'rgba(59,130,246,0.1)'
 };
 
-/* ── Chart.js defaults ── */
+/* â”€â”€ Chart.js defaults â”€â”€ */
 var MON_CHART_DEFAULTS = {
   responsive:          true,
   maintainAspectRatio: true,
   animation:           false,
   plugins: {
     legend: {
-      labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 }
+      labels: { color: '#6b7f99', font: { size: 11, weight: '500' }, boxWidth: 10 }
     },
     tooltip: {
-      backgroundColor: '#1c2840',
-      borderColor:     '#1e3a5f',
+      backgroundColor: 'rgba(10, 15, 28, 0.95)',
+      borderColor:     'rgba(56, 92, 148, 0.2)',
       borderWidth:     1,
-      titleColor:      '#e2e8f0',
-      bodyColor:       '#94a3b8',
-      padding:         10
+      titleColor:      '#e8edf5',
+      bodyColor:       '#6b7f99',
+      padding:         12
     }
   },
   scales: {
     x: {
-      ticks: { color: '#7a8fa8', font: { size: 10 } },
-      grid:  { color: 'rgba(30,58,95,0.5)' }
+      ticks: { color: '#4a5c73', font: { size: 10 } },
+      grid:  { color: 'rgba(56, 92, 148, 0.08)' }
     },
     y: {
-      ticks: { color: '#7a8fa8', font: { size: 10 } },
-      grid:  { color: 'rgba(30,58,95,0.5)' }
+      ticks: { color: '#4a5c73', font: { size: 10 } },
+      grid:  { color: 'rgba(56, 92, 148, 0.08)' }
     }
   }
 };
 
-/* ── View registry ── */
+/* â”€â”€ View registry â”€â”€ */
 var VIEWS = ['heatmap', 'timeline', 'processes', 'drivers', 'audit', 'history'];
 var VIEW_LABELS = {
   heatmap:   'CPU Heatmap',
@@ -97,7 +97,7 @@ var VIEW_LABELS = {
   history:   'History'
 };
 
-/* ── View render dispatch ── */
+/* â”€â”€ View render dispatch â”€â”€ */
 var VIEW_RENDERERS = {
   heatmap:   function() { if (typeof renderHeatmapView   === 'function') renderHeatmapView();   else renderNoViewYet('heatmap');   },
   timeline:  function() { if (typeof renderTimelineView  === 'function') renderTimelineView();  else renderNoViewYet('timeline');  },
@@ -107,7 +107,7 @@ var VIEW_RENDERERS = {
   history:   function() { if (typeof renderHistoryView   === 'function') renderHistoryView();   else renderNoViewYet('history');   }
 };
 
-/* ── Boot ── */
+/* â”€â”€ Boot â”€â”€ */
 document.addEventListener('DOMContentLoaded', function() {
   /* Initial check of already-loaded snapshot */
   checkCollectorAlive();
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
   startAutoRefresh();
 });
 
-/* ── Routing ── */
+/* â”€â”€ Routing â”€â”€ */
 function handleRoute() {
   var hash = location.hash.replace('#', '') || 'heatmap';
   if (VIEWS.indexOf(hash) === -1) hash = 'heatmap';
@@ -128,7 +128,7 @@ function navigateTo(hash) {
   location.hash = hash;
 }
 
-/* ── Auto-refresh ── */
+/* â”€â”€ Auto-refresh â”€â”€ */
 function startAutoRefresh() {
   if (MonitorState.refreshTimer) clearInterval(MonitorState.refreshTimer);
   MonitorState.refreshTimer = setInterval(refreshData, REFRESH_INTERVAL_MS);
@@ -153,7 +153,7 @@ function refreshData() {
   document.body.appendChild(script);
 }
 
-/* ── Collector health check ── */
+/* â”€â”€ Collector health check â”€â”€ */
 function checkCollectorAlive() {
   if (!window.MONITOR_SNAPSHOT || !window.MONITOR_SNAPSHOT.timestamp) {
     MonitorState.isCollectorAlive = false;
@@ -165,9 +165,9 @@ function checkCollectorAlive() {
   MonitorState.lastTimestamp    = window.MONITOR_SNAPSHOT.timestamp;
 }
 
-/* ── Render orchestration ── */
+/* â”€â”€ Render orchestration â”€â”€ */
 function renderAll() {
-  /* Tear down all charts before re-rendering — avoids canvas reuse errors */
+  /* Tear down all charts before re-rendering â€” avoids canvas reuse errors */
   MonitorCharts.destroyAll();
 
   renderNavBar();
@@ -191,7 +191,7 @@ function renderAll() {
   if (renderer) renderer();
 }
 
-/* ── Nav bar ── */
+/* â”€â”€ Nav bar â”€â”€ */
 function renderNavBar() {
   var nav  = document.getElementById('navBar');
   if (!nav) return;
@@ -204,7 +204,7 @@ function renderNavBar() {
   nav.innerHTML = html;
 }
 
-/* ── Status bar ── */
+/* â”€â”€ Status bar â”€â”€ */
 function updateStatusBar() {
   var bar = document.getElementById('statusBar');
   if (!bar) return;
@@ -231,7 +231,7 @@ function updateStatusBar() {
   }
 }
 
-/* ── Placeholder for views not yet implemented ── */
+/* â”€â”€ Placeholder for views not yet implemented â”€â”€ */
 function renderNoViewYet(viewName) {
   var el = document.getElementById(viewName + 'View');
   if (!el) return;
@@ -243,9 +243,9 @@ function renderNoViewYet(viewName) {
     '</div>';
 }
 
-/* ────────────────────────────────────────────────────────────
- * Utility helpers — shared across all view modules
- * ──────────────────────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * Utility helpers â€” shared across all view modules
+ * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 function escHtml(s) {
   if (s == null) return '';
