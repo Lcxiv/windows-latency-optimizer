@@ -70,24 +70,29 @@ function Get-RollingAverage {
 function Get-MonitorCounterSample {
     <#
     .SYNOPSIS
-        Sample DPC%, Interrupt%, Interrupts/sec for all 16 CPUs plus system-level
+        Sample DPC%, Interrupt%, Interrupts/sec for all logical CPUs plus system-level
         counters. Detects spikes via rolling-average comparison.
     .OUTPUTS
         Hashtable with keys:
             timestamp  [datetime]
-            perCpu     [array]    — 16 entries: @{ cpu; dpcPct; intrPct; intrPerSec }
+            perCpu     [array]    — one entry per logical CPU: @{ cpu; dpcPct; intrPct; intrPerSec }
             system     [hashtable]— @{ dpcPct; intrPct; intrPerSec; ctxSwitchSec; procQueueLen }
             spikes     [hashtable]— @{ highDpcCpus; contextSwitchSpike; totalDpcSpike; totalInterruptSpike }
     #>
 
     # ------------------------------------------------------------------
-    # Build counter path lists
+    # Discover CPU count dynamically
     # ------------------------------------------------------------------
-    $cpuCounters = @()
-    for ($i = 0; $i -lt 16; $i++) {
-        $cpuCounters += '\Processor(' + $i + ')\% DPC Time'
-        $cpuCounters += '\Processor(' + $i + ')\% Interrupt Time'
-        $cpuCounters += '\Processor(' + $i + ')\Interrupts/sec'
+    $cpuCount = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+
+    # ------------------------------------------------------------------
+    # Build counter path lists (ArrayList avoids array reallocation)
+    # ------------------------------------------------------------------
+    $cpuCounters = New-Object System.Collections.Generic.List[string]
+    for ($i = 0; $i -lt $cpuCount; $i++) {
+        $cpuCounters.Add('\Processor(' + $i + ')\% DPC Time')
+        $cpuCounters.Add('\Processor(' + $i + ')\% Interrupt Time')
+        $cpuCounters.Add('\Processor(' + $i + ')\Interrupts/sec')
     }
 
     $systemCounters = @(
@@ -98,25 +103,31 @@ function Get-MonitorCounterSample {
         '\System\Processor Queue Length'
     )
 
-    $allCounters = $cpuCounters + $systemCounters
+    $allCounters = $cpuCounters.ToArray() + $systemCounters
 
     # ------------------------------------------------------------------
     # Sample once (1-second window)
     # ------------------------------------------------------------------
-    $rawSamples = Get-Counter -Counter $allCounters -SampleInterval 1 -MaxSamples 1
+    try {
+        $rawSamples = Get-Counter -Counter $allCounters -SampleInterval 1 -MaxSamples 1 -ErrorAction Stop
+    } catch {
+        return $null
+    }
+    if ($null -eq $rawSamples) { return $null }
 
     # Flatten all CounterSamples into a lookup: path -> CookedValue
     # Normalise path to lowercase for consistent key matching.
+    $sampleSet = $rawSamples | Select-Object -First 1
     $lookup = @{}
-    foreach ($cs in $rawSamples.CounterSamples) {
+    foreach ($cs in $sampleSet.CounterSamples) {
         $lookup[$cs.Path.ToLower()] = $cs.CookedValue
     }
 
     # ------------------------------------------------------------------
-    # Parse per-CPU data (16 CPUs, indices 0-15)
+    # Parse per-CPU data (all logical CPUs, indices 0 to cpuCount-1)
     # ------------------------------------------------------------------
-    $perCpu = @()
-    for ($i = 0; $i -lt 16; $i++) {
+    $perCpu = New-Object System.Collections.ArrayList
+    for ($i = 0; $i -lt $cpuCount; $i++) {
         $dpcKey  = ('\\' + $env:COMPUTERNAME + '\processor(' + $i + ')\% dpc time').ToLower()
         $intrKey = ('\\' + $env:COMPUTERNAME + '\processor(' + $i + ')\% interrupt time').ToLower()
         $ipsKey  = ('\\' + $env:COMPUTERNAME + '\processor(' + $i + ')\interrupts/sec').ToLower()
@@ -129,12 +140,12 @@ function Get-MonitorCounterSample {
         if ($lookup.ContainsKey($intrKey)) { $intrVal = [math]::Round($lookup[$intrKey], 3) }
         if ($lookup.ContainsKey($ipsKey))  { $ipsVal  = [math]::Round($lookup[$ipsKey],  1) }
 
-        $perCpu += @{
+        [void]$perCpu.Add(@{
             cpu        = $i
             dpcPct     = $dpcVal
             intrPct    = $intrVal
             intrPerSec = $ipsVal
-        }
+        })
     }
 
     # ------------------------------------------------------------------
@@ -167,18 +178,20 @@ function Get-MonitorCounterSample {
     }
 
     # ------------------------------------------------------------------
-    # Update rolling buffers
-    # ------------------------------------------------------------------
-    Add-ToRollingBuffer -Buffer $script:MonitorHistory.contextSwitches -Value $sysCtxSwitch
-    Add-ToRollingBuffer -Buffer $script:MonitorHistory.totalDpc         -Value $sysDpcPct
-    Add-ToRollingBuffer -Buffer $script:MonitorHistory.totalInterrupt   -Value $sysIntrPct
-
-    # ------------------------------------------------------------------
     # Spike detection
+    # Compute rolling averages BEFORE adding the current sample so the
+    # current value is not included in the baseline it's compared against.
     # ------------------------------------------------------------------
     $avgCtx   = Get-RollingAverage -Buffer $script:MonitorHistory.contextSwitches
     $avgDpc   = Get-RollingAverage -Buffer $script:MonitorHistory.totalDpc
     $avgIntr  = Get-RollingAverage -Buffer $script:MonitorHistory.totalInterrupt
+
+    # ------------------------------------------------------------------
+    # Update rolling buffers (after averages are computed)
+    # ------------------------------------------------------------------
+    Add-ToRollingBuffer -Buffer $script:MonitorHistory.contextSwitches -Value $sysCtxSwitch
+    Add-ToRollingBuffer -Buffer $script:MonitorHistory.totalDpc         -Value $sysDpcPct
+    Add-ToRollingBuffer -Buffer $script:MonitorHistory.totalInterrupt   -Value $sysIntrPct
 
     # Spike = current value exceeds 3x rolling average (only meaningful when
     # we have at least 3 prior samples so the average is stable).
