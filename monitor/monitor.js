@@ -87,7 +87,7 @@ var MON_CHART_DEFAULTS = {
 };
 
 /* â”€â”€ View registry â”€â”€ */
-var VIEWS = ['heatmap', 'timeline', 'processes', 'drivers', 'audit', 'network', 'history'];
+var VIEWS = ['heatmap', 'timeline', 'processes', 'drivers', 'audit', 'network', 'history', 'command'];
 var VIEW_LABELS = {
   heatmap:   'CPU Heatmap',
   timeline:  'Timeline',
@@ -95,7 +95,8 @@ var VIEW_LABELS = {
   drivers:   'Drivers',
   audit:     'Pre-Gaming',
   network:   'Network',
-  history:   'History'
+  history:   'History',
+  command:   'Command Center'
 };
 
 /* â”€â”€ View render dispatch â”€â”€ */
@@ -106,7 +107,8 @@ var VIEW_RENDERERS = {
   drivers:   function() { if (typeof renderDriversView   === 'function') renderDriversView();   else renderNoViewYet('drivers');   },
   audit:     function() { if (typeof renderAuditView     === 'function') renderAuditView();     else renderNoViewYet('audit');     },
   network:   function() { if (typeof renderNetworkView   === 'function') renderNetworkView();   else renderNoViewYet('network');   },
-  history:   function() { if (typeof renderHistoryView   === 'function') renderHistoryView();   else renderNoViewYet('history');   }
+  history:   function() { if (typeof renderHistoryView   === 'function') renderHistoryView();   else renderNoViewYet('history');   },
+  command:   function() { if (typeof renderCommandView   === 'function') renderCommandView();   else renderNoViewYet('command');   }
 };
 
 /* â”€â”€ Boot â”€â”€ */

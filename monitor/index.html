@@ -37,6 +37,7 @@
   <div id="auditView"     style="display:none"></div>
   <div id="networkView"   style="display:none"></div>
   <div id="historyView"   style="display:none"></div>
+  <div id="commandView"   style="display:none"></div>
 </main>
 
 <footer>
@@ -50,6 +51,7 @@
 <!-- Data files — loaded at start, then refreshed every 2s via dynamic script tag -->
 <script src="data/snapshot.js" onerror=""></script>
 <script src="data/history.js" onerror=""></script>
+<script src="data/diagnose_latest.js" onerror=""></script>
 
 <!-- Core app -->
 <script src="monitor.js"></script>
@@ -62,6 +64,7 @@
 <script src="views/audit.js" onerror=""></script>
 <script src="views/network.js" onerror=""></script>
 <script src="views/history.js" onerror=""></script>
+<script src="views/command-center.js" onerror=""></script>
 
 </body>
 </html>
