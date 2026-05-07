@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Latency Monitor — Real-Time</title>
+  <!-- Fonts: JetBrains Mono + Geist (matches dashboard/) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
   <!-- Chart.js pinned to 4.4.0. Local fallback for offline/file:// use. -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>window.Chart || document.write('<script src="lib/chart.umd.min.js"><\/script>')</script>
@@ -31,6 +35,7 @@
   <div id="processesView" style="display:none"></div>
   <div id="driversView"   style="display:none"></div>
   <div id="auditView"     style="display:none"></div>
+  <div id="networkView"   style="display:none"></div>
   <div id="historyView"   style="display:none"></div>
 </main>
 
@@ -55,6 +60,7 @@
 <script src="views/processes.js" onerror=""></script>
 <script src="views/drivers.js" onerror=""></script>
 <script src="views/audit.js" onerror=""></script>
+<script src="views/network.js" onerror=""></script>
 <script src="views/history.js" onerror=""></script>
 
 </body>

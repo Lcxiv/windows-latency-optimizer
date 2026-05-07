@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
  * Processes View — Top 20 process table with overhead flags
  * ============================================================ */
 
@@ -43,7 +43,7 @@ function renderProcessesView() {
   else if (score <= 3)  { scoreLabel = 'MINOR OVERHEAD';     scoreClass = 'amber'; }
   else                  { scoreLabel = 'SIGNIFICANT OVERHEAD'; scoreClass = 'red'; }
 
-  html += '<div class="summary-bar" style="margin-bottom:16px;">';
+  html += '<div class="summary-bar">';
   html += summaryCard({
     label: 'Audit Score',
     value: score,

@@ -88,7 +88,7 @@ function updateOrCreateTimelineChart(key, canvasId, labels, data, color, dataLab
 
 function _chartCardHtml(canvasId, title, subtitle) {
   return (
-    '<div class="chart-card full" style="margin-bottom:16px;">' +
+    '<div class="chart-card full" >' +
     '  <div class="chart-title">' + escHtml(title) + '</div>' +
     '  <div class="chart-subtitle">' + escHtml(subtitle) + '</div>' +
     '  <div class="chart-wrap" style="height:140px;">' +
@@ -114,7 +114,7 @@ function _createTimelineChart(key, canvasId, labels, data, color, dataLabel, yOp
       x: {
         ticks: {
           maxTicksLimit: 10,
-          color: '#7a8fa8',
+          color: MON_COLORS.muted,
           font: { size: 9 }
         }
       },
@@ -122,7 +122,7 @@ function _createTimelineChart(key, canvasId, labels, data, color, dataLabel, yOp
         min: 0,
         max: yMax,
         suggestedMax: ySugMax,
-        ticks: { color: '#7a8fa8', font: { size: 9 } }
+        ticks: { color: MON_COLORS.muted, font: { size: 9 } }
       }
     }
   });

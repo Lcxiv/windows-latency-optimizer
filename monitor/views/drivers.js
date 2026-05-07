@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
  * Drivers View — Per-CPU driver DPC attribution table
  * Requires xperf data (collector -XperfIntervalSec 30)
  * ============================================================ */
@@ -107,9 +107,9 @@ function renderDriversView() {
       var cellStyle = '';
       var cellClass = 'mono';
       if (usec > 10000) {
-        cellStyle = 'background:rgba(239,68,68,0.15);color:var(--red);';
+        cellStyle = 'background:var(--bad-bg);color:var(--bad);';
       } else if (usec > 1000) {
-        cellStyle = 'background:rgba(245,158,11,0.12);color:var(--amber);';
+        cellStyle = 'background:var(--warn-bg);color:var(--warn);';
       }
       var cellText = usec > 0 ? usec.toLocaleString() : '';
       html += '  <td class="' + cellClass + '" style="' + cellStyle + '">' + cellText + '</td>';

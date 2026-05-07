@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
  * Latency Monitor â€” Core Shell
  * File:// compatible, no ES modules, no fetch, no pushState.
  * Chart.js 4.4.0 (CDN + local fallback).
@@ -42,18 +42,18 @@ var MonitorCharts = {
 
 /* â”€â”€ Color palette â”€â”€ */
 var MON_COLORS = {
-  blue:   '#3b82f6',
-  green:  '#34d399',
-  amber:  '#fbbf24',
-  red:    '#f87171',
-  purple: '#a78bfa',
-  cyan:   '#22d3ee',
-  muted:  '#6b7f99',
-  text:   '#e8edf5',
-  greenA: 'rgba(52,211,153,0.12)',
-  amberA: 'rgba(251,191,36,0.1)',
-  redA:   'rgba(248,113,113,0.1)',
-  blueA:  'rgba(59,130,246,0.1)'
+  blue:   '#5b8fd9',
+  green:  '#4caf82',
+  amber:  '#c49a2c',
+  red:    '#c75a5a',
+  purple: '#8c6ec4',
+  cyan:   '#5ba8c4',
+  muted:  '#6b7a8e',
+  text:   '#e3e7ed',
+  greenA: 'rgba(76,175,130,0.10)',
+  amberA: 'rgba(196,154,44,0.10)',
+  redA:   'rgba(199,90,90,0.10)',
+  blueA:  'rgba(91,143,217,0.10)'
 };
 
 /* â”€â”€ Chart.js defaults â”€â”€ */
@@ -63,37 +63,38 @@ var MON_CHART_DEFAULTS = {
   animation:           false,
   plugins: {
     legend: {
-      labels: { color: '#6b7f99', font: { size: 11, weight: '500' }, boxWidth: 10 }
+      labels: { color: '#6b7a8e', font: { size: 11, weight: '500' }, boxWidth: 10 }
     },
     tooltip: {
       backgroundColor: 'rgba(10, 15, 28, 0.95)',
       borderColor:     'rgba(56, 92, 148, 0.2)',
       borderWidth:     1,
-      titleColor:      '#e8edf5',
-      bodyColor:       '#6b7f99',
+      titleColor:      '#e3e7ed',
+      bodyColor:       '#6b7a8e',
       padding:         12
     }
   },
   scales: {
     x: {
-      ticks: { color: '#4a5c73', font: { size: 10 } },
-      grid:  { color: 'rgba(56, 92, 148, 0.08)' }
+      ticks: { color: '#555f6e', font: { size: 10 } },
+      grid:  { color: 'rgba(40, 55, 80, 0.15)' }
     },
     y: {
-      ticks: { color: '#4a5c73', font: { size: 10 } },
-      grid:  { color: 'rgba(56, 92, 148, 0.08)' }
+      ticks: { color: '#555f6e', font: { size: 10 } },
+      grid:  { color: 'rgba(40, 55, 80, 0.15)' }
     }
   }
 };
 
 /* â”€â”€ View registry â”€â”€ */
-var VIEWS = ['heatmap', 'timeline', 'processes', 'drivers', 'audit', 'history'];
+var VIEWS = ['heatmap', 'timeline', 'processes', 'drivers', 'audit', 'network', 'history'];
 var VIEW_LABELS = {
   heatmap:   'CPU Heatmap',
   timeline:  'Timeline',
   processes: 'Processes',
   drivers:   'Drivers',
   audit:     'Pre-Gaming',
+  network:   'Network',
   history:   'History'
 };
 
@@ -104,6 +105,7 @@ var VIEW_RENDERERS = {
   processes: function() { if (typeof renderProcessesView === 'function') renderProcessesView(); else renderNoViewYet('processes'); },
   drivers:   function() { if (typeof renderDriversView   === 'function') renderDriversView();   else renderNoViewYet('drivers');   },
   audit:     function() { if (typeof renderAuditView     === 'function') renderAuditView();     else renderNoViewYet('audit');     },
+  network:   function() { if (typeof renderNetworkView   === 'function') renderNetworkView();   else renderNoViewYet('network');   },
   history:   function() { if (typeof renderHistoryView   === 'function') renderHistoryView();   else renderNoViewYet('history');   }
 };
 
