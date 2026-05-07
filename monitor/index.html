@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latency Monitor — Real-Time</title>
+  <!-- Chart.js pinned to 4.4.0. Local fallback for offline/file:// use. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>window.Chart || document.write('<script src="lib/chart.umd.min.js"><\/script>')</script>
+  <link rel="stylesheet" href="monitor.css">
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Latency <span>Monitor</span></h1>
+    <div class="header-subtitle">Real-Time System Diagnostics</div>
+  </div>
+  <div class="status-bar" id="statusBar">
+    <span class="collector-dot dead"></span> Initializing&hellip;
+  </div>
+</header>
+
+<nav class="nav-bar" id="navBar">
+  <!-- Rendered by monitor.js -->
+</nav>
+
+<main id="mainContent">
+  <div id="heatmapView"   style="display:none"></div>
+  <div id="timelineView"  style="display:none"></div>
+  <div id="processesView" style="display:none"></div>
+  <div id="driversView"   style="display:none"></div>
+  <div id="auditView"     style="display:none"></div>
+  <div id="historyView"   style="display:none"></div>
+</main>
+
+<footer>
+  <span>Collector: <code>scripts\monitor_collector.ps1</code></span>
+  <span class="sep">|</span>
+  <span>Auto-refresh: 2s</span>
+  <span class="sep">|</span>
+  <span><a href="../dashboard/index.html">Experiment Dashboard</a></span>
+</footer>
+
+<!-- Data files — loaded at start, then refreshed every 2s via dynamic script tag -->
+<script src="data/snapshot.js" onerror=""></script>
+<script src="data/history.js" onerror=""></script>
+
+<!-- Core app -->
+<script src="monitor.js"></script>
+
+<!-- View modules — loaded with typeof guards in monitor.js so missing files are safe -->
+<script src="views/heatmap.js" onerror=""></script>
+<script src="views/timeline.js" onerror=""></script>
+<script src="views/processes.js" onerror=""></script>
+<script src="views/drivers.js" onerror=""></script>
+<script src="views/audit.js" onerror=""></script>
+<script src="views/history.js" onerror=""></script>
+
+</body>
+</html>
