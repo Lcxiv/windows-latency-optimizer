@@ -1,130 +1,205 @@
 /* ============================================================
  * Command Center View — Diagnostic dispatch + results display
+ * Craft: anti-ai-slop (SVG icons, no emoji), state-coverage
+ *        (empty/populated), laws-of-ux (proximity, Hick's, Von Restorff)
+ * Globals: escHtml, sectionHeader, summaryCard, safeNum
  * ============================================================ */
+
+/* ── Monoline SVG icons (1.7px stroke, currentColor) ── */
+var CMD_ICONS = {
+  dpc:      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="6"/><line x1="12" y1="2" x2="12" y2="10"/></svg>',
+  gpu:      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  net:      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  system:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+  audio:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
+  search:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  terminal: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>'
+};
 
 function renderCommandView() {
   var el = document.getElementById('commandView');
   if (!el) return;
 
   var data = window.DIAGNOSE_LATEST || null;
+  var hasResults = data && data.diagnostics && data.diagnostics.length > 0;
   var html = '';
 
-  /* ── Section 1: Symptom Cards ── */
+  /* ── Empty state (first-use onboarding) ── */
+  if (!hasResults) {
+    html += buildCmdEmptyState();
+  }
+
+  /* ── Domain dispatch grid ── */
   html += sectionHeader('Diagnostic Dispatch');
-  html += buildSymptomCards(data);
+  html += buildDomainGrid(data);
+  html += buildFullDiagBanner();
 
-  /* ── Section 2: Last Diagnostic Results ── */
-  if (data && data.diagnostics) {
-    html += buildDiagnosticResults(data);
+  /* ── KPI + Results (populated state) ── */
+  if (hasResults) {
+    html += buildCmdKpiBar(data);
+    html += buildCmdResultsTable(data);
   }
 
-  /* ── Section 3: Recommendations ── */
+  /* ── Recommendations ── */
   if (data && data.recommendations && data.recommendations.length > 0) {
-    html += buildRecommendations(data.recommendations);
+    html += buildCmdRecommendations(data.recommendations);
   }
 
-  /* ── Section 4: Quick Actions ── */
-  html += buildQuickActions();
+  /* ── Quick Actions ── */
+  html += buildCmdQuickActions();
 
   el.innerHTML = html;
 }
 
-/* ── Symptom card grid ── */
-function buildSymptomCards(data) {
-  var domains = [
-    {
-      id: 'dpc',
-      icon: '⌨',
-      name: 'Input / DPC',
-      symptoms: 'Mouse stutter, HID gaps, polling rate drops, DPC storms',
-      cmd: '.\\scripts\\diagnose.ps1 -Domain dpc -MonitorOutput'
-    },
-    {
-      id: 'gpu',
-      icon: '💻',
-      name: 'GPU / Frames',
-      symptoms: 'Frame drops, hitches, clock throttling, G-Sync issues',
-      cmd: '.\\scripts\\diagnose.ps1 -Domain gpu -MonitorOutput'
-    },
-    {
-      id: 'net',
-      icon: '🌐',
-      name: 'Network',
-      symptoms: 'Ping spikes, packet loss, DNS lag, TCP tuning',
-      cmd: '.\\scripts\\diagnose.ps1 -Domain net -MonitorOutput'
-    },
-    {
-      id: 'system',
-      icon: '⚙',
-      name: 'System',
-      symptoms: 'Full audit, Defender, BIOS drift, services, registry',
-      cmd: '.\\scripts\\diagnose.ps1 -Domain system -MonitorOutput'
-    },
-    {
-      id: 'audio',
-      icon: '🔊',
-      name: 'Audio',
-      symptoms: 'Warble, crackle, HDMI dropout, USB DAC glitches',
-      cmd: '.\\scripts\\diagnose.ps1 -Domain dpc -Symptom "audio" -MonitorOutput'
-    }
-  ];
-
-  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--sp-lg);margin-bottom:var(--sp-xl);">';
-
-  for (var i = 0; i < domains.length; i++) {
-    var d = domains[i];
-    var badge = '';
-    if (data && data.domain === d.id && data.severity) {
-      badge = buildSeverityPill(data.severity);
-    }
-
-    html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:var(--sp-lg);display:flex;flex-direction:column;gap:var(--sp-sm);">';
-    html += '  <div style="display:flex;align-items:center;justify-content:space-between;">';
-    html += '    <span style="font-size:var(--text-xl);">' + d.icon + '</span>';
-    html += badge;
-    html += '  </div>';
-    html += '  <div style="font-weight:600;font-size:var(--text-lg);color:var(--text);">' + escHtml(d.name) + '</div>';
-    html += '  <div style="font-size:var(--text-sm);color:var(--text-dim);line-height:1.4;">' + escHtml(d.symptoms) + '</div>';
-    html += '  <div style="margin-top:auto;padding-top:var(--sp-sm);">';
-    html += '    <code style="display:block;background:var(--bg);font-family:var(--font-mono);font-size:var(--text-xs);padding:var(--sp-sm) var(--sp-md);border-radius:4px;color:var(--text-dim);user-select:all;word-break:break-all;">' + escHtml(d.cmd) + '</code>';
-    html += '  </div>';
-    html += '</div>';
-  }
-
-  html += '</div>';
-
-  /* Full diagnostic card */
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:var(--sp-lg);margin-bottom:var(--sp-xl);">';
-  html += '  <div style="display:flex;align-items:center;gap:var(--sp-sm);margin-bottom:var(--sp-sm);">';
-  html += '    <span style="font-size:var(--text-lg);">&#128269;</span>';
-  html += '    <span style="font-weight:600;color:var(--text);">Full Diagnostic &mdash; All Domains</span>';
+/* ── Empty state: first-use onboarding ── */
+function buildCmdEmptyState() {
+  var html = '';
+  html += '<div class="cmd-empty">';
+  html += '  <div class="cmd-empty-icon">' + CMD_ICONS.terminal + '</div>';
+  html += '  <div class="cmd-empty-title">No diagnostics yet</div>';
+  html += '  <div class="cmd-empty-desc">';
+  html += '    Run a diagnostic to see results, recommendations, and quick actions.';
+  html += '    Pick a domain below for targeted analysis, or run the full suite.';
   html += '  </div>';
-  html += '  <code style="display:block;background:var(--bg);font-family:var(--font-mono);font-size:var(--text-sm);padding:var(--sp-sm) var(--sp-md);border-radius:4px;color:var(--text-dim);user-select:all;">.\\scripts\\diagnose.ps1 -Domain all -MonitorOutput</code>';
+  html += '  <code class="cmd-empty-cmd">.\\scripts\\diagnose.ps1 -Interactive</code>';
+  html += '  <div class="cmd-empty-hint">Requires elevated PowerShell</div>';
   html += '</div>';
-
   return html;
 }
 
-/* ── Diagnostic results table ── */
-function buildDiagnosticResults(data) {
-  var html = '';
-  var timeLabel = data.timestamp ? cmdRelativeTime(data.timestamp) : '';
-  var title = 'Last Diagnostic';
-  if (data.domain) title += ' — ' + escHtml(data.domain);
-  if (timeLabel) title += ' — ' + escHtml(timeLabel);
+/* ── Domain dispatch cards ── */
+function buildDomainGrid(data) {
+  var domains = [
+    { id: 'dpc',    name: 'Input / DPC',  desc: 'Mouse stutter, HID gaps, polling rate, DPC storms',  cmd: '.\\scripts\\diagnose.ps1 -Domain dpc -MonitorOutput' },
+    { id: 'gpu',    name: 'GPU / Frames',  desc: 'Frame drops, hitches, clock throttling, G-Sync',     cmd: '.\\scripts\\diagnose.ps1 -Domain gpu -MonitorOutput' },
+    { id: 'net',    name: 'Network',       desc: 'Ping spikes, packet loss, DNS lag, TCP tuning',      cmd: '.\\scripts\\diagnose.ps1 -Domain net -MonitorOutput' },
+    { id: 'system', name: 'System',        desc: 'Full audit, Defender, BIOS, services, registry',     cmd: '.\\scripts\\diagnose.ps1 -Domain system -MonitorOutput' },
+    { id: 'audio',  name: 'Audio',         desc: 'Warble, crackle, HDMI dropout, USB DAC glitches',    cmd: '.\\scripts\\diagnose.ps1 -Domain dpc -Symptom "audio" -MonitorOutput' }
+  ];
 
-  html += sectionHeader(title);
+  var html = '<div class="cmd-grid">';
 
-  /* Severity badge */
-  if (data.severity) {
-    html += '<div style="margin-bottom:var(--sp-lg);">';
-    html += buildSeverityBadge(data.severity);
+  for (var i = 0; i < domains.length; i++) {
+    var d = domains[i];
+    var isActive = data && data.domain === d.id;
+    var cardClass = 'cmd-card' + (isActive ? ' active' : '');
+
+    var badge = '';
+    if (isActive && data.severity) {
+      badge = buildCmdSeverityPill(data.severity);
+    }
+
+    html += '<div class="' + cardClass + '">';
+    html += '  <div class="cmd-card-head">';
+    html += '    <span class="cmd-card-icon ' + d.id + '">' + (CMD_ICONS[d.id] || '') + '</span>';
+    html += '    ' + badge;
+    html += '  </div>';
+    html += '  <div class="cmd-card-name">' + escHtml(d.name) + '</div>';
+    html += '  <div class="cmd-card-desc">' + escHtml(d.desc) + '</div>';
+    html += '  <code class="cmd-card-cmd">' + escHtml(d.cmd) + '</code>';
     html += '</div>';
   }
 
-  /* Symptom text */
+  html += '</div>';
+  return html;
+}
+
+/* ── Full diagnostic banner ── */
+function buildFullDiagBanner() {
+  var html = '';
+  html += '<div class="cmd-full-banner">';
+  html += '  <span class="cmd-full-banner-icon">' + CMD_ICONS.search + '</span>';
+  html += '  <div class="cmd-full-banner-text">';
+  html += '    <span class="cmd-full-banner-label">Full Diagnostic &mdash; All Domains</span>';
+  html += '    <code class="cmd-full-banner-cmd">.\\scripts\\diagnose.ps1 -Domain all -MonitorOutput</code>';
+  html += '  </div>';
+  html += '</div>';
+  return html;
+}
+
+/* ── KPI summary bar (populated state) ── */
+function buildCmdKpiBar(data) {
+  var diags = data.diagnostics || [];
+  var passCount = 0;
+  var warnCount = 0;
+  var failCount = 0;
+  var totalMs = 0;
+
+  for (var i = 0; i < diags.length; i++) {
+    var d = diags[i];
+    if (d.status === 'completed' && d.exitCode === 0) passCount++;
+    else if (d.status === 'completed') warnCount++;
+    else if (d.status === 'error') failCount++;
+    if (d.durationMs != null) totalMs += d.durationMs;
+  }
+
+  var sevColor = 'blue';
+  if (data.severity === 'HIGH') sevColor = 'red';
+  else if (data.severity === 'MEDIUM') sevColor = 'amber';
+  else if (data.severity === 'CLEAN') sevColor = 'green';
+
+  var html = '<div class="summary-bar">';
+  html += summaryCard({
+    label: 'Severity',
+    value: data.severity || '--',
+    unit: '',
+    color: sevColor,
+    badge: data.domain ? data.domain.toUpperCase() : null,
+    badgeClass: 'badge-na'
+  });
+  html += summaryCard({
+    label: 'Scripts',
+    value: diags.length,
+    unit: 'run',
+    color: 'blue'
+  });
+  html += summaryCard({
+    label: 'Passed',
+    value: passCount,
+    unit: '',
+    color: passCount === diags.length ? 'green' : 'blue'
+  });
+  if (warnCount > 0) {
+    html += summaryCard({
+      label: 'Warnings',
+      value: warnCount,
+      unit: '',
+      color: 'amber'
+    });
+  }
+  if (failCount > 0) {
+    html += summaryCard({
+      label: 'Failed',
+      value: failCount,
+      unit: '',
+      color: 'red',
+      badge: 'ACTION',
+      badgeClass: 'badge-fail'
+    });
+  }
+  html += summaryCard({
+    label: 'Duration',
+    value: totalMs > 0 ? (totalMs / 1000).toFixed(1) : '--',
+    unit: totalMs > 0 ? 's' : '',
+    color: 'blue'
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ── Results table ── */
+function buildCmdResultsTable(data) {
+  var html = '';
+  var timeLabel = data.timestamp ? cmdRelativeTime(data.timestamp) : '';
+  var badgeText = '';
+  if (data.domain) badgeText += data.domain;
+  if (timeLabel) badgeText += (badgeText ? ' · ' : '') + timeLabel;
+
+  html += sectionHeader('Results', badgeText || null);
+
+  /* Symptom quote */
   if (data.symptomText) {
-    html += '<div style="color:var(--text-dim);font-style:italic;margin-bottom:var(--sp-lg);">';
+    html += '<div class="cmd-symptom-quote">';
     html += '&ldquo;' + escHtml(data.symptomText) + '&rdquo;';
     html += '</div>';
   }
@@ -132,8 +207,8 @@ function buildDiagnosticResults(data) {
   /* Diagnostics table */
   var diags = data.diagnostics || [];
   if (diags.length > 0) {
-    html += '<div style="overflow-x:auto;">';
-    html += '<table class="proc-table" style="width:100%;">';
+    html += '<div class="proc-table-wrap">';
+    html += '<table class="proc-table">';
     html += '<thead><tr>';
     html += '  <th>Script</th>';
     html += '  <th>Status</th>';
@@ -145,13 +220,13 @@ function buildDiagnosticResults(data) {
     for (var i = 0; i < diags.length; i++) {
       var diag = diags[i];
       var statusLabel = cmdStatusLabel(diag);
-      var durationText = diag.durationMs != null ? (diag.durationMs / 1000).toFixed(1) + 's' : '--';
+      var dur = diag.durationMs != null ? (diag.durationMs / 1000).toFixed(1) + 's' : '--';
 
       html += '<tr>';
-      html += '  <td><span style="font-family:var(--font-mono);font-size:var(--text-sm);">' + escHtml(diag.script || '--') + '</span></td>';
+      html += '  <td><span class="proc-name">' + escHtml(diag.script || '--') + '</span></td>';
       html += '  <td>' + statusLabel + '</td>';
-      html += '  <td style="font-family:var(--font-mono);font-size:var(--text-sm);">' + escHtml(durationText) + '</td>';
-      html += '  <td style="color:var(--text-dim);font-size:var(--text-sm);">' + escHtml(diag.summary || '--') + '</td>';
+      html += '  <td class="mono">' + escHtml(dur) + '</td>';
+      html += '  <td style="color:var(--text-dim);">' + escHtml(diag.summary || '--') + '</td>';
       html += '</tr>';
     }
 
@@ -162,27 +237,23 @@ function buildDiagnosticResults(data) {
   return html;
 }
 
-/* ── Recommendations cards ── */
-function buildRecommendations(recs) {
+/* ── Recommendations ── */
+function buildCmdRecommendations(recs) {
   var html = '';
-  html += sectionHeader('Recommended Actions');
+  html += sectionHeader('Recommended Actions', recs.length + ' item' + (recs.length !== 1 ? 's' : ''));
 
   for (var i = 0; i < recs.length; i++) {
     var rec = recs[i];
     var priority = rec.priority != null ? rec.priority : i + 1;
 
-    html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:var(--sp-lg);margin-bottom:var(--sp-md);">';
-    html += '  <div style="display:flex;align-items:center;gap:var(--sp-sm);margin-bottom:var(--sp-sm);">';
-    html += '    <span style="background:var(--data);color:var(--bg);border-radius:12px;padding:2px 10px;font-size:var(--text-xs);font-weight:700;">P' + priority + '</span>';
-    html += '  </div>';
-    html += '  <div style="color:var(--text);margin-bottom:var(--sp-md);">' + escHtml(rec.action) + '</div>';
-
+    html += '<div class="cmd-rec">';
+    html += '  <div class="cmd-rec-num">' + priority + '</div>';
+    html += '  <div class="cmd-rec-body">';
+    html += '    <div class="cmd-rec-action">' + escHtml(rec.action) + '</div>';
     if (rec.agent) {
-      html += '  <div style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-dim);margin-bottom:var(--sp-xs);">';
-      html += '    Claude Code: <span style="color:var(--data);">' + escHtml(rec.agent) + '</span>';
-      html += '  </div>';
+      html += '    <div class="cmd-rec-agent">Claude Code: <span>' + escHtml(rec.agent) + '</span></div>';
     }
-
+    html += '  </div>';
     html += '</div>';
   }
 
@@ -190,7 +261,7 @@ function buildRecommendations(recs) {
 }
 
 /* ── Quick Actions ── */
-function buildQuickActions() {
+function buildCmdQuickActions() {
   var html = '';
   html += sectionHeader('Quick Actions');
 
@@ -200,19 +271,14 @@ function buildQuickActions() {
     { label: 'Full Pipeline', cmd: '.\\scripts\\pipeline.ps1 -SkipWPR -DurationSec 30 -Label DIAG' }
   ];
 
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:var(--sp-lg);">';
-
+  html += '<div class="cmd-quick">';
   for (var i = 0; i < actions.length; i++) {
     var act = actions[i];
-    if (i > 0) {
-      html += '<div style="border-top:1px solid var(--border);margin:var(--sp-sm) 0;"></div>';
-    }
-    html += '<div style="display:flex;align-items:center;gap:var(--sp-lg);padding:var(--sp-xs) 0;">';
-    html += '  <span style="color:var(--text);font-weight:500;min-width:110px;font-size:var(--text-sm);">' + escHtml(act.label) + '</span>';
-    html += '  <code style="background:var(--bg);font-family:var(--font-mono);font-size:var(--text-xs);padding:var(--sp-xs) var(--sp-md);border-radius:4px;color:var(--text-dim);user-select:all;flex:1;">' + escHtml(act.cmd) + '</code>';
+    html += '<div class="cmd-quick-row">';
+    html += '  <span class="cmd-quick-label">' + escHtml(act.label) + '</span>';
+    html += '  <code class="cmd-quick-cmd">' + escHtml(act.cmd) + '</code>';
     html += '</div>';
   }
-
   html += '</div>';
   return html;
 }
@@ -237,39 +303,28 @@ function cmdStatusLabel(diag) {
   var exitCode = diag.exitCode;
 
   if (status === 'completed' && exitCode === 0) {
-    return '<span style="color:var(--good);font-weight:600;font-size:var(--text-sm);">&#10003; PASS</span>';
+    return '<span class="tag-pill green">PASS</span>';
   }
   if (status === 'completed' && exitCode !== 0) {
-    return '<span style="color:var(--warn);font-weight:600;font-size:var(--text-sm);">&#9888; WARN</span>';
+    return '<span class="tag-pill amber">WARN</span>';
   }
   if (status === 'error') {
-    return '<span style="color:var(--bad);font-weight:600;font-size:var(--text-sm);">&#10007; FAIL</span>';
+    return '<span class="tag-pill red">FAIL</span>';
   }
   if (status === 'skipped') {
-    return '<span style="color:var(--muted);font-weight:600;font-size:var(--text-sm);">&#8212; SKIP</span>';
+    return '<span class="tag-pill" style="background:var(--surface2);color:var(--muted);">SKIP</span>';
   }
-  return '<span style="color:var(--muted);font-size:var(--text-sm);">' + escHtml(status) + '</span>';
+  return '<span class="color-muted">' + escHtml(status) + '</span>';
 }
 
-function buildSeverityPill(severity) {
-  var color = 'var(--muted)';
-  var bg = 'transparent';
-  if (severity === 'HIGH')   { color = 'var(--bad)';  bg = 'var(--bad-bg)';  }
-  if (severity === 'MEDIUM') { color = 'var(--warn)'; bg = 'var(--warn-bg)'; }
-  if (severity === 'LOW')    { color = 'var(--data)'; bg = 'oklch(0.20 0.03 250)'; }
-  if (severity === 'CLEAN')  { color = 'var(--good)'; bg = 'var(--good-bg)'; }
-  return '<span style="background:' + bg + ';color:' + color + ';border-radius:12px;padding:2px 8px;font-size:10px;font-weight:600;">' + escHtml(severity) + '</span>';
-}
-
-function buildSeverityBadge(severity) {
-  var color = 'var(--muted)';
-  var bg = 'var(--surface2)';
-  var label = severity;
-  if (severity === 'HIGH')   { color = 'var(--bad)';  bg = 'var(--bad-bg)';  label = 'HIGH SEVERITY'; }
-  if (severity === 'MEDIUM') { color = 'var(--warn)'; bg = 'var(--warn-bg)'; label = 'MEDIUM'; }
-  if (severity === 'LOW')    { color = 'var(--data)'; bg = 'oklch(0.20 0.03 250)'; label = 'LOW'; }
-  if (severity === 'CLEAN')  { color = 'var(--good)'; bg = 'var(--good-bg)'; label = 'CLEAN'; }
-  return '<span style="display:inline-block;background:' + bg + ';color:' + color + ';border-radius:12px;padding:4px 14px;font-size:var(--text-sm);font-weight:700;letter-spacing:0.05em;">' + escHtml(label) + '</span>';
+function buildCmdSeverityPill(severity) {
+  var cls = '';
+  if (severity === 'HIGH') cls = 'red';
+  else if (severity === 'MEDIUM') cls = 'amber';
+  else if (severity === 'LOW') cls = 'blue';
+  else if (severity === 'CLEAN') cls = 'green';
+  if (cls) return '<span class="tag-pill ' + cls + '">' + escHtml(severity) + '</span>';
+  return '<span class="tag-pill">' + escHtml(severity) + '</span>';
 }
 
 window.renderCommandView = renderCommandView;

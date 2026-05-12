@@ -28,6 +28,7 @@ function renderNetworkView() {
   var loss    = net.packetLoss || {};
   var jitter  = net.jitter     || {};
   var verdict = net.verdict    || 'unknown';
+  var nicDrop = snap.nicLinkDrop || null;
 
   /* Best external RTT */
   var bestExtRtt = null;
@@ -88,6 +89,16 @@ function renderNetworkView() {
     html += ' — gateway OK but internet unreachable. ISP or upstream issue.';
   }
   html += '</span></div>';
+
+  /* ── NIC link drop alert ── */
+  var nicHidden = nicDrop ? '' : ' hidden';
+  html += '<div class="spike-alert-bar' + nicHidden + '" style="border-color:var(--red);background:rgba(255,60,60,0.08);">';
+  html += '  <span class="spike-alert-icon">&#9889;</span>';
+  html += '  <span><strong>NIC Link Drop Detected</strong>';
+  if (nicDrop && nicDrop.timestamp) {
+    html += ' — I226-V Event 27 at ' + escHtml(nicDrop.timestamp.replace('T', ' ').substring(0, 19));
+  }
+  html += '. Check Event Viewer for e2fnexpress events.</span></div>';
 
   /* ── Summary cards ── */
   html += '<div class="summary-bar">';

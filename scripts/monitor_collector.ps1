@@ -43,6 +43,7 @@
 param(
     [ValidateRange(1, 3600)][int]$IntervalSec        = 1,
     [ValidateRange(1, 3600)][int]$ProcessIntervalSec = 5,
+    [ValidateRange(1, 3600)][int]$NetworkIntervalSec = 5,
     [int]$XperfIntervalSec   = 0,
     [int]$MaxSamples         = 0,
     [int]$HistoryMaxEntries  = 300
@@ -56,6 +57,7 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\helpers\monitor-counters.ps1"
 . "$PSScriptRoot\helpers\monitor-processes.ps1"
 . "$PSScriptRoot\helpers\monitor-xperf.ps1"
+. "$PSScriptRoot\helpers\monitor-network.ps1"
 
 # ─── Resolve output directory ─────────────────────────────────────────────────
 $monitorDataDir = Join-Path $script:ProjectRoot 'monitor'
@@ -115,7 +117,7 @@ Write-Host ''
 Write-Host '=== Latency Monitor Collector ==='
 Write-Host ('  Snapshot : ' + $snapshotFile)
 Write-Host ('  History  : ' + $historyFile)
-Write-Host ('  Interval : ' + $IntervalSec + 's counters  /  ' + $ProcessIntervalSec + 's processes')
+Write-Host ('  Interval : ' + $IntervalSec + 's counters  /  ' + $ProcessIntervalSec + 's processes  /  ' + $NetworkIntervalSec + 's network')
 if ($XperfIntervalSec -gt 0) {
     Write-Host ('  Xperf    : every ' + $XperfIntervalSec + 's (5s capture)')
 } else {
@@ -132,8 +134,11 @@ Write-Host ''
 $sampleCount     = 0
 $lastProcessPoll = [datetime]::MinValue
 $lastXperfPoll   = [datetime]::MinValue
+$lastNetworkPoll = [datetime]::MinValue
 $processData     = $null
 $xperfData       = $null
+$networkData     = $null
+$lastNicEventCheck = Get-Date
 
 try {
     while ($true) {
@@ -166,6 +171,33 @@ try {
             }
         }
 
+        # ── Network sample (every NetworkIntervalSec) ────────────────────
+        $timeSinceNetwork = ($now - $lastNetworkPoll).TotalSeconds
+        if ($timeSinceNetwork -ge $NetworkIntervalSec) {
+            $networkData     = Get-MonitorNetworkSample
+            $lastNetworkPoll = $now
+        }
+
+        # ── NIC link drop detection (Event Viewer e2fnexpress Event 27) ──
+        $nicLinkDrop = $null
+        try {
+            $nicEvents = Get-WinEvent -FilterHashtable @{
+                LogName      = 'System'
+                ProviderName = 'e2fnexpress'
+                Id           = 27
+                StartTime    = $lastNicEventCheck
+            } -MaxEvents 1 -ErrorAction SilentlyContinue
+            if ($null -ne $nicEvents -and $nicEvents.Count -gt 0) {
+                $nicLinkDrop = @{
+                    detected  = $true
+                    timestamp = $nicEvents[0].TimeCreated.ToString('o')
+                }
+            }
+        } catch {
+            # No events found or provider not present — safe to ignore
+        }
+        $lastNicEventCheck = $now
+
         # ── Increment sample count (before assembly so meta is 1-based) ────
         $sampleCount++
 
@@ -176,7 +208,9 @@ try {
             counters  = $counterData
             processes = $processData
             xperf     = $xperfData
-            meta      = @{
+            network      = $networkData
+            nicLinkDrop  = $nicLinkDrop
+            meta         = @{
                 sampleCount  = $sampleCount
                 intervalSec  = $IntervalSec
                 hostname     = $env:COMPUTERNAME
@@ -187,10 +221,39 @@ try {
         # ── Write outputs ─────────────────────────────────────────────────────
         Write-Snapshot $snapshot
 
+        # Build minimal network history (keep footprint small)
+        $netHist = $null
+        if ($null -ne $networkData) {
+            $gwRtt  = $null
+            $extRtt = $null
+            if ($null -ne $networkData.gateway)    { $gwRtt  = $networkData.gateway.rttMs }
+            if ($null -ne $networkData.targets -and $networkData.targets.Count -gt 0) {
+                foreach ($t in $networkData.targets) {
+                    if ($t.reachable -and ($null -eq $extRtt -or $t.rttMs -lt $extRtt)) {
+                        $extRtt = $t.rttMs
+                    }
+                }
+            }
+            $plGw   = $null
+            $plExt  = $null
+            if ($null -ne $networkData.packetLoss) {
+                $plGw  = $networkData.packetLoss.gateway
+                $plExt = $networkData.packetLoss.external
+            }
+            $netHist = @{
+                gatewayRtt  = $gwRtt
+                externalRtt = $extRtt
+                gwLoss      = $plGw
+                extLoss     = $plExt
+                verdict     = $networkData.verdict
+            }
+        }
+
         Add-HistoryEntry @{
             timestamp = $counterData.timestamp
             system    = $counterData.system
             spikes    = $counterData.spikes
+            network   = $netHist
         }
 
         # ── Progress line ─────────────────────────────────────────────────────
@@ -208,7 +271,27 @@ try {
             $spikeTag  = $spikeTag + ' [HIGH-DPC-CPU:' + $cpuList + ']'
         }
 
-        Write-Host ('[' + $timeLabel + '] #' + $sampleCount + ' DPC=' + $dpcStr + '% INTR=' + $intrStr + '% CTX=' + $ctxStr + '/s' + $spikeTag)
+        # NIC link drop tag
+        $nicTag = ''
+        if ($null -ne $nicLinkDrop) {
+            $nicTag = ' [NIC-LINK-DROP]'
+        }
+
+        # Network verdict tag
+        $netTag = ''
+        if ($null -ne $networkData) {
+            $v = $networkData.verdict
+            if ($v -eq 'gateway-issue') { $netTag = ' [NET:GATEWAY-DOWN]' }
+            elseif ($v -eq 'wan-issue') { $netTag = ' [NET:WAN-DOWN]' }
+            elseif ($v -eq 'no-gateway') { $netTag = ' [NET:NO-GW]' }
+            $gwMs = '--'
+            if ($null -ne $networkData.gateway -and $networkData.gateway.reachable) {
+                $gwMs = [math]::Round($networkData.gateway.rttMs, 0).ToString()
+            }
+            $netTag = ' GW=' + $gwMs + 'ms' + $netTag
+        }
+
+        Write-Host ('[' + $timeLabel + '] #' + $sampleCount + ' DPC=' + $dpcStr + '% INTR=' + $intrStr + '% CTX=' + $ctxStr + '/s' + $netTag + $nicTag + $spikeTag)
 
         if ($HistoryMaxEntries -gt 0 -and $sampleCount -eq $HistoryMaxEntries) {
             Write-Warning ('history.js has reached ' + $HistoryMaxEntries + ' entries — file will continue to grow (dashboard trims client-side).')
