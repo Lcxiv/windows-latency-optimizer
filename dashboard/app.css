@@ -576,6 +576,29 @@ main { padding: var(--sp-xl); max-width: 1600px; }
 .search-input::placeholder { color: var(--muted); }
 .search-input:focus { border-color: var(--data); }
 
+/* ── Density toggle ── */
+.density-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color var(--duration) var(--ease-out),
+              color var(--duration) var(--ease-out);
+  user-select: none;
+}
+.density-toggle:hover { border-color: var(--data); color: var(--text-dim); }
+.density-toggle.active { border-color: var(--data); color: var(--data); }
+
+/* Compact density mode */
+.density-compact .exp-table td { padding: var(--sp-xs) var(--sp-sm); font-size: var(--text-xs); }
+.density-compact .exp-table th { padding: var(--sp-xs) var(--sp-sm); }
+.density-compact .sparkline-row { display: none; }
+.density-compact .tag-pill { font-size: 9px; padding: 0 4px; }
+
 /* ── Utilities ── */
 .hidden { display: none !important; }
 

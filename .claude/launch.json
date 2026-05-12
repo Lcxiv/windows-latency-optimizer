@@ -8,6 +8,12 @@
       "port": 3847
     },
     {
+      "name": "monitor",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "monitor", "-l", "3848", "--no-clipboard"],
+      "port": 3848
+    },
+    {
       "name": "latencyguard",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "latencyguard/src", "-l", "1420", "--no-clipboard"],
