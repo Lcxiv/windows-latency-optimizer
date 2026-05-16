@@ -1,6 +1,6 @@
 # RTSS + Reflex + VSync: The Complete Latency Guide
 
-**Scope:** Authoritative reference on RivaTuner Statistics Server (RTSS), NVIDIA Reflex, VSync variants, and frame-cap interactions for the lowest-latency, smoothest-possible gameplay on Windows 11. Written for the LatencyGuard project.
+**Scope:** Authoritative reference on RivaTuner Statistics Server (RTSS), NVIDIA Reflex, VSync variants, and frame-cap interactions for the lowest-latency, smoothest-possible gameplay on Windows 11. Written for the Windows Latency Optimizer project.
 
 **Target rig:**
 
@@ -413,7 +413,7 @@ Expected improvement over plain V-Sync: ~10–20 ms system latency reduction. Ca
 
 ### 16. How to Measure
 
-Run existing LatencyGuard pipeline with Reflex-relevant WPR profile:
+Run existing Windows Latency Optimizer pipeline with Reflex-relevant WPR profile:
 
 ```powershell
 # Full capture during 60s of Fortnite gameplay
@@ -533,7 +533,7 @@ Every quantitative claim in this doc has ≥1 corroborating source. Where only o
 
 ### C. Changelog
 
-- **2026-04-24** — Initial version. Research conducted 2026-04-23 via WebSearch + WebFetch against Microsoft Learn, NVIDIA Developer, NVIDIA GeForce News, Blur Busters (fetch blocked — search-summary-only for some threads), Guru3D forums, Shacknews, xda-developers, RTINGS, ASUS. Cross-referenced with LatencyGuard project memory.
+- **2026-04-24** — Initial version. Research conducted 2026-04-23 via WebSearch + WebFetch against Microsoft Learn, NVIDIA Developer, NVIDIA GeForce News, Blur Busters (fetch blocked — search-summary-only for some threads), Guru3D forums, Shacknews, xda-developers, RTINGS, ASUS. Cross-referenced with Windows Latency Optimizer project memory.
 
 ### D. Open Questions / Follow-Up
 
@@ -542,7 +542,7 @@ Items worth verifying experimentally on the rig before treating as settled:
 1. **Exact VT at 360 Hz 1440p on XG27ACDNG** — need CRU export to confirm Scanline Sync negative values fall inside VBI.
 2. **RTSS Reflex mode latency vs native Reflex** on a Fortnite test — how much of the benefit survives the lack of in-engine PCL markers.
 3. **Boost vs no-Boost fps delta** on the 9800X3D (CPU-bound most of the time in Fortnite — should matter less when CPU is the bottleneck, but Boost's value is exactly in those cases).
-4. **MPO disabled vs enabled** on this specific monitor — memory notes OverlayTestMode=5 fix for Epic Launcher UE5 crashes; verify MPO is currently active and what state LatencyGuard reports.
+4. **MPO disabled vs enabled** on this specific monitor — memory notes OverlayTestMode=5 fix for Epic Launcher UE5 crashes; verify MPO is currently active and what state Windows Latency Optimizer reports.
 5. **Scanline Sync viability at 360 Hz** — VBI is theoretically ~40-60 scanlines; may not be wide enough to hide tearline reliably at this refresh. Run a short test clip.
 
-All five should become their own numbered experiments in the LatencyGuard dashboard if pursued.
+All five should become their own numbered experiments in the Windows Latency Optimizer dashboard if pursued.

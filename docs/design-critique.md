@@ -1,5 +1,9 @@
 # Design Critique: LatencyGuard Symptom Picker
 
+> **Historical — Tauri app retired May 2026.** This critique applies to the
+> first-generation LatencyGuard desktop app (Tauri + Rust). The canonical UI
+> is now the `monitor/` HTML dashboard. Kept as design-process reference.
+
 ## Overall Impression
 
 The symptom-first concept is strong -- asking "What are you experiencing?" immediately communicates that this tool understands the user's pain. But the execution undermines the concept with broken text colors, cramped spacing, and a layout that doesn't feel like a premium gaming tool. The bones are good; the surface needs polish.
