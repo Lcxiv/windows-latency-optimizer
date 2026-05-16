@@ -156,8 +156,13 @@ Describe 'Get-CpuTopology' {
         $uniqueCount | Should Be $allCpus.Count
     }
 
-    It 'generates affinity masks for each group' {
-        $topo.affinityMasks.Keys.Count | Should Be 4
+    It 'generates affinity masks for each non-empty group' {
+        # affinityMasks only contains entries for groups with at least one CPU.
+        # On the target 16-logical 9800X3D rig this is 4; on smaller CI runners
+        # (4-CPU Azure VMs) some groups end up empty. Assert semantic intent:
+        # every non-empty group has a mask.
+        $nonEmptyGroups = @($topo.groups | Where-Object { $_.cpus.Count -gt 0 })
+        $topo.affinityMasks.Keys.Count | Should Be $nonEmptyGroups.Count
     }
 
     It 'caches result on second call' {
