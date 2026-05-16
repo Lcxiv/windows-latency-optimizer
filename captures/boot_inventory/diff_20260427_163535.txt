@@ -1,0 +1,12 @@
+﻿=== BOOT INVENTORY CHANGES DETECTED ===
+Time: 2026-04-27 16:35:38
+Previous: snapshot_20260427_163421.json
+Added: 2  Removed: 0  Changed: 0
+
+--- Tasks ---
+  ADDED:
+    + \LatencyGuard_BootInventory
+      actions: powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\Users\L\Desktop\windows-latency-optimizer\scripts\boot_inventory_watchdog.ps1" -AlertFile "C:\Users\L\Desktop\BOOT_INVENTORY_DRIFT.txt"
+    + \LatencyGuard_RegistryWatchdog
+      actions: powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\Users\L\Desktop\windows-latency-optimizer\scripts\boot_registry_watchdog.ps1" -AlertFile "C:\Users\L\Desktop\REGISTRY_DRIFT.txt"
+

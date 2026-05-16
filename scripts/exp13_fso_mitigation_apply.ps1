@@ -26,6 +26,17 @@ $searchDirs = @(
     'C:\Program Files\Riot Games',
     'C:\Riot Games'
 )
+# Auto-discover from Epic manifests
+$mfPath = Join-Path $env:ProgramData 'Epic\EpicGamesLauncher\Data\Manifests'
+if (Test-Path $mfPath) {
+    Get-ChildItem $mfPath -Filter '*.item' -ErrorAction SilentlyContinue | ForEach-Object {
+        $mf = Get-Content $_.FullName -Raw | ConvertFrom-Json
+        if ($mf.InstallLocation -and (Test-Path $mf.InstallLocation)) {
+            $searchDirs += $mf.InstallLocation
+        }
+    }
+}
+$searchDirs = @($searchDirs | Select-Object -Unique)
 
 $gameExePatterns = @(
     'FortniteClient-Win64-Shipping.exe',
@@ -37,7 +48,10 @@ $gameExePatterns = @(
     'RocketLeague.exe',
     'PUBG-Win64-Shipping.exe',
     'destiny2.exe',
-    'cod.exe'
+    'cod.exe',
+    'warhammer3.exe',
+    'eldenring.exe',
+    'GTA5.exe'
 )
 
 Write-Host 'Scanning for game executables...' -ForegroundColor Yellow

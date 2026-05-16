@@ -1,0 +1,12 @@
+﻿timestamp,pstate,clocks.current.graphics,clocks.current.memory,temperature.gpu,temperature.memory,power.draw,power.limit,utilization.gpu,utilization.memory,pcie.link.gen.current,pcie.link.width.current,ecc.errors.corrected.volatile.total,ecc.errors.uncorrected.volatile.total,ecc.errors.corrected.aggregate.total,ecc.errors.uncorrected.aggregate.total
+2026/04/25 10:13:54.813, P0, 2730, 14001, 49, N/A, 70.05, 350.00, 12, 1, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:13:55.829, P0, 2722, 14001, 49, N/A, 69.96, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:13:56.830, P0, 2722, 14001, 49, N/A, 69.74, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:13:57.843, P0, 2790, 14001, 49, N/A, 70.15, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:13:58.858, P0, 2722, 14001, 49, N/A, 70.40, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:13:59.873, P0, 2722, 14001, 49, N/A, 70.36, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:14:00.886, P0, 2722, 14001, 49, N/A, 70.34, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:14:01.900, P0, 2722, 14001, 49, N/A, 70.37, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:14:02.915, P0, 2722, 14001, 49, N/A, 70.22, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:14:03.930, P0, 2722, 14001, 49, N/A, 70.23, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]
+2026/04/25 10:14:04.931, P0, 2722, 14001, 49, N/A, 70.11, 350.00, 15, 2, 5, 16, [N/A], [N/A], [N/A], [N/A]

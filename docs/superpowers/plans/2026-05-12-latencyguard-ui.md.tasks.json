@@ -1,0 +1,60 @@
+{
+  "planPath": "docs/superpowers/plans/2026-05-12-latencyguard-ui.md",
+  "tasks": [
+    {
+      "id": 0,
+      "subject": "Task 0: Project Setup & Chart.js Bundle",
+      "status": "pending",
+      "description": "**Goal:** Scaffold directories and bundle Chart.js for offline use.\n\n**Files:**\n- Create: `latencyguard/src/lib/chart.min.js`\n- Create: `latencyguard/src/components/` (directory)\n\n**Acceptance Criteria:**\n- [ ] `lib/chart.min.js` contains Chart.js 4.4.0 UMD build\n- [ ] `Chart` global is available when script is loaded\n- [ ] `components/` directory exists\n\n**Verify:** Open in browser → `typeof Chart` returns `\"function\"`\n\n```json:metadata\n{\"files\": [\"latencyguard/src/lib/chart.min.js\"], \"verifyCommand\": \"ls -la latencyguard/src/lib/chart.min.js && ls -d latencyguard/src/components/\", \"acceptanceCriteria\": [\"Chart.js 4.4.0 UMD bundled\", \"components directory exists\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 1,
+      "subject": "Task 1: Design System CSS",
+      "status": "pending",
+      "description": "**Goal:** Complete rewrite of `app.css` with v4-refined dark frosted glass design tokens.\n\n**Files:**\n- Modify: `latencyguard/src/app.css` (full rewrite)\n\n**Acceptance Criteria:**\n- [ ] All v4-refined tokens in `:root` (dark backgrounds, teal accent, status colors)\n- [ ] `.glass` utility class with blur(16px)\n- [ ] Body background uses dual radial gradients\n- [ ] No light-theme tokens remain\n\n**Verify:** `grep -c 'fbfbfd\\|FF3B30' latencyguard/src/app.css` → 0\n\n```json:metadata\n{\"files\": [\"latencyguard/src/app.css\"], \"verifyCommand\": \"grep -c 'fbfbfd' latencyguard/src/app.css\", \"acceptanceCriteria\": [\"All v4-refined tokens defined\", \"Glass utility class\", \"No light-theme tokens\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 2,
+      "subject": "Task 2: App Shell & Router",
+      "status": "pending",
+      "blockedBy": [1],
+      "description": "**Goal:** Restructure index.html and app.js for v4-refined header and Simple/Monitor/Expert routing.\n\n**Files:**\n- Modify: `latencyguard/src/index.html`\n- Modify: `latencyguard/src/app.js`\n\n**Acceptance Criteria:**\n- [ ] Header: teal logo, sys chips, mode switcher (Simple/Monitor/Expert)\n- [ ] Status bar at bottom with clock\n- [ ] app.js routes to renderSimpleView/renderMonitorView/renderExpertView\n- [ ] Legacy render functions removed\n\n**Verify:** `grep -c 'renderSimpleView\\|renderMonitorView\\|renderExpertView' latencyguard/src/app.js` → 3\n\n```json:metadata\n{\"files\": [\"latencyguard/src/index.html\", \"latencyguard/src/app.js\"], \"verifyCommand\": \"grep -c 'renderSimpleView' latencyguard/src/app.js\", \"acceptanceCriteria\": [\"Mode names are Simple/Monitor/Expert\", \"Status bar present\", \"Legacy renderers removed\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 3,
+      "subject": "Task 3: Reusable Components",
+      "status": "pending",
+      "blockedBy": [0, 1],
+      "description": "**Goal:** Create score-ring, cpu-heatmap, and dpc-timeline components.\n\n**Files:**\n- Create: `latencyguard/src/components/score-ring.js`\n- Create: `latencyguard/src/components/cpu-heatmap.js`\n- Create: `latencyguard/src/components/dpc-timeline.js`\n\n**Acceptance Criteria:**\n- [ ] renderScoreRing(score, size) returns SVG markup\n- [ ] renderCpuHeatmap(cpuData) returns 4x4 grid HTML\n- [ ] createDpcTimeline(canvasId) returns Chart instance\n- [ ] All functions on window global\n\n**Verify:** `grep -c 'window.render' latencyguard/src/components/*.js` → 2+\n\n```json:metadata\n{\"files\": [\"latencyguard/src/components/score-ring.js\", \"latencyguard/src/components/cpu-heatmap.js\", \"latencyguard/src/components/dpc-timeline.js\"], \"verifyCommand\": \"ls latencyguard/src/components/\", \"acceptanceCriteria\": [\"Score ring renders SVG\", \"Heatmap renders 4x4 grid\", \"Chart.js timeline initializes\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 4,
+      "subject": "Task 4: Simple Mode View",
+      "status": "pending",
+      "blockedBy": [2, 3],
+      "description": "**Goal:** 4-step wizard: symptom picker → scan progress → results → fix wizard.\n\n**Files:**\n- Create: `latencyguard/src/views/simple.js`\n\n**Acceptance Criteria:**\n- [ ] 6 symptom cards in 3x2 grid with icon boxes\n- [ ] Progress ring with pipeline steps\n- [ ] Results with score ring and grouped findings\n- [ ] Fix wizard with before/after comparison\n- [ ] window.renderSimpleView exported\n\n**Verify:** `grep -c 'window.renderSimpleView' latencyguard/src/views/simple.js` → 1\n\n```json:metadata\n{\"files\": [\"latencyguard/src/views/simple.js\"], \"verifyCommand\": \"grep -c 'renderSimpleView' latencyguard/src/views/simple.js\", \"acceptanceCriteria\": [\"6 symptom cards render\", \"Progress ring animates\", \"Fix wizard navigates\", \"Tauri IPC connected\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 5,
+      "subject": "Task 5: Monitor Mode View",
+      "status": "pending",
+      "blockedBy": [2, 3],
+      "description": "**Goal:** Real-time dashboard with metrics, heatmap, and Chart.js timeline.\n\n**Files:**\n- Create: `latencyguard/src/views/monitor.js`\n\n**Acceptance Criteria:**\n- [ ] 5 metric cards with status badges\n- [ ] Alert banner for DPC spikes\n- [ ] CPU heatmap sub-tab\n- [ ] Chart.js timeline sub-tab\n- [ ] Tauri event listener for perf_update\n- [ ] window.renderMonitorView exported\n\n**Verify:** `grep -c 'window.renderMonitorView' latencyguard/src/views/monitor.js` → 1\n\n```json:metadata\n{\"files\": [\"latencyguard/src/views/monitor.js\"], \"verifyCommand\": \"grep -c 'renderMonitorView' latencyguard/src/views/monitor.js\", \"acceptanceCriteria\": [\"5 metric cards render\", \"Heatmap shows 16 cells\", \"Chart.js initializes\", \"Event listener subscribed\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 6,
+      "subject": "Task 6: Expert Mode View",
+      "status": "pending",
+      "blockedBy": [2],
+      "description": "**Goal:** Experiment tracker table with tag filtering.\n\n**Files:**\n- Create: `latencyguard/src/views/expert.js`\n\n**Acceptance Criteria:**\n- [ ] Tag filter bar with dynamic pills\n- [ ] Table with 7 columns and delta badges\n- [ ] Loads via invoke('get_experiments')\n- [ ] window.renderExpertView exported\n\n**Verify:** `grep -c 'window.renderExpertView' latencyguard/src/views/expert.js` → 1\n\n```json:metadata\n{\"files\": [\"latencyguard/src/views/expert.js\"], \"verifyCommand\": \"grep -c 'renderExpertView' latencyguard/src/views/expert.js\", \"acceptanceCriteria\": [\"Tag filters work\", \"Table renders with deltas\", \"IPC connected\"], \"requiresUserVerification\": false}\n```"
+    },
+    {
+      "id": 7,
+      "subject": "Task 7: System Tray Popup & Legacy Cleanup",
+      "status": "pending",
+      "blockedBy": [4, 5, 6],
+      "description": "**Goal:** Add tray popup overlay and remove all 6 legacy view files.\n\n**Files:**\n- Create: `latencyguard/src/views/tray.js`\n- Remove: `latencyguard/src/views/instrument.js`\n- Remove: `latencyguard/src/views/timeline.js`\n- Remove: `latencyguard/src/views/command.js`\n- Remove: `latencyguard/src/views/diagnostics.js`\n- Remove: `latencyguard/src/views/history.js`\n- Remove: `latencyguard/src/views/advanced.js`\n\n**Acceptance Criteria:**\n- [ ] Tray popup renders with metrics and action buttons\n- [ ] All legacy files deleted\n- [ ] No 404s in browser DevTools\n- [ ] All three modes functional\n\n**Verify:** `ls latencyguard/src/views/` → only simple.js, monitor.js, expert.js, tray.js\n\n```json:metadata\n{\"files\": [\"latencyguard/src/views/tray.js\"], \"verifyCommand\": \"ls latencyguard/src/views/\", \"acceptanceCriteria\": [\"Tray popup works\", \"Legacy files removed\", \"No console errors\"], \"requiresUserVerification\": false}\n```"
+    }
+  ],
+  "lastUpdated": "2026-05-12T14:30:00Z"
+}

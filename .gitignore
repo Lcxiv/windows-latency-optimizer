@@ -95,6 +95,31 @@ docs/history/**/*.zip
 # Local settings
 .claude/settings.local.json
 
+# Chrome test profile (local browser data)
+.chrome-test-profile/
+
+# Registry watchdog snapshots (machine-specific, regenerated per run)
+captures/registry_watchdog/
+
+# Session captures and diagnostic traces (machine-specific, contain ETL/CSV data)
+captures/sessions/
+captures/fortnite_freeze_diag/
+
+# Root-level generated artifacts
+energy-report.html
+command-center-populated.png
+command-center-redesign.png
+
+# Machine-specific runtime artifacts (regenerated per-machine, contain device IDs)
+captures/startup_guard_log.txt
+captures/defender_safemode/
+captures/os_baseline_*.txt
+captures/driver_audit_*.html
+captures/driver_audit_*.json
+
+# User-local Defender exclusions (contains machine-specific paths)
+config/defender_exclusions.txt
+
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv
 %windir%/

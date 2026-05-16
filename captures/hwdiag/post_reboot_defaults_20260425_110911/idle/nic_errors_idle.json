@@ -1,0 +1,28 @@
+﻿{
+    "schemaVersion":  1,
+    "phase":  "idle",
+    "baselineAt":  "2026-04-25T11:09:14.670",
+    "finalAt":  "2026-04-25T11:09:46.103",
+    "durationSec":  31.43,
+    "adapters":  [
+                     {
+                         "name":  "Ethernet",
+                         "interfaceDescription":  "Intel(R) Ethernet Controller I226-V",
+                         "linkSpeedBps":  2500000000,
+                         "fullDuplex":  true,
+                         "deltas":  {
+                                        "receivedBytes":  153600,
+                                        "receivedUnicastPackets":  1146,
+                                        "receivedDiscardedPackets":  0,
+                                        "receivedPacketErrors":  0,
+                                        "sentBytes":  1549305,
+                                        "sentUnicastPackets":  2027,
+                                        "sentDiscardedPackets":  0,
+                                        "sentPacketErrors":  0
+                                    }
+                     }
+                 ],
+    "flags":  [
+                  "PASS: zero NIC errors / discards / CRC during phase"
+              ]
+}

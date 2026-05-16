@@ -1,0 +1,147 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T10:40:29",
+    "phase":  "idle",
+    "durationSec":  15,
+    "hwinfo64":  {
+                     "installed":  true,
+                     "installPath":  "C:\\Program Files\\HWiNFO64\\HWiNFO64.EXE",
+                     "running":  true,
+                     "csvLog":  "C:\\Users\\L\\Documents\\HwInfo\\first capture.CSV",
+                     "csvLogActive":  true,
+                     "sampleCount":  60,
+                     "rails":  {
+                                   "cpu_vsoc":  {
+                                                    "found":  true,
+                                                    "columnIdx":  151,
+                                                    "columnName":  "\"CPU VDDCR_SOC Voltage (SVI3 TFN) [V]\"",
+                                                    "count":  60,
+                                                    "min":  1.239,
+                                                    "avg":  1.24,
+                                                    "p50":  1.24,
+                                                    "max":  1.24
+                                                },
+                                   "cpu_vddio_mem":  {
+                                                         "found":  true,
+                                                         "columnIdx":  206,
+                                                         "columnName":  "\"CPU VDDIO / MC [V]\"",
+                                                         "count":  60,
+                                                         "min":  1.527,
+                                                         "avg":  1.5318,
+                                                         "p50":  1.536,
+                                                         "max":  1.536
+                                                     },
+                                   "mb_temp":  {
+                                                   "found":  false
+                                               },
+                                   "vrm_temp":  {
+                                                    "found":  true,
+                                                    "columnIdx":  147,
+                                                    "columnName":  "\"CPU VDDCR_VDD VRM (SVI3 TFN) [°C]\"",
+                                                    "count":  60,
+                                                    "min":  46.2,
+                                                    "avg":  46.295,
+                                                    "p50":  46.3,
+                                                    "max":  46.6
+                                                },
+                                   "cpu_vddp":  {
+                                                    "found":  true,
+                                                    "columnIdx":  152,
+                                                    "columnName":  "\"CPU VDD_MISC Voltage (SVI3 TFN) [V]\"",
+                                                    "count":  60,
+                                                    "min":  1.1,
+                                                    "avg":  1.1,
+                                                    "p50":  1.1,
+                                                    "max":  1.1
+                                                },
+                                   "ram_vddq":  {
+                                                    "found":  true,
+                                                    "columnIdx":  220,
+                                                    "columnName":  "\"VDDQ (SWB) Voltage [V]\"",
+                                                    "count":  60,
+                                                    "min":  1.455,
+                                                    "avg":  1.4552,
+                                                    "p50":  1.455,
+                                                    "max":  1.47
+                                                },
+                                   "cpu_iod":  {
+                                                   "found":  true,
+                                                   "columnIdx":  145,
+                                                   "columnName":  "\"CPU IOD Hotspot [°C]\"",
+                                                   "count":  60,
+                                                   "min":  49.8,
+                                                   "avg":  50.3383,
+                                                   "p50":  50.2,
+                                                   "max":  51
+                                               },
+                                   "chipset_temp":  {
+                                                        "found":  false
+                                                    },
+                                   "cpu_tdie":  {
+                                                    "found":  true,
+                                                    "columnIdx":  131,
+                                                    "columnName":  "\"CPU (Tctl/Tdie) [°C]\"",
+                                                    "count":  60,
+                                                    "min":  52.2,
+                                                    "avg":  56.9517,
+                                                    "p50":  56.5,
+                                                    "max":  65.9
+                                                },
+                                   "cpu_core_vid":  {
+                                                        "found":  true,
+                                                        "columnIdx":  150,
+                                                        "columnName":  "\"CPU VDDCR_VDD Voltage (SVI3 TFN) [V]\"",
+                                                        "count":  60,
+                                                        "min":  1.139,
+                                                        "avg":  1.205,
+                                                        "p50":  1.214,
+                                                        "max":  1.279
+                                                    },
+                                   "fan_pwm_cpu":  {
+                                                       "found":  false
+                                                   },
+                                   "cpu_ccd1":  {
+                                                    "found":  true,
+                                                    "columnIdx":  133,
+                                                    "columnName":  "\"CPU CCD1 (Tdie) [°C]\"",
+                                                    "count":  60,
+                                                    "min":  41,
+                                                    "avg":  47.6083,
+                                                    "p50":  44.4,
+                                                    "max":  67.1
+                                                }
+                               }
+                 },
+    "acpiThermalZones":  [
+                             {
+                                 "error":  "Not supported "
+                             }
+                         ],
+    "nvidia":  {
+                   "samples":  15,
+                   "gpu_temp_c":  {
+                                      "min":  48,
+                                      "max":  48,
+                                      "avg":  48
+                                  },
+                   "mem_temp_c":  null,
+                   "power_w":  {
+                                   "min":  69.25,
+                                   "max":  70.24,
+                                   "avg":  69.88
+                               },
+                   "core_clock_mhz":  {
+                                          "min":  2715,
+                                          "max":  2730,
+                                          "avg":  2724.73
+                                      },
+                   "mem_clock_mhz":  {
+                                         "min":  14001,
+                                         "max":  14001,
+                                         "avg":  14001
+                                     }
+               },
+    "flags":  [
+                  "VSOC max 1.24 V \u003e 1.20 V (CRITICAL â€” AMD safety advisory)"
+              ]
+}

@@ -148,6 +148,11 @@ $optimal = @(
     @{ key = 'CPU Boost Clock Override|9C';                target = '[01]Enabled (Positive)';  desc = 'Enable boost clock override';                    tier = 1 }
     @{ key = 'Max CPU Boost Clock Override(+)|9D';         target = '<25>';                    desc = 'Boost +25 MHz (conservative)';                   tier = 1 }
     @{ key = 'FCLK Frequency|2CD4';                        target = '[7D0]2000 MHz';           desc = 'Lock FCLK at 2000 for 1:1 with DDR5-6000';      tier = 1 }
+    @{ key = 'CPPC Preferred Cores|3B';                    target = '[00]Disabled';            desc = 'Eliminates 8kHz scheduling micro-stutter';       tier = 1 }
+    @{ key = 'Data Scramble|706E';                         target = '[00]Disabled';            desc = 'Memory bus encryption layer removal';            tier = 1 }
+    # NOTE: Spread Spectrum, Fast Boot, Platform Power Management
+    # require SCEWIN OIDs from a fresh export. Apply manually via BIOS menu
+    # using BIOS_CHECKLIST.md output from deep_optimize.ps1.
 
     # Tier 2: RAM subtimings (moderate risk)
     @{ key = 'Power Down Enable|BF';                       target = '[00]Disabled';            desc = 'RAM Power Down: 1-2ns latency reduction';       tier = 2 }

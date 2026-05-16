@@ -1,0 +1,49 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T11:31:47",
+    "phase":  "idle",
+    "durationSec":  15,
+    "hwinfo64":  {
+                     "installed":  true,
+                     "installPath":  "C:\\Program Files\\HWiNFO64\\HWiNFO64.EXE",
+                     "running":  false,
+                     "csvLog":  "C:\\Users\\L\\Documents\\HwInfo\\post_reboot_defaults.csv",
+                     "csvLogActive":  false,
+                     "sampleCount":  0,
+                     "rails":  {
+
+                               }
+                 },
+    "acpiThermalZones":  [
+                             {
+                                 "error":  "Not supported "
+                             }
+                         ],
+    "nvidia":  {
+                   "samples":  14,
+                   "gpu_temp_c":  {
+                                      "min":  39,
+                                      "max":  43,
+                                      "avg":  42.29
+                                  },
+                   "mem_temp_c":  null,
+                   "power_w":  {
+                                   "min":  60.76,
+                                   "max":  111.04,
+                                   "avg":  101.66
+                               },
+                   "core_clock_mhz":  {
+                                          "min":  2752,
+                                          "max":  2835,
+                                          "avg":  2812.21
+                                      },
+                   "mem_clock_mhz":  {
+                                         "min":  14001,
+                                         "max":  14001,
+                                         "avg":  14001
+                                     }
+               },
+    "flags":  [
+                  "HWiNFO64 installed but no active CSV log detected. Start HWiNFO64 sensors-only mode and enable Logging (right-click trash icon -\u003e CSV) to capture voltages."
+              ]
+}

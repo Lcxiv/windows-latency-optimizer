@@ -1,0 +1,20 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T11:11:08",
+    "cpuThresholdSec":  3600,
+    "candidatePids":  [
+
+                      ],
+    "candidateCount":  0,
+    "executed":  false,
+    "killedPids":  [
+
+                   ],
+    "killErrors":  [
+
+                   ],
+    "cores69_pre_avg_pct":  null,
+    "cores69_post_avg_pct":  null,
+    "delta_pct":  null,
+    "verdict":  "no_candidates"
+}

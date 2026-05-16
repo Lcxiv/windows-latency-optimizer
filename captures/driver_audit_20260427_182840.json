@@ -1,0 +1,163 @@
+﻿{
+    "storageDrivers":  [
+                           {
+                               "MediaType":  "SSD",
+                               "IsGeneric":  true,
+                               "DriverInf":  "nvmedisk.inf",
+                               "BusType":  "NVMe",
+                               "Model":  "Samsung SSD 9100 PRO 1TB",
+                               "DriverProvider":  "Microsoft",
+                               "Recommendation":  "Install Samsung NVMe Driver (APST tuning, better queue depth)"
+                           },
+                           {
+                               "MediaType":  "SSD",
+                               "IsGeneric":  true,
+                               "DriverInf":  "nvmedisk.inf",
+                               "BusType":  "NVMe",
+                               "Model":  "WD_BLACK SN850X HS 1000GB",
+                               "DriverProvider":  "Microsoft",
+                               "Recommendation":  "WD Dashboard driver available (low priority â€” minimal benefit)"
+                           }
+                       ],
+    "overallScore":  "CRITICAL",
+    "timestamp":  "2026-04-27 18:28:40",
+    "luafvStatus":  {
+                        "Status":  "Stopped",
+                        "Fixed":  true,
+                        "StartType":  2,
+                        "ServiceExists":  true
+                    },
+    "chipsetStatus":  {
+                          "ChipsetRegFound":  false,
+                          "ChipsetInstalled":  false,
+                          "ProcessorInf":  "cpu.inf",
+                          "ChipsetDirExists":  false,
+                          "AmdPpmLoaded":  true
+                      },
+    "eventSummary":  [
+                         {
+                             "Sample":  "The Windows Update service did not shut down properly after receiving a pre-shutdown control.",
+                             "Level":  "Error",
+                             "Source":  "Service Control Manager (ID 7043)",
+                             "Count":  1
+                         },
+                         {
+                             "Sample":  "The luafv service failed to start due to the following error: \r\nThis driver has been blocked from loading",
+                             "Level":  "Error",
+                             "Source":  "Service Control Manager (ID 7000)",
+                             "Count":  35
+                         },
+                         {
+                             "Sample":  "The driver \\Driver\\WUDFRd failed to load.\r\nDevice: HID\\VID_1532\u0026PID_0577\u0026MI_05\u0026Col03\\a\u00264b9b38a\u00260\u00260002\r\nStatus: 0xC000036...",
+                             "Level":  "Warning",
+                             "Source":  "Microsoft-Windows-Kernel-PnP (ID 219)",
+                             "Count":  2
+                         },
+                         {
+                             "Sample":  "The Windows Search service did not respond on starting. ",
+                             "Level":  "Error",
+                             "Source":  "Service Control Manager (ID 7022)",
+                             "Count":  1
+                         }
+                     ],
+    "deviceErrors":  [
+                         {
+                             "Name":  "(Unknown)",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "ACPI\\AMDIF031\\0",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "(Unknown)",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "ACPI\\AMDIF031\\2",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "PCI Device",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "PCI\\VEN_1022\u0026DEV_14DE\u0026SUBSYS_88771043\u0026REV_CB\\4\u00261EBE6A9C\u00260\u00260041",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "PCI Encryption/Decryption Controller",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "PCI\\VEN_1022\u0026DEV_1649\u0026SUBSYS_88771043\u0026REV_00\\4\u00261EBE6A9C\u00260\u00260241",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "AURA LED Controller",
+                             "Severity":  "INFO",
+                             "ErrorName":  "Disabled",
+                             "ErrorCode":  22,
+                             "DeviceID":  "USB\\VID_0B05\u0026PID_19AF\u0026MI_00\\9\u0026DE2EAF5\u00260\u00260000",
+                             "Skipped":  true
+                         },
+                         {
+                             "Name":  "ASUS System Product Name",
+                             "Severity":  "INFO",
+                             "ErrorName":  "Disabled",
+                             "ErrorCode":  22,
+                             "DeviceID":  "SWD\\COMPUTER\\MFG_ASUS\u0026FAM_TO_BE_FILLED_BY_O.E.M.\u0026PROD_SYSTEM_PRODUCT_NAME\u0026SKU_SKU",
+                             "Skipped":  true
+                         },
+                         {
+                             "Name":  "(Unknown)",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "ACPI\\AMDI0101\\0",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "(Unknown)",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "ACPI\\AMDI0204\\2\u0026DABA3FF\u00260",
+                             "Skipped":  false
+                         },
+                         {
+                             "Name":  "(Unknown)",
+                             "Severity":  "CRITICAL",
+                             "ErrorName":  "No driver installed",
+                             "ErrorCode":  28,
+                             "DeviceID":  "ACPI\\AMDI0052\\2\u0026DABA3FF\u00260",
+                             "Skipped":  false
+                         }
+                     ],
+    "criticalDrivers":  [
+                            {
+                                "Date":  "2026-04-13",
+                                "Status":  "OK",
+                                "Component":  "GPU (NVIDIA)",
+                                "Version":  "32.0.15.9621"
+                            },
+                            {
+                                "Date":  "",
+                                "Status":  "OK",
+                                "Component":  "NIC (I226-V)",
+                                "Version":  "2.1.5.7"
+                            },
+                            {
+                                "Date":  "",
+                                "Status":  "OK",
+                                "Component":  "Audio",
+                                "Version":  "10.0.26100.1"
+                            },
+                            {
+                                "Date":  "",
+                                "Status":  "OK",
+                                "Component":  "USB (xHCI)",
+                                "Version":  "10.0.26100.7920"
+                            }
+                        ]
+}

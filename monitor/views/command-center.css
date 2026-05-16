@@ -1,0 +1,218 @@
+/* ══════════════════════════════════════════════════
+   COMMAND CENTER VIEW
+   ══════════════════════════════════════════════════ */
+
+/* Empty / first-use onboarding */
+.cmd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--sp-3xl) var(--sp-xl);
+  gap: var(--sp-md);
+}
+.cmd-empty-icon {
+  color: var(--muted);
+  opacity: 0.45;
+  margin-bottom: var(--sp-xs);
+}
+.cmd-empty-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.cmd-empty-desc {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  max-width: 400px;
+  line-height: 1.6;
+}
+.cmd-empty-cmd {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-xl);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--data);
+  user-select: all;
+  margin-top: var(--sp-xs);
+}
+.cmd-empty-hint {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+/* Domain dispatch grid */
+.cmd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-lg);
+}
+.cmd-card {
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  transition: border-color var(--duration) ease;
+}
+.cmd-card:hover { border-color: var(--border); }
+.cmd-card.active { border-color: var(--data); }
+.cmd-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.cmd-card-icon { color: var(--muted); flex-shrink: 0; }
+.cmd-card-icon.dpc    { color: var(--data); }
+.cmd-card-icon.gpu    { color: var(--good); }
+.cmd-card-icon.net    { color: var(--warn); }
+.cmd-card-icon.system { color: var(--purple); }
+.cmd-card-icon.audio  { color: var(--cyan); }
+.cmd-card-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--text);
+}
+.cmd-card-desc {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.5;
+}
+.cmd-card-cmd {
+  display: block;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: 3px;
+  color: var(--text-dim);
+  user-select: all;
+  word-break: break-all;
+  margin-top: auto;
+  line-height: 1.4;
+}
+
+/* Full diagnostic banner */
+.cmd-full-banner {
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--sp-sm);
+  padding: var(--sp-md) var(--sp-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-2xl);
+}
+.cmd-full-banner-icon { color: var(--muted); flex-shrink: 0; }
+.cmd-full-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  flex: 1;
+}
+.cmd-full-banner-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.cmd-full-banner-cmd {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  user-select: all;
+}
+
+/* Symptom quote */
+.cmd-symptom-quote {
+  color: var(--muted);
+  font-style: italic;
+  font-size: var(--text-sm);
+  margin-bottom: var(--sp-lg);
+}
+
+/* Recommendation cards */
+.cmd-rec {
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--sp-sm);
+  padding: var(--sp-md) var(--sp-lg);
+  margin-bottom: var(--sp-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-md);
+}
+.cmd-rec-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--data);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.cmd-rec-body { flex: 1; }
+.cmd-rec-action {
+  font-size: var(--text-sm);
+  color: var(--text);
+  margin-bottom: var(--sp-xs);
+}
+.cmd-rec-agent {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.cmd-rec-agent span { color: var(--data); }
+
+/* Quick actions */
+.cmd-quick {
+  background: var(--surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--sp-sm);
+  overflow: hidden;
+}
+.cmd-quick-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  padding: var(--sp-sm) var(--sp-lg);
+}
+.cmd-quick-row + .cmd-quick-row {
+  border-top: 1px solid var(--border-dim);
+}
+.cmd-quick-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--text);
+  min-width: 110px;
+}
+.cmd-quick-cmd {
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: 3px;
+  color: var(--text-dim);
+  user-select: all;
+  flex: 1;
+}
+
+/* Utility */
+.color-muted { color: var(--muted); }

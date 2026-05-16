@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WindowsPerformanceRecorder Version="1.0" Author="windows-latency-optimizer">
+  <Profiles>
+
+    <!-- ================================================================== -->
+    <!-- System Collector: Kernel events with expanded keywords              -->
+    <!-- ================================================================== -->
+    <SystemCollector Id="SC_TaskGpu" Name="TaskGpuSystemCollector">
+      <BufferSize Value="1024"/>
+      <Buffers Value="512"/>
+    </SystemCollector>
+
+    <!-- ================================================================== -->
+    <!-- Event Collector: User-mode ETW providers (GPU + Task + System)      -->
+    <!-- ================================================================== -->
+    <EventCollector Id="EC_TaskGpu" Name="TaskGpuEventCollector">
+      <BufferSize Value="512"/>
+      <Buffers Value="256"/>
+    </EventCollector>
+
+    <!-- ================================================================== -->
+    <!-- System Provider: DPC/ISR/CSwitch + Power/Timer/DiskIO               -->
+    <!-- ================================================================== -->
+    <SystemProvider Id="SP_TaskGpu">
+      <Keywords>
+        <!-- Original from input-latency.wprp -->
+        <Keyword Value="ProcessThread"/>
+        <Keyword Value="Loader"/>
+        <Keyword Value="DPC"/>
+        <Keyword Value="Interrupt"/>
+        <Keyword Value="CSwitch"/>
+        <Keyword Value="ReadyThread"/>
+        <Keyword Value="SampledProfile"/>
+        <!-- NEW: Power + timer + disk for task correlation -->
+        <Keyword Value="Power"/>
+        <Keyword Value="IdleStates"/>
+        <Keyword Value="Timer"/>
+        <Keyword Value="DiskIO"/>
+        <Keyword Value="DiskIOInit"/>
+      </Keywords>
+      <Stacks>
+        <!-- Original stacks -->
+        <Stack Value="DpcExecute"/>
+        <Stack Value="CSwitch"/>
+        <Stack Value="ReadyThread"/>
+        <Stack Value="SampledProfile"/>
+        <!-- NEW: Disk I/O stacks -->
+        <Stack Value="DiskReadInit"/>
+        <Stack Value="DiskWriteInit"/>
+      </Stacks>
+    </SystemProvider>
+
+    <!-- ================================================================== -->
+    <!-- GPU ETW Providers (carried from input-latency.wprp)                 -->
+    <!-- ================================================================== -->
+
+    <!-- DxgKrnl: GPU scheduling, present/flip queue, P-state transitions -->
+    <EventProvider Id="EP_DxgKrnl" Name="802EC45A-1E99-4B83-9920-87C98277BA9D" NonPagedMemory="true" Level="5"/>
+    <!-- DXGI: swap chain / present events -->
+    <EventProvider Id="EP_DXGI" Name="CA11C036-0102-4A2D-A6AD-F03CFED5D3C9" Level="5"/>
+    <!-- Direct3D 11 -->
+    <EventProvider Id="EP_D3D11" Name="DB6F6DDB-AC77-4E88-8253-819DF9BBF140" Level="5"/>
+    <!-- Direct3D 12 -->
+    <EventProvider Id="EP_D3D12" Name="5D8087DD-3A9B-4F56-90DF-49196CDC4F11" Level="5"/>
+    <!-- DWM Core: composition timing, frame glitch detection -->
+    <EventProvider Id="EP_DwmCore" Name="9E9BBA3C-2E38-40CB-99F4-9E8281425164" Level="5"/>
+    <!-- Win32k: input-to-render pipeline -->
+    <EventProvider Id="EP_Win32k" Name="8C416C79-D49B-4F01-A467-E56D3AA8234C" NonPagedMemory="true" Level="5"/>
+    <!-- HID input device events -->
+    <EventProvider Id="EP_HIDCLASS" Name="6465DA78-E7A0-4F39-B084-8F53C7C30DC6" Level="5"/>
+    <!-- USB 3.0 hub events -->
+    <EventProvider Id="EP_USBHUB3" Name="AC52AD17-CC01-4F85-8DF5-4DCE4333C99B" Level="4"/>
+    <!-- NVIDIA internal driver events (clock ramps, Reflex markers) -->
+    <EventProvider Id="EP_NvExternal" Name="AE4F8626-8265-40D1-A70B-11B64240E8E9" Level="4"/>
+
+    <!-- ================================================================== -->
+    <!-- NEW: Task Scheduler + Process + Services ETW Providers              -->
+    <!-- ================================================================== -->
+
+    <!-- Microsoft-Windows-TaskScheduler: Task start/complete/trigger events -->
+    <EventProvider Id="EP_TaskScheduler" Name="DE7B24EA-73C8-4A09-985D-5BDADCFA9017" Level="5"/>
+    <!-- Microsoft-Windows-Kernel-Process: Process create/exit (see what tasks spawn) -->
+    <EventProvider Id="EP_KernelProcess" Name="22FB2CD6-0E7B-422B-A0C7-2FAD1FD0E716" Level="4"/>
+    <!-- Microsoft-Windows-Services: Service start/stop (svchost-hosted tasks) -->
+    <EventProvider Id="EP_Services" Name="0063715B-EEDA-7F44-8AF4-BA3BA2D8B435" Level="4"/>
+
+    <!-- ================================================================== -->
+    <!-- Profile: File mode (Verbose)                                        -->
+    <!-- ================================================================== -->
+    <Profile Id="TaskGpu.Verbose.File" LoggingMode="File"
+             Name="TaskGpu" DetailLevel="Verbose"
+             Description="Task Scheduler + GPU + Input latency tracing (file mode)">
+      <Collectors>
+        <SystemCollectorId Value="SC_TaskGpu">
+          <SystemProviderId Value="SP_TaskGpu"/>
+        </SystemCollectorId>
+        <EventCollectorId Value="EC_TaskGpu">
+          <EventProviders>
+            <!-- GPU pipeline -->
+            <EventProviderId Value="EP_DxgKrnl"/>
+            <EventProviderId Value="EP_DXGI"/>
+            <EventProviderId Value="EP_D3D11"/>
+            <EventProviderId Value="EP_D3D12"/>
+            <EventProviderId Value="EP_DwmCore"/>
+            <EventProviderId Value="EP_Win32k"/>
+            <!-- Input devices -->
+            <EventProviderId Value="EP_HIDCLASS"/>
+            <EventProviderId Value="EP_USBHUB3"/>
+            <!-- NVIDIA -->
+            <EventProviderId Value="EP_NvExternal"/>
+            <!-- Task + System -->
+            <EventProviderId Value="EP_TaskScheduler"/>
+            <EventProviderId Value="EP_KernelProcess"/>
+            <EventProviderId Value="EP_Services"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+    <!-- ================================================================== -->
+    <!-- Profile: Memory mode (Verbose) — circular buffer for always-on      -->
+    <!-- ================================================================== -->
+    <Profile Id="TaskGpu.Verbose.Memory" LoggingMode="Memory"
+             Name="TaskGpu" DetailLevel="Verbose"
+             Description="Task Scheduler + GPU + Input latency tracing (memory mode)">
+      <Collectors>
+        <SystemCollectorId Value="SC_TaskGpu">
+          <SystemProviderId Value="SP_TaskGpu"/>
+        </SystemCollectorId>
+        <EventCollectorId Value="EC_TaskGpu">
+          <EventProviders>
+            <!-- GPU pipeline -->
+            <EventProviderId Value="EP_DxgKrnl"/>
+            <EventProviderId Value="EP_DXGI"/>
+            <EventProviderId Value="EP_D3D11"/>
+            <EventProviderId Value="EP_D3D12"/>
+            <EventProviderId Value="EP_DwmCore"/>
+            <EventProviderId Value="EP_Win32k"/>
+            <!-- Input devices -->
+            <EventProviderId Value="EP_HIDCLASS"/>
+            <EventProviderId Value="EP_USBHUB3"/>
+            <!-- NVIDIA -->
+            <EventProviderId Value="EP_NvExternal"/>
+            <!-- Task + System -->
+            <EventProviderId Value="EP_TaskScheduler"/>
+            <EventProviderId Value="EP_KernelProcess"/>
+            <EventProviderId Value="EP_Services"/>
+          </EventProviders>
+        </EventCollectorId>
+      </Collectors>
+    </Profile>
+
+  </Profiles>
+</WindowsPerformanceRecorder>

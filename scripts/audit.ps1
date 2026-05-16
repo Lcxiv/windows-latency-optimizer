@@ -65,6 +65,7 @@ $allChecks = @()
 $allChecks += Invoke-OsChecks
 $allChecks += Invoke-NicChecks
 $allChecks += Invoke-GpuChecks
+$allChecks += Invoke-DriverHealthChecks
 # Deep tier
 if ($Mode -eq 'Deep') {
     $allChecks += Invoke-MemoryChecks
@@ -74,6 +75,7 @@ if ($Mode -eq 'Deep') {
     $allChecks += Invoke-NvidiaDpcHealthCheck
     $allChecks += Invoke-LatencyMitigationChecks
     $allChecks += Invoke-DWMHealthChecks
+    $allChecks += Invoke-DeepOptimizeChecks
 }
 
 # --- Symptom filtering (post-aggregation) ---

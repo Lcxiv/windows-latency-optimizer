@@ -1,0 +1,48 @@
+﻿{
+    "findings":  [
+                     {
+                         "id":  "cpu_vcore_idle",
+                         "component":  "CPU",
+                         "metric":  "Vcore (VID) idle",
+                         "phase":  "idle",
+                         "unit":  "V",
+                         "min":  0.85,
+                         "max":  1.20,
+                         "observed":  1.214,
+                         "status":  "fail_above",
+                         "severity":  "warn",
+                         "message":  "value 1.214 \u003e max 1.20 V",
+                         "source":  "AMD AM5 SoC datasheet; HWiNFO CPU Core VID SVI3"
+                     },
+                     {
+                         "id":  "cpu_vsoc",
+                         "component":  "CPU",
+                         "metric":  "VSOC",
+                         "phase":  "any",
+                         "unit":  "V",
+                         "min":  1.05,
+                         "max":  1.20,
+                         "observed":  1.24,
+                         "status":  "fail_above",
+                         "severity":  "critical",
+                         "message":  "value 1.24 \u003e max 1.20 V",
+                         "source":  "AMD safety advisory 2023-04; community â‰¤1.20V"
+                     },
+                     {
+                         "id":  "cpu_vddio_mem",
+                         "component":  "CPU",
+                         "metric":  "VDDIO_MEM",
+                         "phase":  "any",
+                         "unit":  "V",
+                         "min":  1.25,
+                         "max":  1.45,
+                         "observed":  1.5318,
+                         "status":  "fail_above",
+                         "severity":  "warn",
+                         "message":  "value 1.5318 \u003e max 1.45 V",
+                         "source":  "JEDEC DDR5 / X870E vendor BIOS"
+                     }
+                 ],
+    "schemaVersion":  1,
+    "count":  3
+}

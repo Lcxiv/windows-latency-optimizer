@@ -1,0 +1,24 @@
+﻿{
+    "capturedAt":  "2026-04-25T10:16:12.683",
+    "adapters":  [
+                     {
+                         "name":  "Ethernet",
+                         "interfaceDescription":  "Intel(R) Ethernet Controller I226-V",
+                         "linkSpeedBps":  2500000000,
+                         "linkSpeedText":  "2.5 Gbps",
+                         "macAddress":  "60-CF-84-62-9D-F7",
+                         "fullDuplex":  true,
+                         "mediaConnectionState":  "Connected",
+                         "stats":  {
+                                       "receivedBytes":  102175225,
+                                       "receivedUnicastPackets":  130562,
+                                       "receivedDiscardedPackets":  0,
+                                       "receivedPacketErrors":  0,
+                                       "sentBytes":  89736046,
+                                       "sentUnicastPackets":  137110,
+                                       "sentDiscardedPackets":  0,
+                                       "sentPacketErrors":  0
+                                   }
+                     }
+                 ]
+}

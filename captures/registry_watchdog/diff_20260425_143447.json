@@ -1,0 +1,32 @@
+﻿{
+    "currentSnapshot":  "snapshot_20260425_143447.json",
+    "changes":  [
+                    {
+                        "key":  "dwm_OverlayTestMode",
+                        "previous":  "5",
+                        "current":  "\u003cnull\u003e",
+                        "previousSnapshot":  "snapshot_20260425_134858.json"
+                    },
+                    {
+                        "key":  "wu_AUOptions",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "2",
+                        "previousSnapshot":  "snapshot_20260425_134858.json"
+                    },
+                    {
+                        "key":  "wu_NoAutoUpdate",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "0",
+                        "previousSnapshot":  "snapshot_20260425_134858.json"
+                    },
+                    {
+                        "key":  "wu_NoAutoReboot",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "1",
+                        "previousSnapshot":  "snapshot_20260425_134858.json"
+                    }
+                ],
+    "changeCount":  4,
+    "comparedAt":  "2026-04-25T14:34:51",
+    "previousSnapshot":  "snapshot_20260425_134858.json"
+}

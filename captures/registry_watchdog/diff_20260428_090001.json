@@ -1,0 +1,26 @@
+﻿{
+    "currentSnapshot":  "snapshot_20260428_090001.json",
+    "changes":  [
+                    {
+                        "key":  "defender_DisableRealtimeMonitoring",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "True",
+                        "previousSnapshot":  "snapshot_20260428_054918.json"
+                    },
+                    {
+                        "key":  "defender_ScanAvgCPULoadFactor",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "5",
+                        "previousSnapshot":  "snapshot_20260428_054918.json"
+                    },
+                    {
+                        "key":  "defender_ExclusionPathCount",
+                        "previous":  "\u003cnull\u003e",
+                        "current":  "14",
+                        "previousSnapshot":  "snapshot_20260428_054918.json"
+                    }
+                ],
+    "changeCount":  3,
+    "comparedAt":  "2026-04-28T09:00:03",
+    "previousSnapshot":  "snapshot_20260428_054918.json"
+}

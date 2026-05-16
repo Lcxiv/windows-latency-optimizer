@@ -1,0 +1,14 @@
+C:\Program Files (x86)\Steam\steamapps\common
+C:\Program Files\Epic Games
+C:\Program Files\Epic Games\Fortnite
+C:\Program Files\Epic Games\Launcher
+C:\ProgramData\Epic\EpicGamesLauncher
+%USERPROFILE%\.claude
+%LOCALAPPDATA%\D3DSCache
+%LOCALAPPDATA%\EpicGamesLauncher
+%LOCALAPPDATA%\FortniteGame
+%LOCALAPPDATA%\ms-playwright
+%LOCALAPPDATA%\NVIDIA\DXCache
+%LOCALAPPDATA%\Temp
+%LOCALAPPDATA%\Temp\claude
+%APPDATA%\Claude

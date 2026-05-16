@@ -56,6 +56,10 @@ docs/
 | `rollback.ps1 -BackupFile path [-WhatIf]` | Restore registry from backup | Yes |
 | `generate_dashboard_data.ps1` | Rebuild experiments_generated.js | No |
 | `baseline_capture.ps1 -Label X` | Quick 10s snapshot | Yes |
+| `analyze_capframex.ps1 [-Files ...]` | Side-by-side CapFrameX capture comparison | No |
+| `capframex_hitches.ps1 -Path X [-HitchThresholdMs Y] [-TopN Z]` | Per-frame hitch table + cluster detection | No |
+| `capframex_steady_state.ps1 -Path X [-StartSec Y] [-EndSec Z]` | Trimmed gameplay-window recompute | No |
+| `capframex_correlate_sensors.ps1 -Path X [-HitchThresholdMs Y]` | Correlate hitches with GPU/CPU sensor readings | No |
 
 ## Data Schema (v3)
 Experiments have these fields (all nullable except id/label/date):
@@ -88,7 +92,61 @@ Experiments have these fields (all nullable except id/label/date):
 4. Open dashboard in browser to verify chart rendering
 5. Conventional commits: `feat:`, `fix:`, `exp:`, `chore:`, `docs:`
 
-## Recommended Agents
+## Domain Expert Agents
+
+Specialized latency diagnosis and optimization agents. Use `@triage` as entry point — it classifies symptoms and routes to the right specialist.
+
+| Agent | Domain | When to use |
+|-------|--------|-------------|
+| `@triage` | Router | Any latency complaint — classifies and routes to specialists |
+| `@dpc` | DPC/ISR/Input/Audio | Mouse stutter, input gaps, DPC storms, audio warble, CPU 0 saturation |
+| `@gpu` | GPU/Frame Timing/Display | Frame drops, hitches, NVIDIA clocks, G-Sync, FSO/MPO/HAGS |
+| `@net` | Network | Ping spikes, packet loss, bufferbloat, DNS, I226-V NIC, TCP tuning |
+| `@system` | System Health | Full audit, Defender, BIOS, services, registry drift, hardware diag |
+| `@capture` | Capture Pipeline | WPR/xperf captures, baseline snapshots, dashboard data, experiment comparison |
+
+### Tool Subagents
+
+Deep CLI reference for specific tools. Domain agents dispatch to these automatically.
+
+| Subagent | Tool | Used by |
+|----------|------|---------|
+| `@tools/wpr` | Windows Performance Recorder | `@capture`, `@dpc` |
+| `@tools/xperf` | xperf / WPA | `@capture`, `@dpc` |
+| `@tools/capframex` | CapFrameX frame timing | `@gpu` |
+| `@tools/presentmon` | Microsoft PresentMon | `@gpu`, `@capture` |
+| `@tools/nvidia-smi` | nvidia-smi GPU queries | `@gpu` |
+| `@tools/nsight` | NVIDIA Nsight Systems | `@gpu`, `@dpc` |
+| `@tools/procmon` | Sysinternals Process Monitor | `@system`, `@dpc` |
+| `@tools/gpuview` | GPUView queue visualization | `@gpu`, `@dpc` |
+| `@tools/rtss` | RivaTuner Statistics Server | `@gpu` |
+| `@tools/hwinfo` | HWiNFO64 sensor monitoring | `@system` |
+| `@tools/scewin` | SCEWIN BIOS modification | `@system` |
+| `@tools/pktmon` | Windows packet monitor | `@net` |
+
+### Example Invocations
+
+```
+# Mouse stutters in Fortnite → triage routes to @dpc then @gpu
+@triage "My mouse stutters in Fortnite"
+
+# Analyze a specific DPC report
+@dpc "Analyze DPC attribution in captures/experiments/latest/dpcisr_report.txt"
+
+# Frame timing analysis
+@gpu "Compare CapFrameX captures before and after HAGS disable"
+
+# Network baseline
+@net "Run 60s ping baseline and check I226-V error counters"
+
+# Full system audit
+@system "Run audit.ps1 and health-check.ps1, report findings"
+
+# Capture pipeline
+@capture "Run pipeline with -SkipWPR -DurationSec 30 -Label POST_FIX"
+```
+
+## General Agents
 | Situation | Agent |
 |-----------|-------|
 | Planning experiments | `planner` (Opus) |

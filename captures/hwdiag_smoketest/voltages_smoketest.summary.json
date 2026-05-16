@@ -1,0 +1,26 @@
+﻿{
+    "schemaVersion":  1,
+    "capturedAt":  "2026-04-25T10:14:12",
+    "phase":  "smoketest",
+    "durationSec":  15,
+    "hwinfo64":  {
+                     "installed":  true,
+                     "installPath":  "C:\\Program Files\\HWiNFO64\\HWiNFO64.EXE",
+                     "running":  true,
+                     "csvLog":  null,
+                     "csvLogActive":  false,
+                     "sampleCount":  0,
+                     "rails":  {
+
+                               }
+                 },
+    "acpiThermalZones":  [
+                             {
+                                 "error":  "Not supported "
+                             }
+                         ],
+    "nvidia":  null,
+    "flags":  [
+                  "HWiNFO64 installed but no active CSV log detected. Start HWiNFO64 sensors-only mode and enable Logging (right-click trash icon -\u003e CSV) to capture voltages."
+              ]
+}

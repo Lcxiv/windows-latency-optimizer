@@ -8,7 +8,8 @@
     2. Sets game priority to High
     3. Kills Razer bloat processes (settings persist in mouse firmware)
     4. Closes Epic Games Launcher (not needed after game launch)
-    5. Reports before/after thread count and memory freed
+    5. Re-enables ExitLag NDIS filter (disabled during idle for latency)
+    6. Reports before/after thread count and memory freed
 .PARAMETER GameProcess
     Game process name (without .exe). Auto-detects from known list if omitted.
 .PARAMETER Restore
@@ -17,6 +18,8 @@
     Skip Razer cleanup.
 .PARAMETER SkipLauncher
     Skip closing Epic Games Launcher.
+.PARAMETER SkipExitLag
+    Skip re-enabling ExitLag NDIS filter.
 .EXAMPLE
     .\optimize-game.ps1
 .EXAMPLE
@@ -28,7 +31,8 @@ param(
     [string]$GameProcess = '',
     [switch]$Restore,
     [switch]$SkipRazer,
-    [switch]$SkipLauncher
+    [switch]$SkipLauncher,
+    [switch]$SkipExitLag
 )
 
 $ErrorActionPreference = 'Stop'
@@ -185,6 +189,27 @@ if (-not $SkipLauncher) {
 } else {
     Write-Host ''
     Write-Host '--- Epic Launcher: skipped ---' -ForegroundColor DarkGray
+}
+
+# ── Step 6: ExitLag NDIS filter ─────────────────────────────────────────────
+if (-not $SkipExitLag) {
+    Write-Host ''
+    Write-Host '--- ExitLag NDIS Filter ---' -ForegroundColor Yellow
+
+    $exitlagBinding = Get-NetAdapterBinding -Name 'Ethernet' -ComponentId 'nt_ndextlag' -ErrorAction SilentlyContinue
+    if ($exitlagBinding) {
+        if ($exitlagBinding.Enabled) {
+            Write-Host 'ExitLag filter already enabled. Good for gaming.'
+        } else {
+            Enable-NetAdapterBinding -Name 'Ethernet' -ComponentId 'nt_ndextlag' -ErrorAction SilentlyContinue
+            Write-Host 'Re-enabled ExitLag NDIS filter for game routing.'
+        }
+    } else {
+        Write-Host 'ExitLag not installed. Skipping.'
+    }
+} else {
+    Write-Host ''
+    Write-Host '--- ExitLag: skipped ---' -ForegroundColor DarkGray
 }
 
 # ── Summary ─────────────────────────────────────────────────────────────────

@@ -1,0 +1,16 @@
+﻿{
+    "planned":  {
+                    "DevicePolicy":  3,
+                    "AssignmentSetOverride":  "0xF0 0x00",
+                    "action":  "Apply"
+                },
+    "device":  "VEN_10DE\u0026DEV_2C05\u0026SUBSYS_417F1458\u0026REV_A1",
+    "timestamp":  "20260423_093809",
+    "policyKeyPath":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Enum\\PCI\\VEN_10DE\u0026DEV_2C05\u0026SUBSYS_417F1458\u0026REV_A1\\253C1C6A232DB04800\\Device Parameters\\Interrupt Management\\Affinity Policy",
+    "instance":  "253C1C6A232DB04800",
+    "preApply":  {
+                     "DevicePolicy":  null,
+                     "AssignmentSetOverride":  null,
+                     "keyExisted":  true
+                 }
+}
