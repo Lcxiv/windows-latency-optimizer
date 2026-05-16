@@ -11,9 +11,10 @@ Scientific toolkit for measuring, analyzing, and reducing Windows system latency
 - 32 GB RAM
 
 ## Stack
-- **Scripts:** PowerShell 5.1 (Windows built-in) — all scripts must be PS 5.1 compatible
-- **Dashboard:** HTML shell + app.css + app.js with Chart.js (CDN), vanilla JS, file:// compatible
-- **Capture Tools:** WPR (built-in), xperf/WPA (Windows ADK), PresentMon (via FrameView)
+- **Scripts:** PowerShell 5.1 (Windows built-in) — all scripts must be PS 5.1 compatible (145 scripts under `scripts/`)
+- **Experiment Dashboard:** `dashboard/` — HTML shell + app.css + app.js with Chart.js (CDN), vanilla JS, file:// compatible. Historical experiment archive.
+- **Monitor Dashboard:** `monitor/` — canonical live UI. 8 views (Heatmap, Timeline, Processes, Drivers, Audit, Network, History, Command Center). Reads JSON snapshots from `scripts/monitor_collector.ps1` every 2s. Same file:// constraints as dashboard.
+- **Capture Tools:** WPR (built-in), xperf/WPA (Windows ADK), PresentMon (via FrameView), CapFrameX, NVIDIA Nsight Systems
 - **Minimal tooling** — npx (via Node.js) for dev server only; no npm install, no pip, no build step
 
 ## Key Constraints
@@ -25,24 +26,47 @@ Scientific toolkit for measuring, analyzing, and reducing Windows system latency
 ## Project Structure
 ```
 scripts/
-  pipeline.ps1              # Main capture: WPR + perf + GPU + xperf + dashboard update
-  run_experiment.ps1         # Simpler perf counter + registry capture
-  rollback.ps1               # Restore from backup (cmdlet allowlist validated)
+  pipeline.ps1                # Main capture: WPR + perf + GPU + xperf + dashboard update
+  monitor_collector.ps1       # Live collector — writes monitor/data/{snapshot,history}.js every 2s
+  diagnose.ps1                # 3-layer diagnostic dispatcher (symptom keywords -> chain)
+  audit.ps1 / audit-checks.ps1 # 41-check audit; dot-sources scripts/audit-checks/*.ps1
+  audit-checks/               # 9 category modules: os, gpu, dwm, latency, memory, network, nic, peripheral, _helpers
+  rollback.ps1                # Restore from backup (cmdlet allowlist validated)
+  startup_guard.ps1           # Verify + auto-fix optimizations at logon
+  helpers/                    # Shared modules: logging, capture-core, network, wmi-cache, etc.
   generate_dashboard_data.ps1 # JSON experiments -> experiments_generated.js
-  baseline_capture.ps1       # Quick 10s perf + registry snapshot
-  analyze_procmon.ps1        # ProcMon CSV parser
+  baseline_capture.ps1        # Quick 10s perf + registry snapshot
+  analyze_procmon.ps1         # ProcMon CSV parser
+  exp*.ps1                    # Individual numbered experiment scripts
 captures/
-  experiments/               # Pipeline output directories (JSON + reports)
-  backup_pre_*.txt           # Registry backups with embedded rollback commands
-  os_baseline_*.txt          # Quick baseline snapshots
+  experiments/                # Pipeline output directories (JSON + reports + rollback)
+  backup_pre_*.txt            # Registry backups with embedded rollback commands
+  os_baseline_*.txt           # Quick baseline snapshots
+monitor/
+  index.html                  # Live monitor shell (canonical UI)
+  monitor.css / monitor.js    # Core styles + view router
+  data/snapshot.js            # Current state (refreshed by collector every 2s)
+  data/history.js             # Rolling 60-point history
+  views/                      # 8 view modules: heatmap, timeline, processes, drivers, audit, network, history, command-center
+  views/command-center.{js,css} # 5-panel expert view (Command Center)
+  lib/chart.umd.min.js        # Offline Chart.js fallback
 dashboard/
-  index.html                 # HTML shell (loads app.css + app.js)
-  app.css                    # Dashboard styles
-  app.js                     # Dashboard logic (table/detail/compare views)
-  data/experiments.js        # Hand-curated experiment data (baseline + exp01-07)
+  index.html                  # Experiment archive shell
+  app.css / app.js            # Table / detail / compare views
+  data/experiments.js         # Hand-curated experiment data (baseline + exp01-07)
   data/experiments_generated.js  # Auto-generated from pipeline JSON
 docs/
-  findings.md, implementation-plan.md, methodology.md
+  case-study.md               # Project narrative (problem -> method -> results)
+  findings.md / methodology.md / implementation-plan.md
+  tools-glossary.md           # Diagnostic tool reference
+  slides/index.html           # Self-contained HTML slide deck
+  history/                    # Retired artifacts (Tauri summary, etc.)
+  wiki/                       # Research notes + reference docs
+tests/
+  *.Tests.ps1                 # 12 Pester suites (768 tests)
+  dashboard.test.js           # Node assert (47 tests)
+config/
+  defender_exclusions.txt     # Local Defender exclusion list (gitignored copy)
 ```
 
 ## Scripts Reference

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Latency Optimizer — Case Study Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg-elev: #131316;
+    --fg: #f4f4f5;
+    --fg-dim: #a1a1aa;
+    --fg-faint: #52525b;
+    --accent: #10b981;
+    --accent-soft: rgba(16, 185, 129, 0.12);
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --rule: #27272a;
+    --rule-soft: #1c1c1f;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Geist', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    height: 100vh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 5vh 8vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity .35s ease, transform .35s ease;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+  .slide.prev { transform: translateX(-40px); }
+
+  /* Header rail */
+  .rail {
+    position: absolute;
+    top: 3vh;
+    left: 8vw;
+    right: 8vw;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    z-index: 5;
+  }
+  .rail .left { color: var(--accent); }
+
+  /* Footer counter */
+  .counter {
+    position: absolute;
+    bottom: 3vh;
+    right: 8vw;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg-faint);
+    letter-spacing: 0.12em;
+    z-index: 5;
+  }
+
+  /* Nav hints */
+  .hint {
+    position: absolute;
+    bottom: 3vh;
+    left: 8vw;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg-faint);
+    letter-spacing: 0.04em;
+    z-index: 5;
+  }
+  .hint kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--bg-elev);
+    margin: 0 2px;
+    font-size: 10px;
+  }
+
+  /* Slide types */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(48px, 6vw, 96px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin-bottom: 24px;
+    max-width: 22ch;
+  }
+
+  h2 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: clamp(36px, 4.5vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -0.022em;
+    margin-bottom: 28px;
+    max-width: 24ch;
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: clamp(22px, 2.2vw, 32px);
+    color: var(--fg-dim);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+
+  .lead {
+    font-size: clamp(18px, 1.5vw, 24px);
+    line-height: 1.5;
+    color: var(--fg-dim);
+    max-width: 60ch;
+    margin-bottom: 24px;
+  }
+
+  .accent { color: var(--accent); }
+  .danger { color: var(--danger); }
+  .warn { color: var(--warn); }
+  .mono { font-family: var(--mono); font-weight: 500; }
+
+  /* Title slide */
+  .slide.title {
+    background:
+      radial-gradient(ellipse at 25% 30%, rgba(16, 185, 129, 0.08), transparent 60%),
+      radial-gradient(ellipse at 80% 70%, rgba(99, 102, 241, 0.06), transparent 60%);
+  }
+  .slide.title h1 { font-size: clamp(56px, 7.5vw, 128px); max-width: 18ch; }
+  .slide.title .meta {
+    margin-top: 36px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--fg-dim);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .slide.title .meta span::before { content: "//  "; color: var(--accent); }
+
+  /* TL;DR slide */
+  .tldr-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 40px;
+  }
+  .stat {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 24px;
+    background: var(--bg-elev);
+  }
+  .stat .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .stat .value {
+    font-family: var(--sans);
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    margin-bottom: 6px;
+  }
+  .stat .delta { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .stat .delta.bad { color: var(--danger); }
+
+  /* Spec table */
+  .spec {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 12px 32px;
+    margin-top: 28px;
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 800px;
+  }
+  .spec dt {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding-top: 4px;
+  }
+  .spec dd { color: var(--fg); }
+
+  /* Two-column layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+
+  .col h3 { font-size: 22px; margin-bottom: 18px; }
+  .col p, .col li { font-size: 17px; line-height: 1.55; color: var(--fg-dim); margin-bottom: 12px; }
+  .col ul { list-style: none; padding: 0; }
+  .col ul li { padding-left: 20px; position: relative; }
+  .col ul li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-family: var(--mono); }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    margin-top: 20px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    border-bottom-color: var(--rule);
+  }
+  td { color: var(--fg); }
+  td.mono { font-family: var(--mono); font-size: 14px; color: var(--fg-dim); }
+  td.win { color: var(--accent); font-weight: 500; }
+  td.delta { font-family: var(--mono); font-weight: 500; }
+  td.delta.win { color: var(--accent); }
+  td.delta.bad { color: var(--danger); }
+
+  /* Bar chart */
+  .bars {
+    display: grid;
+    grid-template-columns: 160px 1fr 100px;
+    gap: 12px 16px;
+    margin-top: 24px;
+    align-items: center;
+    max-width: 900px;
+  }
+  .bar-label { font-family: var(--mono); font-size: 13px; color: var(--fg-dim); }
+  .bar-track {
+    height: 22px;
+    background: var(--rule-soft);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #34d399);
+    border-radius: 3px;
+    transition: width .8s ease;
+  }
+  .bar-fill.bad { background: linear-gradient(90deg, var(--danger), #f87171); }
+  .bar-value { font-family: var(--mono); font-size: 13px; color: var(--fg); text-align: right; }
+
+  /* Code block */
+  pre {
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.55;
+    background: var(--bg-elev);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 20px 24px;
+    color: var(--fg-dim);
+    overflow: auto;
+    margin-top: 20px;
+  }
+  pre .k { color: var(--accent); }
+  pre .c { color: var(--fg-faint); font-style: italic; }
+  pre .s { color: #fbbf24; }
+
+  /* Tools grid */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 20px;
+    margin-top: 28px;
+  }
+  .tool {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: var(--bg-elev);
+  }
+  .tool .name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 4px;
+  }
+  .tool .purpose { font-size: 12px; line-height: 1.45; color: var(--fg-dim); }
+
+  /* Sparkline */
+  .spark-wrap {
+    margin-top: 32px;
+    padding: 32px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--bg-elev);
+    max-width: 900px;
+  }
+  .spark-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+  }
+  .spark-svg { width: 100%; height: 80px; }
+  .spark-caption {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--fg-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+  .spark-caption .from { color: var(--danger); }
+  .spark-caption .to { color: var(--accent); }
+
+  /* Architecture ASCII */
+  .arch {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--fg-dim);
+    background: var(--bg-elev);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 24px;
+    white-space: pre;
+    overflow-x: auto;
+    max-width: 850px;
+  }
+
+  /* Closing slide */
+  .slide.closing {
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.06), transparent 60%);
+    text-align: center;
+    align-items: center;
+  }
+  .slide.closing h1 { text-align: center; max-width: 20ch; }
+  .slide.closing .meta { justify-content: center; }
+
+  /* Progress bar */
+  .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width .35s ease;
+    z-index: 10;
+  }
+
+  /* Print / PDF */
+  @media print {
+    html, body { overflow: visible; }
+    .slide {
+      position: relative;
+      page-break-after: always;
+      opacity: 1 !important;
+      transform: none !important;
+      height: 100vh;
+    }
+    .hint, .counter, .progress { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck">
+<div class="progress" id="progress"></div>
+
+<!-- 1. Title -->
+<section class="slide title active">
+  <div class="rail">
+    <div class="left">CASE STUDY</div>
+    <div>Louis Condevaux  ·  2026</div>
+  </div>
+  <div class="eyebrow">Windows Latency Optimizer</div>
+  <h1>How I traced a mouse stutter to a single CPU core.</h1>
+  <div class="lead">
+    A $4,000 rig that micro-stuttered. Forum advice said flip 20 registry keys.
+    I instrumented the kernel instead. The root cause was one number.
+  </div>
+  <div class="meta">
+    <span>9800X3D + RTX 5070 Ti</span>
+    <span>PowerShell 5.1 / WPR / xperf</span>
+    <span>22 experiments · 41 checks</span>
+  </div>
+</section>
+
+<!-- 2. The headline -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">02  ·  HEADLINE RESULT</div>
+    <div>The fix held</div>
+  </div>
+  <div class="eyebrow">Before / After</div>
+  <h2>One number told the story.</h2>
+  <p class="lead">CPU 0 was doing 97.7 % of all interrupt work. The fix wasn't new hardware. It was MSI mode + interrupt affinity redistribution across the other 15 cores.</p>
+  <div class="tldr-grid">
+    <div class="stat">
+      <div class="label">CPU 0 interrupt share</div>
+      <div class="value"><span class="danger">97.7%</span> → <span class="accent">0.9%</span></div>
+      <div class="delta">−99 %</div>
+    </div>
+    <div class="stat">
+      <div class="label">Mouse input gaps / 10 s</div>
+      <div class="value">103 → <span class="accent">25</span></div>
+      <div class="delta">−76 %</div>
+    </div>
+    <div class="stat">
+      <div class="label">Longest input gap</div>
+      <div class="value">703 ms → <span class="accent">11 ms</span></div>
+      <div class="delta">−98 %</div>
+    </div>
+    <div class="stat">
+      <div class="label">Audit score</div>
+      <div class="value"><span class="accent">97 %</span></div>
+      <div class="delta">40 pass / 1 warn</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Problem -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">03  ·  PROBLEM</div>
+    <div>The symptom</div>
+  </div>
+  <div class="eyebrow">Symptom</div>
+  <h2>Cursor hitches mid-fight. Frames are smooth.</h2>
+  <div class="two-col">
+    <div class="col">
+      <p>The game ran at a solid 240 fps. The cursor froze for 10 ms every few seconds. Short enough that no monitoring tool flagged it. Long enough to throw aim in a Fortnite duel.</p>
+      <p>Task Manager said the CPU was at 12 %. LatencyMon's summary said the system was "suitable for real-time audio". Both were technically correct and entirely useless.</p>
+      <p>The averages were fine. The averages were also the wrong measurement.</p>
+    </div>
+    <div class="col">
+      <h3>System under test</h3>
+      <dl class="spec">
+        <dt>CPU</dt><dd>Ryzen 7 9800X3D · 8C/16T · Zen 5 V-Cache</dd>
+        <dt>GPU</dt><dd>NVIDIA RTX 5070 Ti</dd>
+        <dt>NIC</dt><dd>Intel I226-V 2.5 GbE</dd>
+        <dt>RAM</dt><dd>32 GB DDR5-6000 EXPO</dd>
+        <dt>OS</dt><dd>Windows 11 Build 26200</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Why advice fails -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">04  ·  PROBLEM</div>
+    <div>Why "optimization guides" fail</div>
+  </div>
+  <div class="eyebrow">The missing layer</div>
+  <h2>Every guide skips the measurement step.</h2>
+  <div class="two-col">
+    <div class="col">
+      <h3>What every guide says</h3>
+      <ul>
+        <li>Disable Nagle's algorithm</li>
+        <li>Flip 20 registry keys</li>
+        <li>Change power plan</li>
+        <li>Update drivers</li>
+        <li>(No evidence either way)</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>What's actually missing</h3>
+      <ul>
+        <li>Did your system have this problem?</li>
+        <li>What changed after the fix?</li>
+        <li>Did the fix regress anything else?</li>
+        <li>How do you roll back if it broke?</li>
+      </ul>
+      <p class="mono" style="margin-top: 24px; color: var(--fg-faint); font-size: 14px;">// Optimization without instrumentation is folklore.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Hypothesis -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">05  ·  HYPOTHESIS</div>
+    <div>The interrupt path</div>
+  </div>
+  <div class="eyebrow">Hypothesis</div>
+  <h2>The stutter is on the interrupt path, not in user space.</h2>
+  <p class="lead">Game smooth + cursor freezing ⇒ rules out application CPU contention, GPU saturation, memory pressure. Leaves interrupts and DPCs.</p>
+  <pre><span class="c">// Mouse arrival at kernel</span>
+<span class="k">USB controller</span>  →  IRQ  →  <span class="k">CPU n</span>  →  <span class="k">ISR</span>
+                                            ↓ defers
+                                       <span class="k">DPC queued</span>
+                                            ↓ runs at DISPATCH_LEVEL
+                                       <span class="k">cursor coord → user space</span>
+
+<span class="c">// Any stall here = input gap.</span>
+<span class="c">// If CPU n is saturated with other interrupts, the DPC waits.</span></pre>
+</section>
+
+<!-- 6. Method -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">06  ·  METHOD</div>
+    <div>Capture pipeline</div>
+  </div>
+  <div class="eyebrow">Method  ·  Layer 1</div>
+  <h2>One PowerShell script captures the full state.</h2>
+  <div class="two-col">
+    <div class="col">
+      <p><span class="mono accent">scripts/pipeline.ps1</span> runs:</p>
+      <ul>
+        <li>WPR — 60s ETW trace (CPU, DPC, GPU, HID)</li>
+        <li>xperf — separate DPC/ISR attribution</li>
+        <li>perf counters @ 1 Hz per logical CPU</li>
+        <li>nvidia-smi snapshots, GPU sensors</li>
+        <li>PresentMon frame timing (optional)</li>
+        <li>Registry + WMI snapshot of 41 settings</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Output</h3>
+      <pre style="font-size: 13px;">captures/experiments/
+  EXP15_msi_mode_20260415/
+    pipeline.etl
+    xperf_dpcisr.csv
+    perf_counters.json
+    gpu_sensors.json
+    registry_snapshot.json
+    backup_pre.txt   <span class="c"># rollback</span>
+    report.html</pre>
+      <p class="mono" style="font-size: 13px; color: var(--fg-faint); margin-top: 12px;">// Every change is reversible.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7. The 41 checks -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">07  ·  METHOD</div>
+    <div>The audit</div>
+  </div>
+  <div class="eyebrow">Method  ·  Layer 2</div>
+  <h2>41 checks across 9 categories.</h2>
+  <table>
+    <thead>
+      <tr><th>Category</th><th>Module</th><th>Examples</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="win">OS</td><td class="mono">os.ps1</td><td>MPO, Hyper-V, VBS, MMCSS, FSO/HAGS</td></tr>
+      <tr><td class="win">GPU</td><td class="mono">gpu.ps1</td><td>MSI mode, ReBAR, P-state, clone-mode</td></tr>
+      <tr><td class="win">DWM</td><td class="mono">dwm.ps1</td><td>OverlayTestMode, composition flags</td></tr>
+      <tr><td class="win">Latency</td><td class="mono">latency.ps1</td><td>Timer resolution, power plan, parking</td></tr>
+      <tr><td class="win">Memory</td><td class="mono">memory.ps1</td><td>RAM speed, EXPO, page file</td></tr>
+      <tr><td class="win">Network</td><td class="mono">network.ps1</td><td>TCP tuning, RSS, autotuning, Nagle</td></tr>
+      <tr><td class="win">NIC</td><td class="mono">nic.ps1</td><td>I226-V counters, EEE, MSI mode</td></tr>
+      <tr><td class="win">Peripheral</td><td class="mono">peripheral.ps1</td><td>USB selective suspend, polling, controller</td></tr>
+      <tr><td class="win">Helpers</td><td class="mono">_helpers.ps1</td><td>Result builder, system info</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 8. Numbered experiments -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">08  ·  METHOD</div>
+    <div>22 numbered experiments</div>
+  </div>
+  <div class="eyebrow">Method  ·  Layer 3</div>
+  <h2>Each change is one experiment. Each experiment is reversible.</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Change</th><th>Outcome</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">03</td><td>NVIDIA MSI mode + interrupt affinity → CPUs 4–7</td><td class="win">CPU 0 share: 97.7 % → 0.5 %</td></tr>
+      <tr><td class="mono">05</td><td>Defender exclusions: game + shader cache + Chrome</td><td class="win">Pagefaults: 149 → < 10 / 2 min</td></tr>
+      <tr><td class="mono">07</td><td>I226-V EEE off, flow control off, RSS on</td><td class="win">Eliminated 130+ link drops / 30 d</td></tr>
+      <tr><td class="mono">11</td><td>DWM OverlayTestMode=5</td><td class="danger">Crashed Epic Launcher · rolled back</td></tr>
+      <tr><td class="mono">15</td><td>USB controller affinity → CPUs 2–3 for input</td><td class="win">Gaps: 103 → 25, max 703 ms → 11 ms</td></tr>
+      <tr><td class="mono">18</td><td>Defender perf mode + shader scan exclusions</td><td class="win">Audit score: 84 % → 97 %</td></tr>
+    </tbody>
+  </table>
+  <p class="mono" style="margin-top: 24px; color: var(--fg-faint); font-size: 13px;">// Negative results kept and labeled. EXP 11 caught a launcher crash before it shipped.</p>
+</section>
+
+<!-- 9. Tools -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">09  ·  TOOLS</div>
+    <div>12 instruments</div>
+  </div>
+  <div class="eyebrow">Toolchain</div>
+  <h2>Each tool answers one question the others can't.</h2>
+  <div class="tools">
+    <div class="tool"><div class="name">WPR / xperf</div><div class="purpose">Which driver's DPC ran during the gap?</div></div>
+    <div class="tool"><div class="name">PresentMon</div><div class="purpose">Did this fix change frame pacing?</div></div>
+    <div class="tool"><div class="name">NVIDIA Nsight Systems</div><div class="purpose">Where does GPU work serialize?</div></div>
+    <div class="tool"><div class="name">CapFrameX</div><div class="purpose">Hitches clustered or spread?</div></div>
+    <div class="tool"><div class="name">LatencyMon</div><div class="purpose">Worst-case ISR / DPC over 10 min</div></div>
+    <div class="tool"><div class="name">HWiNFO64</div><div class="purpose">Voltages, temps, clock stretching</div></div>
+    <div class="tool"><div class="name">ProcMon</div><div class="purpose">Is Defender scanning during play?</div></div>
+    <div class="tool"><div class="name">GPUView</div><div class="purpose">Depth of GPU work queue at spikes</div></div>
+    <div class="tool"><div class="name">RTSS</div><div class="purpose">Frame limiter + Reflex behavior</div></div>
+    <div class="tool"><div class="name">nvidia-smi</div><div class="purpose">Is GPU stuck at idle clocks?</div></div>
+    <div class="tool"><div class="name">pktmon</div><div class="purpose">Packet retransmits vs freeze</div></div>
+    <div class="tool"><div class="name">SCEWIN</div><div class="purpose">Safe BIOS export + apply</div></div>
+  </div>
+</section>
+
+<!-- 10. Architecture -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">10  ·  ARCHITECTURE</div>
+    <div>Three layers</div>
+  </div>
+  <div class="eyebrow">Architecture</div>
+  <h2>Capture → Storage → Visualization.</h2>
+  <div class="arch">┌──────────────────────────────────────────────────────────────┐
+│  User: "mouse stutters in Fortnite"                          │
+└──────────────────────────────┬───────────────────────────────┘
+                               ▼
+                  ┌────────────────────────┐
+                  │   @triage  (classify)  │
+                  └───────┬────────────────┘
+                          │
+            ┌─────────────┼─────────────┐
+            ▼             ▼             ▼
+        ┌────────┐   ┌────────┐   ┌─────────┐
+        │  @dpc  │   │  @gpu  │   │ @system │
+        └────┬───┘   └────┬───┘   └────┬────┘
+             └────────────┴────────────┘
+                          │
+                          ▼
+            scripts/pipeline.ps1  +  41-check audit
+                          │
+                          ▼
+       captures/experiments/&lt;label&gt;_&lt;timestamp&gt;/
+                          │
+                          ▼
+            monitor/  ·  Command Center · Heatmap</div>
+</section>
+
+<!-- 11. Results table -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">11  ·  RESULTS</div>
+    <div>Same rig, same workload</div>
+  </div>
+  <div class="eyebrow">Results</div>
+  <h2>Six weeks. Measured outcome.</h2>
+  <table>
+    <thead>
+      <tr><th>Metric</th><th>Before</th><th>After</th><th>Δ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CPU 0 interrupt share</td><td class="mono danger">97.7 %</td><td class="mono win">0.9 %</td><td class="delta win">−99 %</td></tr>
+      <tr><td>Mouse input gaps / 10 s</td><td class="mono">103</td><td class="mono win">25</td><td class="delta win">−76 %</td></tr>
+      <tr><td>Longest input gap</td><td class="mono danger">703 ms</td><td class="mono win">11 ms</td><td class="delta win">−98 %</td></tr>
+      <tr><td>Top DPC driver</td><td class="mono">nvlddmkm.sys · 561 µs</td><td class="mono win">storvsp.sys · 8 µs</td><td class="delta win">GPU DPC eliminated</td></tr>
+      <tr><td>Defender hard pagefaults</td><td class="mono">149 / 2 min</td><td class="mono win">&lt; 10 / 2 min</td><td class="delta win">−93 %</td></tr>
+      <tr><td>Audit score</td><td class="mono">n/a</td><td class="mono win">97 %</td><td class="delta win">40 / 41 pass</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 12. CPU 0 sparkline -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">12  ·  RESULTS</div>
+    <div>The fix, one chart</div>
+  </div>
+  <div class="eyebrow">CPU 0 interrupt share across 7 traces</div>
+  <h2>Seven measurements. One direction.</h2>
+  <div class="spark-wrap">
+    <div class="spark-title">CPU 0 interrupt %  ·  Mar 28 → May 12</div>
+    <svg class="spark-svg" viewBox="0 0 800 80" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#10b981" stop-opacity="0.3"/>
+          <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Points: 97.7, 82, 64, 41, 18, 5, 0.9 -->
+      <path d="M 0,4 L 133,17 L 267,32 L 400,52 L 533,69 L 667,76 L 800,79 L 800,80 L 0,80 Z" fill="url(#g)"/>
+      <path d="M 0,4 L 133,17 L 267,32 L 400,52 L 533,69 L 667,76 L 800,79" fill="none" stroke="#10b981" stroke-width="2.5"/>
+      <circle cx="0"   cy="4"  r="4" fill="#ef4444"/>
+      <circle cx="800" cy="79" r="4" fill="#10b981"/>
+    </svg>
+    <div class="spark-caption">
+      <span><span class="from">97.7 %</span> · baseline · Mar 28</span>
+      <span><span class="to">0.9 %</span> · post-EXP15 · May 12</span>
+    </div>
+  </div>
+  <p class="lead" style="margin-top: 32px;">No new hardware. Same OS install. Each step is one experiment with a rollback commit.</p>
+</section>
+
+<!-- 13. Retrospective -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">13  ·  RETROSPECTIVE</div>
+    <div>What I'd change</div>
+  </div>
+  <div class="eyebrow">Retrospective</div>
+  <h2>What worked. What I'd do differently.</h2>
+  <div class="two-col">
+    <div class="col">
+      <h3 class="accent">What worked</h3>
+      <ul>
+        <li>Numbered experiments with hypothesis + rollback</li>
+        <li>Per-CPU measurement, not <span class="mono">_Total</span></li>
+        <li>PowerShell over Python — no runtime, ships with Windows</li>
+        <li>Negative results kept and labeled</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3 class="warn">What I'd do differently</h3>
+      <ul>
+        <li>Real-time monitor on day one (took two months)</li>
+        <li>Skip the Tauri layer — HTML + Chart.js was enough</li>
+        <li>Pester tests on the audit logic earlier</li>
+        <li>Capture a clean baseline before each major OS update</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 14. Generalized pattern -->
+<section class="slide">
+  <div class="rail">
+    <div class="left">14  ·  TAKEAWAY</div>
+    <div>The shape that generalized</div>
+  </div>
+  <div class="eyebrow">Pattern</div>
+  <h2 style="max-width: 28ch;">Diagnose. Explain in plain English. Provide the rollback.</h2>
+  <p class="lead">This shape — diagnostic tool that produces actionable findings with reversal commands — has shown up in my BI work since. It beats a dashboard that asks the viewer to be the analyst.</p>
+  <p class="lead" style="margin-top: 24px;">A dashboard answers <span class="accent">"what's happening?"</span> A good one also answers <span class="accent">"what do I do about it?"</span></p>
+</section>
+
+<!-- 15. Closing -->
+<section class="slide closing">
+  <div class="rail">
+    <div class="left">15  ·  CLOSE</div>
+    <div>End</div>
+  </div>
+  <div class="eyebrow">Thanks</div>
+  <h1>The rig stopped stuttering.<br>The methodology stayed.</h1>
+  <div class="meta">
+    <span><a href="https://github.com/Lcxiv/windows-latency-optimizer" style="color: var(--accent); text-decoration: none;">github.com/Lcxiv/windows-latency-optimizer</a></span>
+    <span>louis.condevaux@hotmail.com</span>
+  </div>
+</section>
+
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> navigate  ·  <kbd>F</kbd> fullscreen  ·  <kbd>P</kbd> print</div>
+<div class="counter"><span id="num">1</span> / <span id="total">15</span></div>
+
+</div>
+
+<script>
+(function () {
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  document.getElementById('total').textContent = total;
+  const progress = document.getElementById('progress');
+
+  function render() {
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    document.getElementById('num').textContent = idx + 1;
+    progress.style.width = ((idx + 1) / total * 100) + '%';
+    location.hash = idx + 1;
+  }
+
+  function go(delta) {
+    idx = Math.max(0, Math.min(total - 1, idx + delta));
+    render();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { go(1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(-1); e.preventDefault(); }
+    else if (e.key === 'Home') { idx = 0; render(); }
+    else if (e.key === 'End') { idx = total - 1; render(); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if (e.key === 'p' || e.key === 'P') { window.print(); }
+  });
+
+  // Click right half = next, left half = prev
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.6) go(1);
+    else if (x < 0.4) go(-1);
+  });
+
+  // Hash deep-link
+  const h = parseInt(location.hash.replace('#', ''), 10);
+  if (h && h >= 1 && h <= total) idx = h - 1;
+  render();
+})();
+</script>
+</body>
+</html>

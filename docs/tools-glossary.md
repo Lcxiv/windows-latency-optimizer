@@ -1,6 +1,6 @@
 # Diagnostic Tool Glossary
 
-Reference for all capture, analysis, and visualization tools used by LatencyGuard.
+Reference for all capture, analysis, and visualization tools used by the Windows Latency Optimizer.
 
 ---
 
@@ -60,9 +60,9 @@ All experiment scripts support `-WhatIf` (dry run) and `-Revert` (undo).
 | **WPA** (Windows Performance Analyzer) | ETL deep dive — DPC/ISR view, CPU sampling, call stacks | `wpa.exe trace.etl` |
 | **GPUView** | GPU queue + DPC timeline overlay | `GPUView.exe Merged.etl` |
 | **Nsight Systems GUI** | Unified GPU-CPU timeline with frame health | `nsight-sys.exe profile.nsys-rep` |
-| **LatencyGuard App** | Dashboard — score ring, heatmap, comparison, mouse diagnostic | `cargo run` from src-tauri/ |
+| **Monitor Dashboard** | Real-time view — Command Center, Heatmap, Timeline, Drivers, Audit, Network | Open `monitor/index.html` (or `npx serve monitor -l 3848`) |
+| **Experiment Dashboard** | Chart.js historical experiment comparison | Open `dashboard/index.html` (or `npx serve dashboard -l 3847`) |
 | **HTML Report** | Self-contained audit report | Open `audit_*.html` in browser |
-| **Dashboard** (legacy) | Chart.js experiment comparison | Open `dashboard/index.html` |
 
 ---
 
@@ -122,9 +122,9 @@ SYSTEM AUDIT / HEALTH CHECK
 ├─ Full scan
 │  └─ audit.ps1 -Mode Deep (41 checks)
 ├─ Results
-│  └─ LatencyGuard app (Simple Mode) or HTML report
+│  └─ monitor/ Command Center view, or audit_*.html report
 └─ Fixes
-   └─ One-click "Apply" buttons in app
+   └─ Per-finding fix commands surfaced in monitor + report
 
 NETWORK LATENCY
 ├─ Packet capture
@@ -139,8 +139,8 @@ NETWORK LATENCY
 
 ## Tool Comparison Matrix
 
-| Capability | WPR/WPA | xperf | GPUView | PresentMon | Nsight | LatencyGuard |
-|-----------|---------|-------|---------|------------|--------|-------------|
+| Capability | WPR/WPA | xperf | GPUView | PresentMon | Nsight | Monitor/Audit |
+|-----------|---------|-------|---------|------------|--------|---------------|
 | DPC/ISR timing | Deep | Histogram | Visual | - | Correlated | Summary |
 | GPU queue depth | - | - | Best | - | Good | - |
 | Frame timing | - | - | VSync | Best | Good | Display |
@@ -149,7 +149,7 @@ NETWORK LATENCY
 | Mouse input gaps | Via ETW | - | - | - | Via ISR | **Best** |
 | System audit | - | - | - | - | - | **Best** |
 | Scripted export | ETL | Text | ETL | CSV | SQLite | JSON |
-| One-click fix | - | - | - | - | - | **Yes** |
+| Per-finding fix command | - | - | - | - | - | **Yes** |
 
 ---
 

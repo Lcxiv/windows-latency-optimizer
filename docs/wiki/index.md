@@ -5,9 +5,13 @@ status: active
 aliases: [Home, Dashboard, Wiki Index]
 ---
 
-# LatencyGuard Knowledge Base
+# Windows Latency Optimizer — Knowledge Base
 
 Scientific Windows latency optimization toolkit — research, reference, and scripts.
+
+> The retired Tauri desktop app (codenamed "LatencyGuard") is archived under
+> `docs/wiki/research/latencyguard-architecture.md` and `docs/wiki/reference/tauri-patterns.md`.
+> The canonical UI today is the vanilla-JS `monitor/` dashboard with a Command Center view.
 
 ## System Under Test
 
@@ -46,7 +50,7 @@ Deep-dive investigations and root cause analyses.
 | [[smooth-state-baseline]] | Golden state at 16:43 — 24 min silence, 373/sec actionable I/O, 0% CPU 0 DPC |
 | [[mouse-smoothness-observation]] | Mouse smoothness improvement after MPO/Windows Update |
 | [[registry-drift-log]] | Tracking registry drift over time with watchdog |
-| [[latencyguard-architecture]] | 3-layer design: PS core, HTML reports, Tauri app |
+| [[latencyguard-architecture]] | 3-layer design: PS core, HTML reports, Tauri app (historical — Tauri retired May 2026) |
 | [[improvements-roadmap]] | Prioritized next steps and feature backlog |
 
 ## Reference
@@ -65,7 +69,7 @@ Hardware guides, tool references, and optimization guides.
 | [[defender-diagnostics]] | Performance recording, WPR fallback, exclusion verification |
 | [[hardware-voltages]] | Per-rail nominal/min/max for hwdiag comparator |
 | [[ps51-pitfalls]] | 5 confirmed PS 5.1 pitfalls: $error/$pid, uint32, no ternary |
-| [[tauri-patterns]] | Prerequisites, withGlobalTauri, script execution, build lock |
+| [[tauri-patterns]] | Prerequisites, withGlobalTauri, script execution, build lock (historical — kept for reference) |
 
 ## Scripts
 

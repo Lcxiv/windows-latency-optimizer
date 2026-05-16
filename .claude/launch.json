@@ -14,10 +14,10 @@
       "port": 3848
     },
     {
-      "name": "latencyguard",
+      "name": "slides",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "latencyguard/src", "-l", "1420", "--no-clipboard"],
-      "port": 1420
+      "runtimeArgs": ["serve", "docs/slides", "-l", "3849", "--no-clipboard"],
+      "port": 3849
     }
   ]
 }
