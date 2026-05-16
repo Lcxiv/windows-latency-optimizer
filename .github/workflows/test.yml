@@ -1,0 +1,67 @@
+name: tests
+
+on:
+  push:
+    branches: [master, "feat/**"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  ps-parse-check:
+    name: PowerShell parse-check (145 scripts)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Parse-check all .ps1 + .wprp
+        shell: pwsh
+        run: |
+          ./scripts/test-all.ps1
+
+  pester:
+    name: Pester (768 tests, PS 5.1 surface)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pin Pester 3.4.0 (project surface)
+        shell: powershell
+        run: |
+          $module = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '3.4.0' -and $_.Version -lt '4.0.0' } | Select-Object -First 1
+          if (-not $module) {
+            Install-Module -Name Pester -RequiredVersion 3.4.0 -Force -Scope CurrentUser -SkipPublisherCheck
+          }
+          Get-Module -ListAvailable -Name Pester | Format-Table Name, Version
+
+      - name: Run tests/ suite (Windows PowerShell 5.1)
+        shell: powershell
+        run: |
+          $r = Invoke-Pester -Path tests -PassThru -Quiet
+          Write-Host ("Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
+          if ($r.FailedCount -gt 0) { exit 1 }
+
+      - name: Run spike Pester (if branch carries spike/)
+        shell: powershell
+        run: |
+          if (Test-Path 'spike/tests') {
+            $r = Invoke-Pester -Path spike/tests -PassThru -Quiet
+            Write-Host ("Spike Passed: {0} / Failed: {1} / Total: {2}" -f $r.PassedCount, $r.FailedCount, $r.TotalCount)
+            if ($r.FailedCount -gt 0) { exit 1 }
+          } else {
+            Write-Host 'spike/ not present on this ref — skipping spike Pester'
+          }
+
+  node-tests:
+    name: Node dashboard assertions (47 tests)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run tests/dashboard.test.js
+        run: node tests/dashboard.test.js
