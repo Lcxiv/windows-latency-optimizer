@@ -7,47 +7,74 @@ on:
     branches: [master]
   workflow_dispatch:
 
+env:
+  PESTER_VERSION: '3.4.0'
+
 jobs:
   ps-parse-check:
-    name: PowerShell parse-check (145 scripts)
+    name: PowerShell parse-check
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Parse-check all .ps1 + .wprp
         shell: pwsh
-        run: |
-          ./scripts/test-all.ps1
+        run: ./scripts/test-all.ps1
 
   pester:
-    name: Pester (768 tests, PS 5.1 surface)
+    name: Pester
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install + force-load Pester 3.4.0 (project surface uses v3 syntax)
+      - name: Cache Pester module
+        id: pester-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\Users\runneradmin\Documents\WindowsPowerShell\Modules\Pester\${{ env.PESTER_VERSION }}
+            C:\Users\runneradmin\Documents\PowerShell\Modules\Pester\${{ env.PESTER_VERSION }}
+          key: pester-${{ runner.os }}-${{ env.PESTER_VERSION }}
+
+      - name: Install Pester (project surface uses v3 syntax — runner has v5)
+        if: steps.pester-cache.outputs.cache-hit != 'true'
+        shell: powershell
+        run: Install-Module -Name Pester -RequiredVersion $env:PESTER_VERSION -Force -Scope CurrentUser -SkipPublisherCheck -AllowClobber
+
+      - name: Run tests/ suite
         shell: powershell
         run: |
-          # Runner has Pester 5.x preinstalled — that uses different syntax (Should -Be).
-          # Project surface uses v3 syntax (Should Be). Must explicitly install + import v3.
-          Install-Module -Name Pester -RequiredVersion 3.4.0 -Force -Scope CurrentUser -SkipPublisherCheck -AllowClobber
-          Get-Module -ListAvailable -Name Pester | Format-Table Name, Version
-
-      - name: Run tests/ suite (Windows PowerShell 5.1)
-        shell: powershell
-        run: |
-          # Force-load v3 explicitly; any pre-loaded v5 must be removed first.
+          # Each step is a fresh process — must re-evict any pre-loaded v5 and import pinned v3.
           Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
-          Import-Module -Name Pester -RequiredVersion 3.4.0 -Force
+          Import-Module -Name Pester -RequiredVersion $env:PESTER_VERSION -Force
           $loaded = Get-Module -Name Pester
           Write-Host ("Loaded Pester version: {0}" -f $loaded.Version)
-          if ($loaded.Version.Major -ne 3) { throw "Wrong Pester version loaded: $($loaded.Version)" }
+          if ($loaded.Version.ToString() -ne $env:PESTER_VERSION) {
+            throw ("Wrong Pester version loaded: {0} (wanted {1})" -f $loaded.Version, $env:PESTER_VERSION)
+          }
 
-          $r = Invoke-Pester -Path tests -PassThru -OutputFile pester-results.xml -OutputFormat NUnitXml
+          $r = Invoke-Pester -Path tests -PassThru -OutputFile pester-tests.xml -OutputFormat NUnitXml
           Write-Host ("Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
           if ($r.FailedCount -gt 0) {
             Write-Host '---FAILED TESTS---'
+            $r.TestResult | Where-Object { $_.Result -ne 'Passed' } | ForEach-Object {
+              Write-Host ("FAIL: {0} > {1} > {2}" -f $_.Describe, $_.Context, $_.Name)
+              Write-Host ("  {0}" -f $_.FailureMessage)
+            }
+            exit 1
+          }
+
+      - name: Run spike Pester (if branch carries spike/)
+        if: always()
+        shell: powershell
+        run: |
+          if (-not (Test-Path 'spike/tests')) { Write-Host 'spike/ not present — skipping'; exit 0 }
+          Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+          Import-Module -Name Pester -RequiredVersion $env:PESTER_VERSION -Force
+
+          $r = Invoke-Pester -Path spike/tests -PassThru -OutputFile pester-spike.xml -OutputFormat NUnitXml
+          Write-Host ("Spike Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
+          if ($r.FailedCount -gt 0) {
+            Write-Host '---FAILED SPIKE TESTS---'
             $r.TestResult | Where-Object { $_.Result -ne 'Passed' } | ForEach-Object {
               Write-Host ("FAIL: {0} > {1} > {2}" -f $_.Describe, $_.Context, $_.Name)
               Write-Host ("  {0}" -f $_.FailureMessage)
@@ -59,31 +86,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pester-results-${{ github.sha }}
-          path: pester-results.xml
+          name: pester-${{ github.sha }}
+          path: pester-*.xml
           if-no-files-found: ignore
 
-      - name: Run spike Pester (if branch carries spike/)
-        shell: powershell
-        run: |
-          if (Test-Path 'spike/tests') {
-            Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
-            Import-Module -Name Pester -RequiredVersion 3.4.0 -Force
-            $r = Invoke-Pester -Path spike/tests -PassThru -Quiet
-            Write-Host ("Spike Passed: {0} / Failed: {1} / Total: {2}" -f $r.PassedCount, $r.FailedCount, $r.TotalCount)
-            if ($r.FailedCount -gt 0) { exit 1 }
-          } else {
-            Write-Host 'spike/ not present on this ref — skipping spike Pester'
-          }
-
   node-tests:
-    name: Node dashboard assertions (47 tests)
-    runs-on: windows-latest
+    name: Node dashboard assertions
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Run tests/dashboard.test.js
