@@ -35,14 +35,6 @@ desktop.ini
 node_modules/
 package-lock.json
 
-# Tauri / Rust build
-latencyguard/src-tauri/target/
-latencyguard/src-tauri/gen/
-latencyguard/node_modules/
-
-# Razer installer artifact
-latencyguard/%windir%/
-
 # Brainstorm sessions
 .superpowers/
 
@@ -105,10 +97,9 @@ captures/registry_watchdog/
 captures/sessions/
 captures/fortnite_freeze_diag/
 
-# Root-level generated artifacts
-energy-report.html
-command-center-populated.png
-command-center-redesign.png
+# Root-level stray artifacts (screenshots, ad-hoc HTML reports)
+/*.png
+/*.html
 
 # Machine-specific runtime artifacts (regenerated per-machine, contain device IDs)
 captures/startup_guard_log.txt
