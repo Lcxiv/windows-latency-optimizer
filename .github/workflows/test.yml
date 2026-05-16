@@ -44,7 +44,7 @@ jobs:
           Write-Host ("Loaded Pester version: {0}" -f $loaded.Version)
           if ($loaded.Version.Major -ne 3) { throw "Wrong Pester version loaded: $($loaded.Version)" }
 
-          $r = Invoke-Pester -Path tests -PassThru -OutputFile pester-results.xml -OutputFormat NUnitXml -Show Failed,Summary
+          $r = Invoke-Pester -Path tests -PassThru -OutputFile pester-results.xml -OutputFormat NUnitXml
           Write-Host ("Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
           if ($r.FailedCount -gt 0) {
             Write-Host '---FAILED TESTS---'
