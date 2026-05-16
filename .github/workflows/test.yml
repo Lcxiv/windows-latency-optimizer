@@ -26,18 +26,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Pin Pester 3.4.0 (project surface)
+      - name: Install + force-load Pester 3.4.0 (project surface uses v3 syntax)
         shell: powershell
         run: |
-          $module = Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '3.4.0' -and $_.Version -lt '4.0.0' } | Select-Object -First 1
-          if (-not $module) {
-            Install-Module -Name Pester -RequiredVersion 3.4.0 -Force -Scope CurrentUser -SkipPublisherCheck
-          }
+          # Runner has Pester 5.x preinstalled — that uses different syntax (Should -Be).
+          # Project surface uses v3 syntax (Should Be). Must explicitly install + import v3.
+          Install-Module -Name Pester -RequiredVersion 3.4.0 -Force -Scope CurrentUser -SkipPublisherCheck -AllowClobber
           Get-Module -ListAvailable -Name Pester | Format-Table Name, Version
 
       - name: Run tests/ suite (Windows PowerShell 5.1)
         shell: powershell
         run: |
+          # Force-load v3 explicitly; any pre-loaded v5 must be removed first.
+          Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+          Import-Module -Name Pester -RequiredVersion 3.4.0 -Force
+          $loaded = Get-Module -Name Pester
+          Write-Host ("Loaded Pester version: {0}" -f $loaded.Version)
+          if ($loaded.Version.Major -ne 3) { throw "Wrong Pester version loaded: $($loaded.Version)" }
+
           $r = Invoke-Pester -Path tests -PassThru -Quiet
           Write-Host ("Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
           if ($r.FailedCount -gt 0) { exit 1 }
@@ -46,6 +52,8 @@ jobs:
         shell: powershell
         run: |
           if (Test-Path 'spike/tests') {
+            Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+            Import-Module -Name Pester -RequiredVersion 3.4.0 -Force
             $r = Invoke-Pester -Path spike/tests -PassThru -Quiet
             Write-Host ("Spike Passed: {0} / Failed: {1} / Total: {2}" -f $r.PassedCount, $r.FailedCount, $r.TotalCount)
             if ($r.FailedCount -gt 0) { exit 1 }
