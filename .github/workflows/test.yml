@@ -44,9 +44,24 @@ jobs:
           Write-Host ("Loaded Pester version: {0}" -f $loaded.Version)
           if ($loaded.Version.Major -ne 3) { throw "Wrong Pester version loaded: $($loaded.Version)" }
 
-          $r = Invoke-Pester -Path tests -PassThru -Quiet
+          $r = Invoke-Pester -Path tests -PassThru -OutputFile pester-results.xml -OutputFormat NUnitXml -Show Failed,Summary
           Write-Host ("Passed: {0} / Failed: {1} / Skipped: {2} / Total: {3}" -f $r.PassedCount, $r.FailedCount, $r.SkippedCount, $r.TotalCount)
-          if ($r.FailedCount -gt 0) { exit 1 }
+          if ($r.FailedCount -gt 0) {
+            Write-Host '---FAILED TESTS---'
+            $r.TestResult | Where-Object { $_.Result -ne 'Passed' } | ForEach-Object {
+              Write-Host ("FAIL: {0} > {1} > {2}" -f $_.Describe, $_.Context, $_.Name)
+              Write-Host ("  {0}" -f $_.FailureMessage)
+            }
+            exit 1
+          }
+
+      - name: Upload Pester results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pester-results-${{ github.sha }}
+          path: pester-results.xml
+          if-no-files-found: ignore
 
       - name: Run spike Pester (if branch carries spike/)
         shell: powershell
