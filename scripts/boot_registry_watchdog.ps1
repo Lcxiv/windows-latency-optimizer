@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Boot-time registry watchdog. Snapshots latency-critical registry keys,
     compares against previous snapshot, alerts on drift.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Capture voltage / temperature / power sensors from HWiNFO64 CSV log
     (preferred) plus ACPI thermal zones + nvidia-smi rails (always-available

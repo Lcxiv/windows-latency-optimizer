@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Correlate CapFrameX gameplay hitches with nearest SensorData2 readings.
 .DESCRIPTION

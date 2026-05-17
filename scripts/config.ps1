@@ -1,4 +1,4 @@
-# config.ps1
+﻿# config.ps1
 # Central configuration for the windows-latency-optimizer toolkit.
 # Dot-source this in any script that needs tool paths, defaults, or project paths:
 #   . "$PSScriptRoot\config.ps1"

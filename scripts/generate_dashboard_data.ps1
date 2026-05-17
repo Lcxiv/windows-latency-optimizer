@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Regenerate experiments_generated.js from captured experiment.json files.
 .DESCRIPTION

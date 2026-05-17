@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     WHEA event log summarizer + decoder.
 .DESCRIPTION

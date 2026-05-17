@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Top-level hardware diagnostic orchestrator. Runs all hw_*.ps1 scripts in
     sequence, then the comparator + HTML rollup.

@@ -1,4 +1,4 @@
-# helpers/monitor-processes.ps1
+﻿# helpers/monitor-processes.ps1
 # Process snapshot helper: top processes by thread count, gaming overhead flags, audit score.
 # Dot-sourced by monitor_collector.ps1.
 # PowerShell 5.1 compatible — no ternary, no null-coalescing, no Join-String,

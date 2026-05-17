@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pester 3.x tests validating experiment.json schema and data integrity.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Windows Latency Optimizer — unified CLI for gaming system analysis.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Long-running high-resolution network capture for overnight or multi-hour runs.
 .DESCRIPTION

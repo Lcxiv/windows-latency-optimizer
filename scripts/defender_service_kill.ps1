@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Disable WinDefend/WdNisSvc services via TrustedInstaller token impersonation.
 .DESCRIPTION

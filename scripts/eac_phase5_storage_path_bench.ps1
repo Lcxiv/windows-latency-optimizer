@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 5: Empirical bench — measure storage controller DPC + read latency under load.
 .DESCRIPTION

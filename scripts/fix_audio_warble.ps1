@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Fix HDMI audio pitch-warble during gaming + network activity.
 

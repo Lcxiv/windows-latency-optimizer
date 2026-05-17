@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Test harness — parse-check all PS scripts and validate WPR profile XML.
 .DESCRIPTION

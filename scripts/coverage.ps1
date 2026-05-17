@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pester code-coverage report wrapper.
 .DESCRIPTION

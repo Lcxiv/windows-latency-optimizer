@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Startup guard — verify and auto-fix latency optimizations at every logon.
 .DESCRIPTION

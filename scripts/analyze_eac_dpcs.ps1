@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Parse xperf DPC/ISR summary, compute EAC contribution metrics for Phase 0 gate.
 .DESCRIPTION

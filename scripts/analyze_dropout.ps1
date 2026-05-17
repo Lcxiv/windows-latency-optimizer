@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Post-capture analyzer for network dropout events.
 .DESCRIPTION

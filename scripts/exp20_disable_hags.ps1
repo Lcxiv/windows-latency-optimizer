@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     EXP20: Disable Hardware Accelerated GPU Scheduling (HAGS) to reduce nvlddmkm.sys DPC latency.

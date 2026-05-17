@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Set or clear interrupt affinity override for the primary NVIDIA GPU.
 .DESCRIPTION

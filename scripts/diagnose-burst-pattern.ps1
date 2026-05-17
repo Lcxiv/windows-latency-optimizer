@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Diagnose bursty system behavior — captures CPU, GPU, NIC, and DPC at

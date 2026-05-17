@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Fix Windows system polling storms identified by ProcMon analysis (2026-04-27).

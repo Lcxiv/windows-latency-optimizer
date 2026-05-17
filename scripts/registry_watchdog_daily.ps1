@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Daily registry watchdog analysis. Takes fresh snapshot, analyzes drift
     trends across all historical snapshots, writes findings to memory.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Capture EAC DPC baseline during Fortnite gameplay (Phase 1 of mitigation plan).
 .DESCRIPTION

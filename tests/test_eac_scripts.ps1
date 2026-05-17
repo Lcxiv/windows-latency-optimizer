@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Smoke tests for EAC mitigation scripts. Plain PowerShell — no Pester dependency.
 .DESCRIPTION

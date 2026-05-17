@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 4a: Launch Fortnite with CPU affinity pinned to game-thread bucket (CPUs 8-15).
 .DESCRIPTION

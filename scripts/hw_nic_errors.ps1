@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Capture I226-V (and other NIC) error statistics with delta support.
 .DESCRIPTION

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Toggle ExitLag NDIS LightWeight Filter on Ethernet adapter.
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 2: Apply Defender exclusions for Fortnite + EAC paths to stop double-scan.
 .DESCRIPTION

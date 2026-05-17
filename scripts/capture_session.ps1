@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Unified gaming session capture — ALL monitoring in one command.
 .DESCRIPTION

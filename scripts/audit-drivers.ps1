@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Comprehensive driver health audit: device errors, chipset, NVMe, GPU, NIC, event log.

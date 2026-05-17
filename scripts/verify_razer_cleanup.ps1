@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Verify Razer Synapse is cleanly uninstalled and mouse is properly configured.
 .DESCRIPTION

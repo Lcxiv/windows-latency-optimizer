@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 3 rollback: restore background services paused by gamemode_quiet_apply.
 .DESCRIPTION

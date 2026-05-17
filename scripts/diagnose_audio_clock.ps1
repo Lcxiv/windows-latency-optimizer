@@ -1,4 +1,4 @@
-# Diagnose HDMI audio pitch-warble: PCIe ASPM, GPU P-state, NIC EEE, audio MSI
+﻿# Diagnose HDMI audio pitch-warble: PCIe ASPM, GPU P-state, NIC EEE, audio MSI
 # Pitch warble = clock drift, not DPC latency. Focus on power states and clock sources.
 [CmdletBinding()]
 param(

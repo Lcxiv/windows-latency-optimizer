@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     HTML report generation for audit.ps1 — Unified Latency Report v2.
 .DESCRIPTION

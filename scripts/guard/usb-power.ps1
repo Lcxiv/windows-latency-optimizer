@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Guard: USB Enhanced Power Management & Selective Suspend.
 .DESCRIPTION

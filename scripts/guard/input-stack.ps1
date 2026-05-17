@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Guard: Mouse & Keyboard Input Stack tweaks.
 .DESCRIPTION

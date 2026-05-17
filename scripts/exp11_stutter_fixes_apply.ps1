@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     EXP11: Periodic Stutter Mitigation (FSO + MPO + Hyper-V + CFG + Shader Cache)

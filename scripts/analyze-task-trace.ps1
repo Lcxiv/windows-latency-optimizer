@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Analyze WPR traces captured with task-scheduler.wprp for task + GPU correlation.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Kill Defender services via automated Safe Mode reboot.
 .DESCRIPTION

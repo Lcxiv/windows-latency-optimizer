@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 3: Quiet background disk activity during Fortnite gameplay.
 .DESCRIPTION

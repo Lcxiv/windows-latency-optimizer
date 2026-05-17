@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Unified session analyzer — correlates ALL data sources and auto-classifies hitches.
 .DESCRIPTION

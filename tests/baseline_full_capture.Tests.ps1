@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pester 3.x tests for baseline_full_capture.ps1 — shape tests and
     component checks.

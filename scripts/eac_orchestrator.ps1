@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 7 orchestrator — drives EAC mitigation phases in order with state tracking.
 .DESCRIPTION

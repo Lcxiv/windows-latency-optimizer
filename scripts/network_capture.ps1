@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pktmon-based packet capture that auto-saves on network dropout detection.
 .DESCRIPTION

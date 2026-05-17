@@ -1,4 +1,4 @@
-# helpers/network.ps1
+﻿# helpers/network.ps1
 # Network latency capture, bufferbloat testing, connection quality scoring.
 # PowerShell 5.1 compatible.
 

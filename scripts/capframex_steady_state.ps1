@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Recompute CapFrameX metrics from a trimmed time window to exclude
     startup loading screens and capture-boundary artifacts.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     GPU ECC + clocks + temps + power continuous capture via nvidia-smi.
 .DESCRIPTION

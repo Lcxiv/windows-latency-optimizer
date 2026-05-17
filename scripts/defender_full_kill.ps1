@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Fully disable Windows Defender — services, scanning, and safety-net exclusion.
 .DESCRIPTION

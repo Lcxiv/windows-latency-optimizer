@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pester 3.x tests for aggregate_baseline_to_dashboard_entry.ps1 — verifies
     output JSON matches dashboard v3 schema.

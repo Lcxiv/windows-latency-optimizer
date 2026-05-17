@@ -1,4 +1,4 @@
-# topology.ps1
+﻿# topology.ps1
 # CPU topology discovery for the windows-latency-optimizer toolkit.
 # Detects CPU model, core count, hybrid architecture, and generates
 # recommended interrupt affinity groups for gaming latency optimization.

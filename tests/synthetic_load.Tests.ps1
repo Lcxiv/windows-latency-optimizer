@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Pester 3.x tests for synthetic_load.ps1 — start/stop lifecycle and config
     shape.

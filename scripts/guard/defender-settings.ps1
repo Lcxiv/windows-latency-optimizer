@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Guard: Windows Defender settings and exclusion paths.
 .DESCRIPTION

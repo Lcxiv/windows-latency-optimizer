@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Build single-file MASTER.html report from a baseline capture directory.
 .DESCRIPTION

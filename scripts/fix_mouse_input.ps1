@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Apply Windows mouse/keyboard input stack optimizations for gaming.
 .DESCRIPTION

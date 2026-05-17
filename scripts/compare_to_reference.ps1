@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Walk a hwdiag run directory, compare every captured rail/metric against
     reference_hardware_diagnostic_voltages.json, emit manifest + HTML rollup.

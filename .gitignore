@@ -115,6 +115,12 @@ captures/procmon_capture.csv
 # Coverage artifact (regenerated per-run; CI uploads as artifact)
 coverage-summary.txt
 
+# Spike branch worktree leftover (lives on feat/v2-spike; gitignored on master)
+spike/
+
+# Registry watchdog runtime snapshot (machine-specific)
+captures/registry_watchdog/
+
 # User-local Defender exclusions (contains machine-specific paths)
 config/defender_exclusions.txt
 

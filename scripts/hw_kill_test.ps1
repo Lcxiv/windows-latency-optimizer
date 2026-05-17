@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Targeted kill test for the 4/24 slow state — verifies whether long-running
     Claude.exe processes are causing cores 6-9 thrashing.

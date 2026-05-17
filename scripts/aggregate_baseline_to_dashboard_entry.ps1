@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Aggregate a baseline capture directory into a dashboard v3 experiment entry.
 .DESCRIPTION

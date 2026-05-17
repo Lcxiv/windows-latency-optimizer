@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Diagnostic dispatcher — triage symptoms and run domain-specific diagnostics.
 .DESCRIPTION

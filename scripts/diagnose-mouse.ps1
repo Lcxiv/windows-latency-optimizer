@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Quick mouse stutter diagnostic — 10-second capture with HID gap analysis.

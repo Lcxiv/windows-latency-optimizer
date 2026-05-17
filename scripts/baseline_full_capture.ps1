@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     End-to-end full-suite baseline capture orchestrator.
 .DESCRIPTION

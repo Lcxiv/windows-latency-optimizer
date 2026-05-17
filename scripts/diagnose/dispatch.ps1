@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Diagnostic script dispatch for diagnose.ps1.
 .DESCRIPTION

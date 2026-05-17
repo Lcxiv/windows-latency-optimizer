@@ -1,4 +1,4 @@
-@{
+﻿@{
     # PSScriptAnalyzer rule configuration for Windows Latency Optimizer.
     # Scope: scripts/ only. Tests/, spike/, _deprecated/ excluded by wrapper.
 

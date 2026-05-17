@@ -1,4 +1,4 @@
-# helpers/burst-detect.ps1
+﻿# helpers/burst-detect.ps1
 # Burst pattern detection and analysis functions.
 # Dot-sourced by diagnose-burst-pattern.ps1.
 # PowerShell 5.1 compatible — no ternary, no null-coalescing.

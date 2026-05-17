@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     AMD Chipset Driver remediation guide — detect missing devices, guide install, verify.

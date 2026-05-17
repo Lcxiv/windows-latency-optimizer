@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Symptom-keyword classification for diagnose.ps1.
 .DESCRIPTION

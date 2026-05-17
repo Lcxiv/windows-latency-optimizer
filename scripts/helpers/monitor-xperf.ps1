@@ -1,4 +1,4 @@
-# helpers/monitor-xperf.ps1
+﻿# helpers/monitor-xperf.ps1
 # xperf DPC/ISR trace helper for real-time latency monitoring.
 # Runs a short xperf DPC/ISR trace and parses the dpcisr -summary output into
 # structured per-CPU-per-driver data.

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Synthetic CPU+disk load driver for baseline capture under stress.
 .DESCRIPTION

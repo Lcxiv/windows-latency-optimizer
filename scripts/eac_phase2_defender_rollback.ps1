@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Phase 2 rollback: remove Defender exclusions added by eac_phase2_defender_apply.ps1.
 .DESCRIPTION

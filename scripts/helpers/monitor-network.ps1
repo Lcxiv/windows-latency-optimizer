@@ -1,4 +1,4 @@
-# helpers/monitor-network.ps1
+﻿# helpers/monitor-network.ps1
 # Network ping sampler for real-time latency monitoring.
 # Dot-sourced by monitor_collector.ps1.
 # PowerShell 5.1 compatible — no ternary, no null-coalescing.

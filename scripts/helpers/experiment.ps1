@@ -1,4 +1,4 @@
-# helpers/experiment.ps1
+﻿# helpers/experiment.ps1
 # Data assembly and output: frame parsing, registry snapshot, analysis,
 # experiment JSON generation, and dashboard data update.
 # PowerShell 5.1 compatible.

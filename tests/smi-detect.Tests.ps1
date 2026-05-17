@@ -1,4 +1,4 @@
-# tests/smi-detect.Tests.ps1
+﻿# tests/smi-detect.Tests.ps1
 # Pester tests for SMI blackout detection (Find-SmiBlackouts, Get-SmiCorrelation).
 # PowerShell 5.1 / Pester 3.x compatible.
 

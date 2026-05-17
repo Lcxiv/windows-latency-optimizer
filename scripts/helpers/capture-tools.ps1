@@ -1,4 +1,4 @@
-# helpers/capture-tools.ps1
+﻿# helpers/capture-tools.ps1
 # Optional tool integrations: ProcMon, PktMon, Defender recording.
 # PowerShell 5.1 compatible.
 

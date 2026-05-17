@@ -1,4 +1,4 @@
-# helpers/capture-core.ps1
+﻿# helpers/capture-core.ps1
 # Core capture functions: WPR, perf counters, GPU, PresentMon, xperf analysis.
 # PowerShell 5.1 compatible.
 

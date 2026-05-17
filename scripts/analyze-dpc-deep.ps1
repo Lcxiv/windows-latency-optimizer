@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Deep DPC analysis — per-CPU breakdown, temporal patterns, input gap correlation.

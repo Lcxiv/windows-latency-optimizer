@@ -1,4 +1,4 @@
-# One-shot re-aggregation utility — re-parses xperf raw + rebuilds entry + MASTER.html
+﻿# One-shot re-aggregation utility — re-parses xperf raw + rebuilds entry + MASTER.html
 # from an existing baseline capture directory. Used to apply aggregator-layer bug fixes
 # without recapturing the ~12 GB of raw data.
 param(

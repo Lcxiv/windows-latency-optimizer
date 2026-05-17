@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     PSScriptAnalyzer lint wrapper. Scopes to scripts/ only.
 .DESCRIPTION
