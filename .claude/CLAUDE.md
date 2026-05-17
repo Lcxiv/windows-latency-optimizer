@@ -108,6 +108,13 @@ Experiments have these fields (all nullable except id/label/date):
 4. `-like '*pattern[_total]*'` — `[]` are wildcard chars in `-like`. Use `.Contains()` instead
 5. `Measure-Object -StandardDeviation` — doesn't exist in PS 5.1, compute manually
 6. Always test with: `[Parser]::ParseFile('path', [ref]$null, [ref]$errors); $errors.Count`
+7. **BOM required on .ps1 files.** PS 5.1 reads BOM-less `.ps1` as Windows-1252. UTF-8 em-dashes (`—`) mangle the parser mid-file. Save .ps1 as UTF-8 with BOM. Bulk-fix helper at `spike/tests/_add-bom-all.ps1`.
+8. **StreamReader/StringBuilder for hot-path JSONL.** Naive `Get-Content | ConvertTo-Json | Add-Content` loop is 30× slower + 2× memory vs `[IO.StreamReader]` + `[Text.StringBuilder]` + `[IO.StreamWriter]`. Matters for any per-event emission at scale (see `spike/adapters/perfcounter/adapter.ps1`).
+9. **Dot-source idempotency guard.** Top of file: `if (Get-Command 'MyFunction' -ErrorAction SilentlyContinue) { return }`. Prevents destructive function redefinition when re-sourced. Use **function name** check, not `Test-Path` — file can exist but functions not loaded if prior import errored.
+10. **Boolean evaluator default-`$false`.** Custom expression evaluators must NOT fall through to `[bool]$expr` on unrecognized input. Any non-empty string is truthy → silently enables conditional features when interpolation produces bare-operator strings. Return `$false` explicitly on unrecognized input.
+11. **GitHub Actions runner ships Pester 5+ preinstalled.** Tests using v3 syntax (`Should Be`) break under v5 (`Should -Be`). Each `shell: powershell` step is a **fresh process** — must `Remove-Module Pester` then `Import-Module Pester -RequiredVersion 3.4.0 -Force` per step, not per job.
+12. **`-Show` flag is Pester 4+ only.** Pester 3.4.0 lacks it (it's verbose by default). Don't copy snippets from Pester 5 docs into v3 projects.
+13. **Tests must not hardcode hardware-specific counts.** Assertions like `Should Be 4` for affinity-group count break on CI runners with fewer CPUs. Assert shape (`count -gt 0`, `keys.count -eq nonEmptyGroups.count`) not values.
 
 ## Workflow
 1. Run `/plan` before any significant change
