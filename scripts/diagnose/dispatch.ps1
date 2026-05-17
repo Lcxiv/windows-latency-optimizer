@@ -226,3 +226,74 @@ function Invoke-DiagnosticScript {
 
     return $result
 }
+
+# ============================================================================
+# Resolve selected domain from CLI args / interactive menu
+# Reads $script:Symptom (may be set by Show-Menu's __classify__ branch)
+# ============================================================================
+function Resolve-SelectedDomain {
+    param([string]$Symptom, [string]$Domain)
+
+    if ($Domain -ne '') {
+        return @{
+            selectedDomain = $Domain
+            classification = @{ domain = $Domain; confidence = 'explicit'; matchedKeywords = @(); allMatches = @{}; ambiguous = $false }
+        }
+    }
+
+    if ($Symptom -ne '') {
+        $cls = Classify-Symptom $Symptom
+        Write-Host ''
+        Write-Host ('Classified symptom -> ' + $cls.domain.ToUpper() + ' (confidence: ' + $cls.confidence + ')') -ForegroundColor Cyan
+        if ($cls.matchedKeywords.Count -gt 0) {
+            Write-Host ('  Matched keywords: ' + ($cls.matchedKeywords -join ', ')) -ForegroundColor DarkGray
+        }
+        $sel = if ($cls.ambiguous) { Resolve-Ambiguity $cls } else { $cls.domain }
+        return @{ selectedDomain = $sel; classification = $cls }
+    }
+
+    # Interactive menu fallthrough
+    $menuResult = Show-Menu
+    if ($menuResult -eq '') { return @{ selectedDomain = ''; classification = $null } }
+
+    if ($menuResult -eq '__classify__') {
+        $cls = Classify-Symptom $script:Symptom
+        Write-Host ''
+        Write-Host ('Classified symptom -> ' + $cls.domain.ToUpper() + ' (confidence: ' + $cls.confidence + ')') -ForegroundColor Cyan
+        if ($cls.matchedKeywords.Count -gt 0) {
+            Write-Host ('  Matched keywords: ' + ($cls.matchedKeywords -join ', ')) -ForegroundColor DarkGray
+        }
+        $sel = if ($cls.ambiguous) { Resolve-Ambiguity $cls } else { $cls.domain }
+        return @{ selectedDomain = $sel; classification = $cls }
+    }
+
+    return @{
+        selectedDomain = $menuResult
+        classification = @{ domain = $menuResult; confidence = 'menu'; matchedKeywords = @(); allMatches = @{}; ambiguous = $false }
+    }
+}
+
+# ============================================================================
+# Run the full diagnostic chain for a domain (or 'all')
+# Returns @{ Results = [array]; TotalMs = [int] }
+# ============================================================================
+function Invoke-DiagnosticChain {
+    param([string]$SelectedDomain)
+
+    $allScripts = @()
+    if ($SelectedDomain -eq 'all') {
+        foreach ($d in @('dpc','gpu','net','system')) { $allScripts += @(Get-DomainScripts $d) }
+    } else {
+        $allScripts = @(Get-DomainScripts $SelectedDomain)
+    }
+    if ($allScripts.Count -eq 0) {
+        Write-Host ('No diagnostic scripts defined for domain: ' + $SelectedDomain) -ForegroundColor Red
+        return @{ Results = @(); TotalMs = 0 }
+    }
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $results = @()
+    foreach ($scriptDef in $allScripts) { $results += (Invoke-DiagnosticScript $scriptDef) }
+    $sw.Stop()
+    return @{ Results = $results; TotalMs = [int]$sw.ElapsedMilliseconds }
+}
