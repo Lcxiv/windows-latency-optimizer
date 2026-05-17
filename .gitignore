@@ -108,6 +108,10 @@ captures/os_baseline_*.txt
 captures/driver_audit_*.html
 captures/driver_audit_*.json
 
+# Files containing user SID (regenerated per-machine, PII)
+captures/boot_inventory/
+captures/procmon_capture.csv
+
 # User-local Defender exclusions (contains machine-specific paths)
 config/defender_exclusions.txt
 
