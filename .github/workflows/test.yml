@@ -9,6 +9,7 @@ on:
 
 env:
   PESTER_VERSION: '3.4.0'
+  PSSA_VERSION: '1.21.0'
 
 jobs:
   ps-parse-check:
@@ -19,6 +20,30 @@ jobs:
       - name: Parse-check all .ps1 + .wprp
         shell: pwsh
         run: ./scripts/test-all.ps1
+
+  lint:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache PSScriptAnalyzer module
+        id: pssa-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\Users\runneradmin\Documents\WindowsPowerShell\Modules\PSScriptAnalyzer\${{ env.PSSA_VERSION }}
+            C:\Users\runneradmin\Documents\PowerShell\Modules\PSScriptAnalyzer\${{ env.PSSA_VERSION }}
+          key: pssa-${{ runner.os }}-${{ env.PSSA_VERSION }}
+
+      - name: Install PSScriptAnalyzer
+        if: steps.pssa-cache.outputs.cache-hit != 'true'
+        shell: powershell
+        run: Install-Module -Name PSScriptAnalyzer -RequiredVersion $env:PSSA_VERSION -Force -Scope CurrentUser -SkipPublisherCheck -AllowClobber
+
+      - name: Lint scripts/ (Error severity gates CI)
+        shell: powershell
+        run: ./scripts/lint-all.ps1 -Errors_Only
 
   pester:
     name: Pester
