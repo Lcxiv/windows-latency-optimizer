@@ -115,6 +115,22 @@ jobs:
           path: pester-*.xml
           if-no-files-found: ignore
 
+      - name: Coverage report (report-only baseline)
+        if: always()
+        shell: powershell
+        run: |
+          Get-Module -Name Pester | Remove-Module -Force -ErrorAction SilentlyContinue
+          Import-Module -Name Pester -RequiredVersion $env:PESTER_VERSION -Force
+          ./scripts/coverage.ps1 -OutFile coverage-summary.txt
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.sha }}
+          path: coverage-summary.txt
+          if-no-files-found: ignore
+
   node-tests:
     name: Node dashboard assertions
     runs-on: ubuntu-latest

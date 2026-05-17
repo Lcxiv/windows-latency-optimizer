@@ -112,6 +112,9 @@ captures/driver_audit_*.json
 captures/boot_inventory/
 captures/procmon_capture.csv
 
+# Coverage artifact (regenerated per-run; CI uploads as artifact)
+coverage-summary.txt
+
 # User-local Defender exclusions (contains machine-specific paths)
 config/defender_exclusions.txt
 
