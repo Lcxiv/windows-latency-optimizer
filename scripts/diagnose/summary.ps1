@@ -154,6 +154,39 @@ function Get-Severity {
 # ============================================================================
 # Generate recommendations based on results
 # ============================================================================
+# ============================================================================
+# Script -> recommendation map (data table, not control flow).
+# Each wildcard matches at most one entry; recommendations append in order.
+# Iteration uses [ordered]@{} so PS 5.1 honors declaration order.
+# ============================================================================
+$script:RecommendationMap = [ordered]@{
+    'diagnose-mouse*'   = @(
+        @{ action = 'Run fix_gpu_affinity.ps1 to route GPU interrupts off CPU 0'; agent = '@dpc' }
+        @{ action = 'Check Razer polling rate with fix_razer_polling.ps1';        agent = '@dpc' }
+    )
+    'analyze_affinity*' = @(
+        @{ action = 'Run apply_deconflict_affinity.ps1 to fix CPU overlaps';       agent = '@dpc' }
+    )
+    'audio_diag*'       = @(
+        @{ action = 'Run fix_audio_warble.ps1 to fix audio clock issues';          agent = '@dpc' }
+    )
+    'hw_gpu_ecc*'       = @(
+        @{ action = 'Investigate GPU ECC errors or PerfCap throttling';            agent = '@gpu' }
+    )
+    'hw_pcie_state*'    = @(
+        @{ action = 'Check PCIe slot seating and BIOS Gen5 settings';              agent = '@gpu' }
+    )
+    'hw_nic_errors*'    = @(
+        @{ action = 'Check I226-V NIC driver and EEE settings with fix_nic_power_mgmt.ps1'; agent = '@net' }
+    )
+    'audit*'            = @(
+        @{ action = 'Run audit.ps1 -GenerateFix to auto-generate fix script';      agent = '@system' }
+    )
+    'health-check*'     = @(
+        @{ action = 'Review health-check HTML report for specific failures';       agent = '@system' }
+    )
+}
+
 function Get-Recommendations {
     param([array]$Results, [string]$DomainName)
 
@@ -164,92 +197,29 @@ function Get-Recommendations {
         $label = Get-StatusLabel $r
         if ($label -eq 'SKIP' -or $label -eq 'PASS') { continue }
 
-        switch -Wildcard ($r.script) {
-            'diagnose-mouse*' {
-                $recs += [ordered]@{
-                    action   = 'Run fix_gpu_affinity.ps1 to route GPU interrupts off CPU 0'
-                    agent    = '@dpc'
-                    priority = $priority
+        foreach ($pattern in $script:RecommendationMap.Keys) {
+            if ($r.script -like $pattern) {
+                foreach ($entry in $script:RecommendationMap[$pattern]) {
+                    $recs += [ordered]@{
+                        action   = $entry.action
+                        agent    = $entry.agent
+                        priority = $priority
+                    }
+                    $priority++
                 }
-                $priority++
-                $recs += [ordered]@{
-                    action   = 'Check Razer polling rate with fix_razer_polling.ps1'
-                    agent    = '@dpc'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'analyze_affinity*' {
-                $recs += [ordered]@{
-                    action   = 'Run apply_deconflict_affinity.ps1 to fix CPU overlaps'
-                    agent    = '@dpc'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'audio_diag*' {
-                $recs += [ordered]@{
-                    action   = 'Run fix_audio_warble.ps1 to fix audio clock issues'
-                    agent    = '@dpc'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'hw_gpu_ecc*' {
-                $recs += [ordered]@{
-                    action   = 'Investigate GPU ECC errors or PerfCap throttling'
-                    agent    = '@gpu'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'hw_pcie_state*' {
-                $recs += [ordered]@{
-                    action   = 'Check PCIe slot seating and BIOS Gen5 settings'
-                    agent    = '@gpu'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'hw_nic_errors*' {
-                $recs += [ordered]@{
-                    action   = 'Check I226-V NIC driver and EEE settings with fix_nic_power_mgmt.ps1'
-                    agent    = '@net'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'audit*' {
-                $recs += [ordered]@{
-                    action   = 'Run audit.ps1 -GenerateFix to auto-generate fix script'
-                    agent    = '@system'
-                    priority = $priority
-                }
-                $priority++
-            }
-            'health-check*' {
-                $recs += [ordered]@{
-                    action   = 'Review health-check HTML report for specific failures'
-                    agent    = '@system'
-                    priority = $priority
-                }
-                $priority++
+                break
             }
         }
     }
 
-    # Add skipped-scripts recommendation if any were skipped
-    $skippedCount = 0
-    foreach ($r in $Results) {
-        if ($r.status -eq 'skipped') { $skippedCount++ }
-    }
+    # Skipped-scripts notice
+    $skippedCount = @($Results | Where-Object { $_.status -eq 'skipped' }).Count
     if ($skippedCount -gt 0) {
         $recs += [ordered]@{
             action   = 'Re-run with admin elevation for full diagnostics (' + $skippedCount + ' skipped)'
             agent    = ''
             priority = $priority
         }
-        $priority++
     }
 
     return $recs
