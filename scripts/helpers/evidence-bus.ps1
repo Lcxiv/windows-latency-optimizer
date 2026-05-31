@@ -125,3 +125,20 @@ function Read-EvidenceRows {
   if ($IncidentId) { $rows = $rows | Where-Object { $_.incident_id -eq $IncidentId } }
   return $rows
 }
+
+function Read-AllEvidenceRows {
+  <#
+  .SYNOPSIS  Read every evidence_*.jsonl across all date buckets (full cross-time
+             timeline — live daily files + the history backfill bucket). This is
+             what the correlator / verdict view want: the whole picture, not one day.
+  #>
+  if (-not (Test-Path $script:EvidenceDir)) { return @() }
+  $all = @()
+  Get-ChildItem (Join-Path $script:EvidenceDir 'evidence_*.jsonl') -ErrorAction SilentlyContinue |
+    ForEach-Object {
+      foreach ($line in [IO.File]::ReadLines($_.FullName)) {
+        if ($line.Trim()) { $all += ($line | ConvertFrom-Json) }
+      }
+    }
+  return $all
+}
