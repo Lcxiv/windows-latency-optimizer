@@ -138,3 +138,7 @@ monitor/*.png
 
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv
+
+captures/**/*.dmp
+
+captures/**/dump_*_analyze.txt
