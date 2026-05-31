@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LatencyGuard — From Toolbox to Diagnostician</title>
+<style>
+  :root{
+    --bg:#0a0e14; --bg2:#0f1620; --ink:#e6edf3; --dim:#8b98a8; --faint:#5a6675;
+    --acc:#4dd0e1; --acc2:#7c4dff; --hot:#ff5252; --warn:#ffb74d; --ok:#69f0ae;
+    --line:#1d2733; --card:#121a26;
+    --mono:'Cascadia Code','JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden;
+    -webkit-font-smoothing:antialiased}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:6vh 8vw;opacity:0;transform:translateY(14px);
+    transition:opacity .5s ease,transform .5s ease}
+  .slide.active{display:flex;opacity:1;transform:none}
+  .slide.active .stagger>*{animation:rise .55s both}
+  .stagger>*:nth-child(1){animation-delay:.06s}
+  .stagger>*:nth-child(2){animation-delay:.14s}
+  .stagger>*:nth-child(3){animation-delay:.22s}
+  .stagger>*:nth-child(4){animation-delay:.30s}
+  .stagger>*:nth-child(5){animation-delay:.38s}
+  .stagger>*:nth-child(6){animation-delay:.46s}
+  .stagger>*:nth-child(7){animation-delay:.54s}
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  .kicker{font-family:var(--mono);font-size:.8rem;letter-spacing:.25em;text-transform:uppercase;
+    color:var(--acc);margin-bottom:1.2rem}
+  h1{font-size:clamp(2.2rem,5.5vw,4.2rem);font-weight:800;line-height:1.02;letter-spacing:-.02em}
+  h2{font-size:clamp(1.6rem,3.6vw,2.7rem);font-weight:750;line-height:1.08;letter-spacing:-.015em;
+    margin-bottom:1.6rem}
+  h2 .em{color:var(--acc)}
+  h2 .hot{color:var(--hot)}
+  p{font-size:clamp(1rem,1.5vw,1.25rem);line-height:1.6;color:var(--dim);max-width:60ch}
+  p strong{color:var(--ink);font-weight:650}
+  .lead{font-size:clamp(1.15rem,2vw,1.5rem);color:var(--ink);max-width:54ch}
+  .sub{font-size:1.1rem;color:var(--faint);font-family:var(--mono);margin-top:1.4rem}
+
+  .grid{display:grid;gap:1rem;margin-top:1.6rem}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.3rem 1.4rem}
+  .card h3{font-size:1.05rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+  .card p{font-size:.98rem;max-width:none}
+  .card .tag{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+  .pull{border-left:3px solid var(--acc2)}
+  .push{border-left:3px solid var(--acc)}
+
+  table{width:100%;border-collapse:collapse;margin-top:1.4rem;font-size:clamp(.85rem,1.3vw,1.05rem)}
+  th,td{text-align:left;padding:.62rem .8rem;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  td .sym{color:var(--hot);font-weight:600}
+  td .real{color:var(--ok)}
+  tr td:first-child{color:var(--ink);font-weight:600}
+
+  .big{font-family:var(--mono);font-size:clamp(2.4rem,7vw,5rem);font-weight:800;
+    background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;
+    background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+  .quote{font-size:clamp(1.4rem,3vw,2.3rem);font-weight:700;line-height:1.25;max-width:24ch;
+    letter-spacing:-.01em;color:var(--ink)}
+  .quote .hot{color:var(--hot)}
+  .quote .ok{color:var(--ok)}
+
+  .pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+  .pill{font-family:var(--mono);font-size:.8rem;padding:.4rem .8rem;border:1px solid var(--line);
+    border-radius:999px;color:var(--dim);background:var(--bg2)}
+  .pill.on{color:var(--acc);border-color:var(--acc)}
+
+  .flow{display:flex;align-items:stretch;gap:.6rem;margin-top:1.6rem;flex-wrap:wrap}
+  .step{flex:1;min-width:130px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:1rem;position:relative}
+  .step .n{font-family:var(--mono);font-size:.72rem;color:var(--acc)}
+  .step h4{font-size:1rem;margin:.3rem 0 .2rem}
+  .step p{font-size:.82rem;max-width:none}
+  .step.key{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+
+  code,.code{font-family:var(--mono)}
+  .codebox{background:#080c12;border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.3rem;
+    margin-top:1.3rem;font-family:var(--mono);font-size:clamp(.74rem,1.15vw,.95rem);line-height:1.65;
+    color:var(--dim);overflow:auto}
+  .codebox .k{color:var(--acc2)} .codebox .s{color:var(--ok)} .codebox .c{color:var(--faint)}
+  .codebox .h{color:var(--hot)} .codebox .a{color:var(--acc)}
+
+  .trap{background:linear-gradient(180deg,rgba(255,82,82,.06),transparent);
+    border:1px solid rgba(255,82,82,.25)}
+  .trap h3{color:var(--hot)}
+
+  /* progress + chrome */
+  #bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));
+    width:0;transition:width .4s ease;z-index:10}
+  #counter{position:fixed;bottom:1.4rem;right:1.8rem;font-family:var(--mono);font-size:.8rem;
+    color:var(--faint);z-index:10}
+  #counter b{color:var(--ink)}
+  #hint{position:fixed;bottom:1.4rem;left:1.8rem;font-family:var(--mono);font-size:.74rem;
+    color:var(--faint);z-index:10}
+  #dots{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;gap:.4rem;z-index:10}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--line);cursor:pointer;transition:.3s}
+  .dot.on{background:var(--acc);width:20px;border-radius:4px}
+  .footer{position:absolute;bottom:6vh;left:8vw;font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+  .glow{position:fixed;width:60vw;height:60vw;border-radius:50%;filter:blur(120px);opacity:.10;
+    background:radial-gradient(circle,var(--acc2),transparent 60%);top:-20vw;right:-15vw;z-index:-1;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div class="glow"></div>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide active">
+    <div class="stagger">
+      <div class="kicker">LatencyGuard · Product Direction · 2026-05-30</div>
+      <h1>From toolbox<br>to diagnostician.</h1>
+      <p class="sub">What a single boot-freeze RCA revealed about what this product<br>actually is — and what it should become.</p>
+    </div>
+    <div class="footer">A working session, not a pitch. Argue with every slide.</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The case</div>
+      <h2>"My computer froze<br>on the last boot."</h2>
+      <div class="grid g3">
+        <div class="card"><h3>What was claimed</h3><p>A boot failure. User points at startup.</p></div>
+        <div class="card"><h3>What happened</h3><p>An <strong>idle hard-hang at 10:19</strong> — mid-session, hours after a clean boot. Not boot at all.</p></div>
+        <div class="card"><h3>Root cause</h3><p><code>nvlddmkm</code> GPU-driver DPC stalled the watchdog. Confirmed by <strong>decoding the dump</strong>, then verified the P0 fix held.</p></div>
+      </div>
+      <p class="sub">eventlog + WinDbg + nvidia-smi + pnputil + 90 days of memory → one verdict.</p>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The meta-pattern</div>
+      <h2>The symptom is <span class="hot">almost always wrong</span><br>about the cause.</h2>
+      <table>
+        <tr><th>User said</th><th>Real cause</th><th>What they couldn't see</th></tr>
+        <tr><td>"Network lag" (5/20)</td><td class="sym">Hyper-V / VBS interrupt tax</td><td>CPU 0 DPC crept to 4–5%</td></tr>
+        <tr><td>"Mouse stutter" (4/23)</td><td class="sym">Background GPU saturation</td><td>46.8% CPU 0 DPC, nvlddmkm+dxgkrnl</td></tr>
+        <tr><td>"Froze on boot" (5/30)</td><td class="sym">Idle GPU-driver DPC hang</td><td>scheduler stop, no dump, mid-session</td></tr>
+        <tr><td>"Bugcheck" (5/11)</td><td class="sym">0x133 DPC_nvlddmkm</td><td>same family, different month</td></tr>
+      </table>
+      <p class="sub">The real cause is repeatedly a per-CPU-0 DPC/driver issue invisible to the user. <strong>That gap is the product.</strong></p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The uncomfortable truth</div>
+      <div class="quote">The most valuable hour LatencyGuard ever produced <span class="hot">routed around the entire app.</span></div>
+      <p style="margin-top:1.6rem">No dashboard. No 41-check audit. No diagnose dispatcher. Hand-written PowerShell and a debugger installed mid-session.</p>
+      <p><strong>That's not a gap to backfill. It's the product telling you where its value lives.</strong></p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Two products in one trenchcoat</div>
+      <h2>You've been building <span class="em">pull</span>.<br>Every war story is <span class="em">push</span>.</h2>
+      <div class="grid g2">
+        <div class="card pull"><h3>PULL — the curious operator</h3><p>Monitor dashboard, audit, experiment archive. You go look when calm and bored. <span class="tag">Built. Polished. Rarely the thing that cracks a case.</span></p></div>
+        <div class="card push"><h3>PUSH — the incident responder</h3><p>Dead machine, need a verdict now. <span class="tag">4/23 · 5/11 · 5/20 · 5/30 — every real incident. Had no home in the app.</span></p></div>
+      </div>
+      <p class="sub">Decision made: build toward <strong>B — the installed sentinel</strong> that catches the pattern over months.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Kill the comforting lie</div>
+      <h2>The moat is <span class="hot">not</span> decoding dumps.</h2>
+      <p>WhoCrashed, BlueScreenView, NirSoft — they've run <code>!analyze</code> and printed the faulting module for 15 years. "Decode the dump for normies" is a 2010 product.</p>
+      <div class="grid g3">
+        <div class="card"><h3>They see one file</h3><p>You reconstructed the freeze <strong>from the sibling dump</strong> — because the freeze left no body.</p></div>
+        <div class="card"><h3>They see one moment</h3><p>You connected <strong>04-11 → 05-11 → 05-30</strong> as one nvlddmkm family across months.</p></div>
+        <div class="card"><h3>They stop at the verdict</h3><p>You decoded → fixed → <strong>verified P0 held 12/12</strong>. The loop, not the snapshot.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The real moat</div>
+      <h2>Judgment over a broad<br><span class="em">instrument ensemble.</span></h2>
+      <p>Two things, together, that no commodity tool has:</p>
+      <div class="grid g2">
+        <div class="card"><h3>① The judgment layer</h3><p>Symptom-truth &gt; config-truth. Per-CPU &gt; _Total. Reconstruct from siblings when the body's missing. Absence is evidence. <span class="tag">Today this was literally the model reasoning in context.</span></p></div>
+        <div class="card"><h3>② The instrument breadth</h3><p>A sensor for <strong>every layer</strong> — CPU/DPC, GPU/frametime, storage, network/WiFi, firmware, thermals. Few tools span all of it. <span class="tag">WPR · xperf · CapFrameX · Wireshark · nvidia-smi · ProcMon · HWiNFO · SCEWIN</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The ensemble, made literal</div>
+      <h2>Every layer already<br>has a sensor.</h2>
+      <table>
+        <tr><th>Layer</th><th>Instruments</th><th>Signals</th></tr>
+        <tr><td>CPU / DPC</td><td>perf counters · WPR · xperf</td><td>cpu0_dpc_pct, dpc_isr_attribution</td></tr>
+        <tr><td>GPU / frames</td><td>CapFrameX · PresentMon · nvidia-smi · Nsight</td><td>frametime_hitch, pstate, gpu_util</td></tr>
+        <tr><td>Network / WiFi</td><td>Wireshark · pktmon · ping</td><td>retransmit, rtt, link_drop</td></tr>
+        <tr><td>Storage</td><td>ProcMon · Storport</td><td>io_duration, cache_latency</td></tr>
+        <tr><td>Firmware / thermal</td><td>SCEWIN · HWiNFO</td><td>bios_setting, rail_voltage</td></tr>
+        <tr><td>Post-mortem</td><td>WinDbg · Event Log</td><td>dpc_watchdog, dirty_shutdown, log_silence</td></tr>
+      </table>
+      <p class="sub">The strength is breadth. The weakness is they don't talk to each other.</p>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The blunt diagnosis</div>
+      <div class="quote">You don't have an ensemble.<br>You have <span class="hot">a pile.</span></div>
+      <p style="margin-top:1.6rem">145 scripts, 8 views, 41 checks — each emits its own format, into its own file, read by a human who holds the correlation in their head.</p>
+      <p><strong>"Tools don't work together" and "analysis isn't there yet" are the same problem:</strong> there's no shared substrate for analysis to run on. Analysis can't see across tools that don't speak a common language.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">The keystone</div>
+      <h2>Build the <span class="em">evidence bus</span> first.</h2>
+      <p>One typed, timestamped, append-only timeline. Every instrument writes findings as rows. Correlation stops being your brain and becomes a query.</p>
+      <div class="codebox">
+<span class="c">// one row = one observation from one instrument at one instant</span>
+{ ts, source, subsystem, signal, severity,
+  value, <span class="a">faulting_module</span>, <span class="a">cpu</span>, confidence,
+  <span class="k">evidence_kind</span>: <span class="s">"observed"</span> | <span class="s">"inferred"</span> | <span class="h">"absent"</span>,
+  raw_ref, incident_id, <span class="k">links</span>:[row_id] }
+      </div>
+      <p class="sub"><strong>evidence_kind has three states</strong> — because the 6-min logging silence was the most diagnostic fact in the case. Absence must be storable.</p>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Proof on paper</div>
+      <h2>05-30 + 05-11 as rows.<br>The hard cases hold.</h2>
+      <div class="codebox">
+<span class="c">// 05-11 — dump exists</span>
+{ signal:<span class="s">"dpc_watchdog"</span>, faulting_module:<span class="h">"nvlddmkm"</span>,
+  evidence_kind:<span class="s">"observed"</span>, raw_ref:"dump_0x133...", id:<span class="a">"a2"</span> }
+
+<span class="c">// 05-30 — NO dump. absence + inference-by-link</span>
+{ signal:<span class="s">"log_silence"</span>, evidence_kind:<span class="h">"absent"</span>, value:{duration_s:349} }
+{ signal:<span class="s">"dirty_shutdown"</span>, value:{kp41_bugcheck:<span class="h">0</span>}, evidence_kind:"observed" }
+{ signal:<span class="s">"dpc_watchdog_hang"</span>, evidence_kind:<span class="k">"inferred"</span>,
+  confidence:<span class="a">0.7</span>, faulting_module:<span class="h">"nvlddmkm"</span>, <span class="k">links</span>:[<span class="a">"a2"</span>] }
+      </div>
+      <p class="sub">Cross-month join = <code>GROUP BY faulting_module</code> → nvlddmkm × 3. The pattern is now a query, not a memory.</p>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Reframe what you already run</div>
+      <h2>The collector is a<br><span class="em">flight recorder</span>, not a feed.</h2>
+      <div class="grid g2">
+        <div class="card"><h3 class="tag">TODAY</h3><p><code>monitor_collector.ps1</code> writes a snapshot every 2s so a dashboard can draw a pretty heatmap nobody's watching at 10:19.</p></div>
+        <div class="card push"><h3 class="tag">SHOULD BE</h3><p>Appends typed evidence to the bus 24/7, so when something dies, <strong>the last 10 minutes are already on disk.</strong> The freeze had a body only by Windows' luck. Stop relying on luck.</p></div>
+      </div>
+      <p class="sub">Same process, every 2s. It's writing to the wrong target.</p>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Build order — and why</div>
+      <h2>Bus first. Brains second.</h2>
+      <div class="flow">
+        <div class="step key"><div class="n">01</div><h4>Evidence bus</h4><p>~16 signals, append-only store. The substrate.</p></div>
+        <div class="step key"><div class="n">02</div><h4>Flight recorder</h4><p>Collector → bus, 24/7.</p></div>
+        <div class="step"><div class="n">03</div><h4>Adapters</h4><p>Wrap the 6 tools that crack most cases as producers.</p></div>
+        <div class="step"><div class="n">04</div><h4>Correlator</h4><p>Query + LLM over the timeline.</p></div>
+        <div class="step"><div class="n">05</div><h4>Verdict UI</h4><p>"What killed my PC" + the evidence chain.</p></div>
+      </div>
+      <p class="sub">The LLM analysis you're excited about is <strong>20% of the value, 100% dependent on the boring 80%.</strong> Resist building it first.</p>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Two traps on the road to B</div>
+      <h2>Where expert tools<br>go to die.</h2>
+      <div class="grid g2">
+        <div class="card trap"><h3>① Liability for strangers' machines</h3><p>Today's fixes wrote CrashControl, deleted a driver, flipped power modes. On <em>your</em> rig: fine. On a stranger's: "the app killed my display." <strong>Split read from write</strong> — verdict for all, remediation gated &amp; reversible.</p></div>
+        <div class="card trap"><h3>② Your data is n = 1</h3><p>Every pattern is <em>your</em> 9800X3D + 5070 Ti. The cross-time correlator — your best feature — is <strong>worth nothing on day one</strong> for a new user. Cold-start is real.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Riskiest assumption — and the cheap test</div>
+      <h2>Is the signal vocabulary<br><span class="em">small &amp; stable?</span></h2>
+      <p>The bus only stabilizes if the diagnostic vocabulary is finite. Union across the last 6 RCAs:</p>
+      <div class="pills">
+        <span class="pill on">dpc_watchdog</span><span class="pill on">dirty_shutdown</span><span class="pill on">cpu0_dpc</span>
+        <span class="pill on">pstate_sample</span><span class="pill">whea_error</span><span class="pill">log_silence</span>
+        <span class="pill">driverstore_state</span><span class="pill">storport_perf</span><span class="pill">hypervisor/vbs</span>
+        <span class="pill">kernel_power_109</span><span class="pill">ping_rtt/jitter</span><span class="pill">gpu_util</span>
+        <span class="pill">minifilter_alt</span><span class="pill">link_drop</span><span class="pill">bios_setting</span><span class="pill">frametime_hitch</span>
+      </div>
+      <p class="sub"><strong>~16 types, ~9 subsystems, the recurring few are the spine of nearly every case.</strong> Under the 20 threshold → assumption holds → safe to build.</p>
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Where this lands</div>
+      <h2>The product, restated.</h2>
+      <p class="lead">LatencyGuard isn't a PowerShell app with an LLM bolted on. It's a <strong>broad Windows-forensics collector + a reasoning layer + a verdict UI.</strong></p>
+      <p>The 145 scripts are the moat <strong>as a sensor array</strong>, not as a diagnostician. The instruments give breadth across every layer; the bus makes them speak one language; the reasoning layer does — reproducibly — what took a human-plus-model an hour today.</p>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide">
+    <div class="stagger">
+      <div class="kicker">Next step</div>
+      <h2>One artifact de-risks<br>the whole direction.</h2>
+      <div class="grid g2">
+        <div class="card push"><h3 class="real">✓ Done in this session</h3><p>Evidence schema, retro-fitted to the 05-30 freeze + 05-11 dump. The hard cases — cross-month join, absence-as-evidence, inference-by-link — all represent cleanly.</p><p class="tag">docs/evidence-bus-schema.md</p></div>
+        <div class="card"><h3>→ Then</h3><p>Repoint the collector at the bus (flight recorder). Wrap the 6 core tools as producers. Point a model at the clean timeline.</p></div>
+      </div>
+      <p class="sub">Build the bus. Everything you want becomes a query or a prompt on top of it — and impossible without it.</p>
+    </div>
+  </section>
+
+</div>
+
+<div id="dots"></div>
+<div id="counter"><b>01</b> / 17</div>
+<div id="hint">← → / space · F fullscreen</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const dots=document.getElementById('dots');
+  const bar=document.getElementById('bar');
+  const counter=document.getElementById('counter');
+  let i=0;
+  slides.forEach((_,n)=>{const d=document.createElement('div');d.className='dot';d.onclick=()=>go(n);dots.appendChild(d)});
+  const dotEls=[...dots.children];
+  function go(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    dotEls.forEach((d,k)=>d.classList.toggle('on',k===i));
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.innerHTML='<b>'+String(i+1).padStart(2,'0')+'</b> / '+slides.length;
+  }
+  function next(){go(i+1)} function prev(){go(i-1)}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
+    else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  });
+  let sx=0;
+  document.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+  document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50)dx<0?next():prev()},{passive:true});
+  document.getElementById('stage').addEventListener('click',e=>{if(e.target.closest('.dot'))return;if(e.clientX>innerWidth*0.5)next();else prev()});
+  go(0);
+</script>
+</body>
+</html>
