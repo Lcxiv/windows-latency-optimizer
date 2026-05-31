@@ -124,5 +124,8 @@ captures/registry_watchdog/
 # User-local Defender exclusions (contains machine-specific paths)
 config/defender_exclusions.txt
 
+# Evidence bus — runtime timeline (machine-specific, regenerated continuously)
+captures/evidence/
+
 # If you want to exclude large CSVs from the repo, uncomment:
 # captures/*.csv

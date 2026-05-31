@@ -58,6 +58,7 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\helpers\monitor-processes.ps1"
 . "$PSScriptRoot\helpers\monitor-xperf.ps1"
 . "$PSScriptRoot\helpers\monitor-network.ps1"
+. "$PSScriptRoot\helpers\monitor-evidence.ps1"   # flight-recorder: typed rows -> evidence bus (additive)
 
 # ─── Resolve output directory ─────────────────────────────────────────────────
 $monitorDataDir = Join-Path $script:ProjectRoot 'monitor'
@@ -220,6 +221,10 @@ try {
 
         # ── Write outputs ─────────────────────────────────────────────────────
         Write-Snapshot $snapshot
+
+        # ── Flight recorder: append typed evidence rows (additive; never breaks the cycle) ──
+        try { [void](Add-CounterEvidence -CounterData $counterData -NetworkData $networkData) }
+        catch { Write-Warning ('[evidence] row emit failed: ' + $_.Exception.Message) }
 
         # Build minimal network history (keep footprint small)
         $netHist = $null
