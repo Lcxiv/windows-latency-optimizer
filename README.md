@@ -7,8 +7,8 @@ This project does it the other way around: capture first, change second, measure
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2011-0078D4)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE)
-![Tests](https://img.shields.io/badge/Tests-815%20passing-10b981)
-![Scripts](https://img.shields.io/badge/Scripts-145%20parse--clean-a78bfa)
+![Tests](https://img.shields.io/badge/Tests-786%20passing-10b981)
+![Scripts](https://img.shields.io/badge/Scripts-171%20parse--clean-a78bfa)
 
 > See [`docs/case-study.md`](docs/case-study.md) for the full project narrative — hypothesis, method, measured results — or open [`docs/slides/index.html`](docs/slides/index.html) for the slide-deck version.
 
@@ -21,7 +21,8 @@ This project does it the other way around: capture first, change second, measure
 | Capture | `scripts/pipeline.ps1` | Runs WPR + xperf + perf counters + GPU sensors + (optional) PresentMon in one call. Writes a self-contained directory with raw traces, parsed JSON, and a rollback-ready registry backup. |
 | Audit | `scripts/audit.ps1` + `scripts/audit-checks/*.ps1` | 41 checks across 9 categories (OS, GPU, DWM, latency, memory, network, NIC, peripheral, helpers). Each check has a current/expected value, severity, plain-English message, and optional fix command. |
 | Triage | `scripts/diagnose.ps1` | 3-layer dispatcher. Maps symptom keywords ("mouse stutter", "frame drops", "general sluggishness") to the matching audit subset and capture chain. |
-| Live monitor | `monitor/` | Vanilla-JS dashboard. 8 views including a Command Center. Reads JSON snapshots written by `scripts/monitor_collector.ps1` every 2 seconds. No build step. |
+| Live monitor | `monitor/` | Vanilla-JS dashboard. 9 views including a Command Center and a Verdict view. Reads JSON snapshots written by `scripts/monitor_collector.ps1` every 2 seconds. No build step. |
+| Evidence bus | `scripts/helpers/evidence-bus.ps1` + `scripts/evidence_correlate.ps1` | Typed, append-only timeline of what each subsystem observed (and, just as usefully, what it *didn't*). The correlator reads the timeline and the Verdict view renders it — recurring faulting module, symptom-vs-cause misdirection, per-incident event chains. |
 | Archive | `dashboard/` | Static experiment archive. Chart.js comparison view across the 22 numbered experiments. |
 | Rollback | `scripts/rollback.ps1` + every `backup_pre_*.txt` | Every registry write captures its own restore command. `-WhatIf` for dry runs. |
 | Startup guard | `scripts/startup_guard.ps1` | Re-verifies optimizations at logon and auto-fixes Windows-Update drift (e.g. USB EPM, MSI mode, affinity masks). |
@@ -145,7 +146,7 @@ npx serve dashboard -l 3847
 
 Three layers:
 
-1. **Capture (PowerShell 5.1)** — 145 scripts. No external runtime. WMI, registry, ETW, and perf counters via native APIs.
+1. **Capture (PowerShell 5.1)** — 171 scripts. No external runtime. WMI, registry, ETW, and perf counters via native APIs.
 2. **Storage (filesystem)** — `captures/experiments/<label>_<ts>/`. Each is self-contained. No database. `git log` is the journal.
 3. **Visualization (HTML + Chart.js)** — `monitor/` live, `dashboard/` archive. Both run from `file://`. Chart.js loads from CDN with a local fallback in `lib/`.
 
@@ -283,7 +284,7 @@ Domain agents (`@dpc`, `@gpu`, `@net`, `@system`, `@capture`, `@triage`) wrap th
 
 ```
 windows-latency-optimizer/
-├── scripts/                    # 145 PowerShell scripts (capture, audit, fix, rollback)
+├── scripts/                    # 171 PowerShell scripts (capture, audit, fix, rollback)
 │   ├── pipeline.ps1            # Full capture (WPR + xperf + perf + GPU)
 │   ├── audit.ps1               # 41-check audit orchestrator
 │   ├── audit-checks.ps1        # Loader — dot-sources audit-checks/*.ps1
@@ -297,8 +298,8 @@ windows-latency-optimizer/
 ├── monitor/                    # Canonical live UI (vanilla JS + Chart.js)
 │   ├── index.html              # Shell
 │   ├── monitor.{css,js}        # Core styles + view router
-│   ├── views/                  # 8 view modules incl. command-center.{js,css}
-│   ├── data/                   # snapshot.js + history.js (collector output)
+│   ├── views/                  # 9 view modules incl. verdict.js + command-center.{js,css}
+│   ├── data/                   # snapshot.js + history.js + evidence_latest.js (collector + correlator output)
 │   └── lib/chart.umd.min.js    # Offline fallback
 ├── dashboard/                  # Experiment archive (static, file://)
 │   ├── index.html
@@ -316,7 +317,7 @@ windows-latency-optimizer/
 │   ├── tools-glossary.md       # Diagnostic tool reference
 │   ├── history/                # Retired artifacts (e.g. Tauri app summary)
 │   └── wiki/                   # Research notes + reference docs
-├── tests/                      # Pester (12 suites · 768 tests) + Node assert (47 tests)
+├── tests/                      # Pester (12 suites · 786 tests) + Node assert (47 tests)
 ├── config/
 │   └── defender_exclusions.txt # Local-only Defender exclusion list (gitignored)
 └── .claude/
@@ -333,7 +334,7 @@ windows-latency-optimizer/
 # Parse-check all PS scripts + WPR profile XML
 .\scripts\test-all.ps1
 
-# Run Pester suites (768 tests across 12 files)
+# Run Pester suites (786 tests across 12 files)
 Invoke-Pester -Path tests
 
 # Run JS dashboard tests

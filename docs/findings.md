@@ -181,3 +181,15 @@ PnP re-enum · thermal throttle · sleep/wake · Defender scan · Razer Synapse 
 - [`~/.claude/plans/deep-research-latency-optimization-20260423.md`](../../../.claude/plans/deep-research-latency-optimization-20260423.md) — 20 cited sources
 - [`~/.claude/plans/deep-test-report-20260423.md`](../../../.claude/plans/deep-test-report-20260423.md)
 - `captures/experiments/20260423_085432_DEEP_TEST_20260423/` — raw pipeline output
+
+---
+
+## Addendum — May/June 2026
+
+The findings above cover the steady-state optimization work (March–April). Two later incidents are tracked through the evidence bus rather than this doc, but belong in the record:
+
+- **Boot freeze (5/30)** — idle hard-hang, no dump on first occurrence. Crash-capture was enabled (P1) and the next dump decoded to `0x133_DPC_nvlddmkm` — an NVIDIA DPC watchdog violation. Root cause matched the original CPU 0 / GPU-DPC theme, one driver generation later.
+- **Black screen at 6pm (INC-20260530-1800)** — presented as a network drop, resolved to CPU 0 DPC saturation. Status: degraded; reviewer pass blocked on an external service outage, not an unaddressed finding.
+- **GPU driver state** — an RTX 5070 Ti DDU sweep left the system on the Microsoft Basic Display Adapter for a stretch; a clean reinstall restored `nvlddmkm` (service running, `nvidia-smi` on PATH, device OK as of 2026-06-03).
+
+Live incident detail now lives in the Verdict view (`monitor/data/evidence_latest.js`) and the daily evidence JSONL, not here. See [docs/ddu-reinstall-plan.md](ddu-reinstall-plan.md) and the case-study's section 7.

@@ -270,7 +270,21 @@ This shape — diagnosis tool that produces actionable findings with reversal co
 
 ---
 
-## 7. References
+## 7. 2026 update — from optimizer to forensics
+
+The original project optimized a system. The version running now investigates one.
+
+Two incidents in May 2026 changed the shape of the tool. A boot-time hard freeze (no crash dump the first time) and a black-screen-at-6pm event both started as the wrong diagnosis. The freeze *felt* like an NVIDIA driver fault and turned out to be one — but only a dump decode confirmed it (`0x133_DPC_nvlddmkm`), and the path there wandered through audio drivers and DWM first. The 6pm black screen looked like a network drop and was actually CPU 0 DPC saturation. The pattern repeated often enough to name it: what a problem *feels* like and what it *is* sit in different subsystems, and the gap between them is where time gets lost.
+
+So the project grew an evidence layer. Each subsystem now writes typed rows to an append-only timeline (`captures/evidence/*.jsonl`) — DPC spikes, network verdicts, faulting modules, and, deliberately, *absences* (a six-minute logging gap before a freeze is itself a clue). A correlator (`scripts/evidence_correlate.ps1`) reads the timeline and answers three questions across time: which faulting module keeps recurring, where symptom and cause diverged, and what the full event chain for a given incident was. The **Verdict view** in the monitor renders that — the first screen that states a conclusion instead of asking the viewer to derive one.
+
+The Tauri desktop binary was retired in this same window (see the naming note in the README). It was scope creep on top of a pipeline that already produced HTML. The monitor's nine views — Heatmap through Verdict — cover what the desktop app did, from `file://`, with no build step.
+
+Hardware footnote: the RTX 5070 Ti ran on the Microsoft Basic Display Adapter for part of this period after a DDU sweep, then a clean driver reinstall restored it. The procedure is written up in [docs/ddu-reinstall-plan.md](ddu-reinstall-plan.md).
+
+---
+
+## 8. References
 
 | | |
 |---|---|

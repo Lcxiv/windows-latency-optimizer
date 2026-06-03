@@ -142,3 +142,17 @@ monitor/*.png
 captures/**/*.dmp
 
 captures/**/dump_*_analyze.txt
+
+# Incident / RCA investigation branches (machine-specific, regenerated per investigation)
+captures/inc_*/
+captures/pre_ddu_*/
+captures/network/
+captures/network_longrun_*.csv
+captures/nic_buffers_*.txt
+captures/**/gpu_remediation_backup_*.txt
+
+# Nested ad-hoc HTML research reports (root /*.html only covers top level)
+captures/**/*.html
+
+# Plan-reviewer status scratch (regenerated per plan iteration)
+.plan-review-status.json
