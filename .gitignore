@@ -156,3 +156,7 @@ captures/**/*.html
 
 # Plan-reviewer status scratch (regenerated per plan iteration)
 .plan-review-status.json
+
+# GPU soak-watch runtime status (machine-specific, regenerated each run)
+captures/soak_watch_gpu.json
+captures/soak_display_events.json
