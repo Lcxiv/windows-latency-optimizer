@@ -21,7 +21,7 @@ This project does it the other way around: capture first, change second, measure
 | Capture | `scripts/pipeline.ps1` | Runs WPR + xperf + perf counters + GPU sensors + (optional) PresentMon in one call. Writes a self-contained directory with raw traces, parsed JSON, and a rollback-ready registry backup. |
 | Audit | `scripts/audit.ps1` + `scripts/audit-checks/*.ps1` | 41 checks across 9 categories (OS, GPU, DWM, latency, memory, network, NIC, peripheral, helpers). Each check has a current/expected value, severity, plain-English message, and optional fix command. |
 | Triage | `scripts/diagnose.ps1` | 3-layer dispatcher. Maps symptom keywords ("mouse stutter", "frame drops", "general sluggishness") to the matching audit subset and capture chain. |
-| Live monitor | `monitor/` | Vanilla-JS dashboard. 9 views including a Command Center and a Verdict view. Reads JSON snapshots written by `scripts/monitor_collector.ps1` every 2 seconds. No build step. |
+| Live monitor | `monitor/` | Verdict-first forensics app (vanilla JS). Lands on the cause in plain English, with a live DPC/GPU telemetry rail and a one-click fix. Reads JSON snapshots written by `scripts/monitor_collector.ps1` every 2 seconds. The earlier 9-view expert shell is kept at `monitor/classic.html`. No build step. |
 | Evidence bus | `scripts/helpers/evidence-bus.ps1` + `scripts/evidence_correlate.ps1` | Typed, append-only timeline of what each subsystem observed (and, just as usefully, what it *didn't*). The correlator reads the timeline and the Verdict view renders it — recurring faulting module, symptom-vs-cause misdirection, per-incident event chains. |
 | Archive | `dashboard/` | Static experiment archive. Chart.js comparison view across the 22 numbered experiments. |
 | Rollback | `scripts/rollback.ps1` + every `backup_pre_*.txt` | Every registry write captures its own restore command. `-WhatIf` for dry runs. |
@@ -295,10 +295,12 @@ windows-latency-optimizer/
 │   ├── startup_guard.ps1       # Logon-time drift detection + auto-fix
 │   ├── helpers/                # Shared modules (logging, capture-core, ...)
 │   └── exp*.ps1                # Individual experiment apply scripts
-├── monitor/                    # Canonical live UI (vanilla JS + Chart.js)
-│   ├── index.html              # Shell
-│   ├── monitor.{css,js}        # Core styles + view router
-│   ├── views/                  # 9 view modules incl. verdict.js + command-center.{js,css}
+├── monitor/                    # Canonical live UI — Flight Recorder (vanilla JS)
+│   ├── index.html              # Flight Recorder shell (verdict-first app)
+│   ├── app.{css,js}            # Styles + view router + live data binding
+│   ├── classic.html            # Prior 9-view expert shell (preserved)
+│   ├── monitor.{css,js}        # Classic styles + router (used by classic.html)
+│   ├── views/                  # Classic view modules incl. verdict.js + command-center.{js,css}
 │   ├── data/                   # snapshot.js + history.js + evidence_latest.js (collector + correlator output)
 │   └── lib/chart.umd.min.js    # Offline fallback
 ├── dashboard/                  # Experiment archive (static, file://)
