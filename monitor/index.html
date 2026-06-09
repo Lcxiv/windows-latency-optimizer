@@ -1,74 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Latency Monitor — Real-Time</title>
-  <!-- Fonts: JetBrains Mono + Geist (matches dashboard/) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Chart.js pinned to 4.4.0. Local fallback for offline/file:// use. -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script>window.Chart || document.write('<script src="lib/chart.umd.min.js"><\/script>')</script>
-  <link rel="stylesheet" href="monitor.css">
-  <link rel="stylesheet" href="views/command-center.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LatencyGuard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div class="app">
+  <header class="titlebar">
+    <div class="tb-id">
+      <svg class="mk" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="3.5" fill="oklch(0.80 0.155 142)"/><path d="M4.5 8.4l1.7 2.1L11 5.2" stroke="oklch(0.165 0.006 155)" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      LatencyGuard <span class="crumb" id="crumb">— Overview</span>
+    </div>
+    <div class="caption">
+      <button class="cbtn" aria-label="Minimize"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8"/></svg></button>
+      <button class="cbtn" aria-label="Maximize"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.2" y="2.2" width="7.6" height="7.6" rx="1"/></svg></button>
+      <button class="cbtn close" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
+    </div>
+  </header>
 
-<header>
-  <div class="header-left">
-    <h1>Latency <span>Monitor</span></h1>
-    <div class="header-subtitle">Real-Time System Diagnostics</div>
-  </div>
-  <div class="status-bar" id="statusBar">
-    <span class="collector-dot dead"></span> Initializing&hellip;
-  </div>
-</header>
+  <nav class="side" aria-label="Primary">
+    <div class="nav-l">Monitor</div>
+    <div class="nav" role="tablist" aria-orientation="vertical" aria-label="Monitor views">
+      <button role="tab" id="t-overview" aria-controls="overview" aria-selected="true" data-v="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg> Overview</button>
+      <button role="tab" id="t-incidents" aria-controls="incidents" aria-selected="false" tabindex="-1" data-v="incidents"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Incidents <span class="ct alert" id="nav-inc-ct">—</span></button>
+      <button role="tab" id="t-history" aria-controls="history" aria-selected="false" tabindex="-1" data-v="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg> History</button>
+    </div>
+    <div class="nav-l nav-l-gap">Subsystems</div>
+    <div class="nav" role="tablist" aria-orientation="vertical" aria-label="Subsystem views">
+      <button role="tab" id="t-gpu" aria-controls="gpu" aria-selected="false" tabindex="-1" data-v="gpu"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M7 14h3"/></svg> GPU &amp; Display</button>
+      <button role="tab" id="t-network" aria-controls="network" aria-selected="false" tabindex="-1" data-v="network"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19h.01"/></svg> Network</button>
+      <button role="tab" id="t-settings" aria-controls="settings" aria-selected="false" tabindex="-1" data-v="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5H10.5l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h3.9l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg> Settings</button>
+    </div>
+    <div class="side-foot"><span class="dot live" id="side-dot"></span> Recorder · <span id="rec-elapsed">--:--:--</span></div>
+  </nav>
 
-<nav class="nav-bar" id="navBar">
-  <!-- Rendered by monitor.js -->
-</nav>
+  <main class="main">
+    <h1 class="vh">LatencyGuard</h1>
 
-<main id="mainContent">
-  <div id="heatmapView"   style="display:none"></div>
-  <div id="timelineView"  style="display:none"></div>
-  <div id="processesView" style="display:none"></div>
-  <div id="driversView"   style="display:none"></div>
-  <div id="auditView"     style="display:none"></div>
-  <div id="networkView"   style="display:none"></div>
-  <div id="historyView"   style="display:none"></div>
-  <div id="commandView"   style="display:none"></div>
-  <div id="verdictView"   style="display:none"></div>
-</main>
+    <section id="overview" role="tabpanel" aria-labelledby="t-overview">
+      <div class="vhead"><span class="eyebrow">Overview</span><span class="meta" id="ov-meta">case —</span></div>
+      <div class="grid2">
+        <div class="col">
+          <div class="panel verdict-card">
+            <span class="sev" id="ov-sev"><span class="d"></span> <span id="ov-sev-t">Analyzing</span></span>
+            <h2 class="verdict" id="ov-verdict">Reading the recorder…</h2>
+            <div class="fvw" id="ov-fvw">
+              <div class="felt"><div class="cellh">What it felt like</div><div class="b" id="ov-felt">—</div></div>
+              <div class="arr">→</div>
+              <div class="was"><div class="cellh">What it actually was</div><div class="b" id="ov-was">—</div></div>
+            </div>
+            <p class="lede" id="ov-lede">Waiting for evidence from the correlator.</p>
+            <div class="facts" id="ov-facts">
+              <div class="fact"><div class="k">Window</div><div class="v" id="ov-window">—</div></div>
+              <div class="fact"><div class="k">Module</div><div class="v" id="ov-module">—</div></div>
+              <div class="fact"><div class="k">Hits</div><div class="v bad" id="ov-hits">—</div></div>
+              <div class="fact"><div class="k">Confidence</div><div class="v" id="ov-conf">—</div></div>
+            </div>
+            <div class="actions">
+              <button class="btn primary">Apply fix</button>
+              <button class="btn secondary">Run diagnostic</button>
+              <span class="undo-note">Restore point created first.</span>
+            </div>
+          </div>
 
-<footer>
-  <span>Collector: <code>scripts\monitor_collector.ps1</code></span>
-  <span class="sep">|</span>
-  <span>Auto-refresh: 2s</span>
-  <span class="sep">|</span>
-  <span><a href="../dashboard/index.html">Experiment Dashboard</a></span>
-</footer>
+          <div class="panel fixcard">
+            <div class="ttl"><h3>What the fix changes</h3><span class="est">~3 min · 1 reboot</span></div>
+            <div class="steps">
+              <div class="step"><span class="n">1</span><span>Reinstall a <b>clean GPU driver</b> (610.47), removing the corrupted copy</span></div>
+              <div class="step"><span class="n">2</span><span>Set the GPU to <b>max performance</b> so it can't drop power mid-game</span></div>
+              <div class="step"><span class="n">3</span><span>Watch for hangs over <b>7 days</b> to confirm it's gone</span></div>
+            </div>
+          </div>
 
-<!-- Data files — loaded at start, then refreshed every 2s via dynamic script tag -->
+          <div>
+            <div class="slab">Evidence chain <span class="r" id="ev-summary">—</span></div>
+            <div class="evt">
+              <div class="evhead"><span>Time</span><span>Event</span><span>What happened</span><span>Source</span><span></span></div>
+              <div id="ev-rows"></div>
+              <div class="evfoot"><span><i class="o"></i> observed — measured directly</span><span><i class="f"></i> inferred — derived from signals</span><span><i class="a"></i> absent — a telling gap</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <aside class="panel live" aria-label="Live telemetry">
+            <h3><span class="dot live"></span> Live · watching</h3>
+            <div class="metric">
+              <div class="top"><span class="lbl">DPC latency</span><span class="val" id="dpc-v" aria-live="polite">—<small>%</small></span></div>
+              <svg class="spark" viewBox="0 0 240 38" preserveAspectRatio="none" aria-hidden="true"><line class="thr" x1="0" y1="11" x2="240" y2="11"/><path class="area" id="dpc-area"/><path class="line" id="dpc-line"/><circle class="now" id="dpc-now" r="2.4" cx="240" cy="19"/></svg>
+              <div class="thr-l">1.0% = problem threshold</div>
+            </div>
+            <div class="metric">
+              <div class="top"><span class="lbl">Frame pacing</span><span class="val" id="fp-v" aria-live="polite">—<small>ms</small></span></div>
+              <div class="meter"><i id="fp-bar"></i></div>
+            </div>
+            <div class="engines">
+              <div class="eng"><span class="n">GPU</span><div class="meter"><i id="e-gpu"></i></div><span class="pct" id="p-gpu">—</span></div>
+              <div class="eng"><span class="n">CPU 0</span><div class="meter"><i id="e-cpu"></i></div><span class="pct" id="p-cpu">—</span></div>
+              <div class="eng"><span class="n">NIC</span><div class="meter"><i id="e-nic"></i></div><span class="pct" id="p-nic">—</span></div>
+            </div>
+          </aside>
+
+          <aside class="panel recd" aria-label="Recorder status">
+            <h3>Recorder</h3>
+            <div class="kv"><span class="k">Uptime</span><span class="v" id="rec-up">--:--:--</span></div>
+            <div class="kv"><span class="k">Host</span><span class="v" id="rec-host">—</span></div>
+            <div class="kv"><span class="k">Samples</span><span class="v" id="rec-samples">—</span></div>
+            <div class="kv"><span class="k">Interval</span><span class="v" id="rec-int">—</span></div>
+            <div class="checks" id="rec-checks"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="incidents" role="tabpanel" aria-labelledby="t-incidents" class="hidden">
+      <div class="vhead"><span class="eyebrow">Incidents</span><span class="meta" id="inc-meta">—</span></div>
+      <div class="ilist" id="inc-list"></div>
+      <div class="slab slab-gap">Symptom vs. cause</div>
+      <div class="sxc" id="inc-sxc">
+        <div class="sxc-r sxc-h"><div>What it felt like</div><div>What it actually was</div><div>Conf.</div></div>
+      </div>
+    </section>
+
+    <section id="history" role="tabpanel" aria-labelledby="t-history" class="hidden">
+      <div class="vhead"><span class="eyebrow">History</span><span class="meta" id="hist-meta">—</span></div>
+      <div class="panel verdict-card">
+        <span class="sev ok"><span class="d"></span> Healthy</span>
+        <h2 class="verdict verdict-sm" id="hist-headline">Reading history…</h2>
+        <p class="lede" id="hist-lede">No GPU hangs, no driver faults, no stutters in the recorded window.</p>
+      </div>
+      <div class="slab slab-gap">Recent samples</div>
+      <div class="recent" id="hist-recent"></div>
+    </section>
+
+    <section id="gpu" role="tabpanel" aria-labelledby="t-gpu" class="hidden">
+      <div class="vhead"><span class="eyebrow">GPU &amp; Display</span><span class="meta">RTX 5070 Ti · driver 610.47</span></div>
+      <div class="empty">
+        <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h6M7 14h3"/></svg></div>
+        <h3>GPU telemetry is warming up</h3>
+        <p>Per-engine load, driver health, and display-pipeline checks appear here once the recorder has a full sample window.</p>
+        <div class="rows">
+          <div class="kv"><span class="k">Adapter</span><span class="v">RTX 5070 Ti</span></div>
+          <div class="kv"><span class="k">Driver</span><span class="v">610.47 · healthy</span></div>
+          <div class="kv"><span class="k">Link</span><span class="v">PCIe 5.0 ×16</span></div>
+          <div class="kv"><span class="k">DPC (nvlddmkm)</span><span class="v" id="gpu-dpc">— · nominal</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="network" role="tabpanel" aria-labelledby="t-network" class="hidden">
+      <div class="vhead"><span class="eyebrow">Network</span><span class="meta">I226-V · 2.5 GbE</span></div>
+      <div class="empty">
+        <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 19h.01"/></svg></div>
+        <h3 id="net-h">No network faults on record</h3>
+        <p>Link drops, packet loss, and latency-under-load are tracked continuously. Live readings come straight from the recorder.</p>
+        <div class="rows">
+          <div class="kv"><span class="k">Verdict</span><span class="v" id="net-verdict">—</span></div>
+          <div class="kv"><span class="k">Gateway RTT</span><span class="v" id="net-gw">—</span></div>
+          <div class="kv"><span class="k">External RTT</span><span class="v" id="net-ext">—</span></div>
+          <div class="kv"><span class="k">Loss</span><span class="v" id="net-loss">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings" role="tabpanel" aria-labelledby="t-settings" class="hidden">
+      <div class="vhead"><span class="eyebrow">Settings</span><span class="meta">v3 · driver 610.47</span></div>
+      <div class="empty">
+        <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8M4.6 9a1.6 1.6 0 0 0-.3-1.8"/></svg></div>
+        <h3>Settings</h3>
+        <p>Recorder cadence, fix policy, and rollback retention live here.</p>
+        <div class="rows">
+          <div class="kv"><span class="k">Recorder</span><span class="v" id="set-rec">on · —</span></div>
+          <div class="kv"><span class="k">Auto-fix</span><span class="v">ask first</span></div>
+          <div class="kv"><span class="k">Restore points</span><span class="v">keep last 10</span></div>
+          <div class="kv"><span class="k">Soak window</span><span class="v">7 days</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="status">
+    <span class="seg"><span class="dot live" id="st-dot"></span> <span id="st-rec">Recording</span></span><span class="sep"></span>
+    <span class="seg">DPC <span class="ok" id="st-dpc" aria-live="polite">—</span></span><span class="sep"></span>
+    <span class="seg" id="st-host-seg">Host <span id="st-host">—</span></span>
+    <span class="seg push">Last check <span id="st-last">—</span>s ago</span>
+  </footer>
+</div>
+
+<!-- Data globals: synchronous classic scripts, file:// compatible, no fetch.
+     Load order is load-bearing: snapshot, history, evidence — then app.js.
+     onerror="" so a missing data file degrades to an empty-state, never a crash. -->
 <script src="data/snapshot.js" onerror=""></script>
 <script src="data/history.js" onerror=""></script>
-<script src="data/diagnose_latest.js" onerror=""></script>
 <script src="data/evidence_latest.js" onerror=""></script>
-
-<!-- Core app -->
-<script src="monitor.js"></script>
-
-<!-- View modules — loaded with typeof guards in monitor.js so missing files are safe -->
-<script src="views/heatmap.js" onerror=""></script>
-<script src="views/timeline.js" onerror=""></script>
-<script src="views/processes.js" onerror=""></script>
-<script src="views/drivers.js" onerror=""></script>
-<script src="views/audit.js" onerror=""></script>
-<script src="views/network.js" onerror=""></script>
-<script src="views/history.js" onerror=""></script>
-<script src="views/command-center.js" onerror=""></script>
-<script src="views/verdict.js" onerror=""></script>
-
+<script src="app.js"></script>
 </body>
 </html>
