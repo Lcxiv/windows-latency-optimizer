@@ -12,7 +12,9 @@
   var REFRESH_INTERVAL_MS = 2000;   // matches collector 2s write cadence
   var STALE_THRESHOLD_MS = 10000;   // snapshot older than this => collector dead
   var SPARK_N = 48;                 // rolling DPC sparkline buffer length
-  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Motion reduction is handled in CSS (@media prefers-reduced-motion): the
+  // pulse + meter transitions are disabled there. The sparkline reflects real
+  // telemetry (informational, not decorative motion), so it always renders.
 
   /* ------------------------------------------------------------------ */
   /* tiny helpers                                                        */
